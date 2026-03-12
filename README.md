@@ -1,16 +1,54 @@
-# React + Vite
+# 🛡️ Sistema de Conscientização e Simulação de Phishing
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 📖 Descrição
+Este projeto consiste no desenvolvimento de um sistema de **simulação de ataques de phishing**, com o objetivo de avaliar o comportamento de usuários diante de e-mails suspeitos e promover a **conscientização sobre segurança da informação** por meio de conteúdos educativos.
 
-Currently, two official plugins are available:
+O sistema enviará **e-mails simulados 📧** contendo links ou anexos configuráveis para usuários previamente cadastrados. A partir das interações realizadas (cliques em links ou abertura de anexos), serão coletados dados que permitirão analisar a **vulnerabilidade dos usuários** a esse tipo de ataque.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Além disso, o sistema disponibilizará **conteúdos educativos 📚** voltados ao ensino da importância de evitar **riscos cibernéticos 💻⚠️**.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🎯 Objetivo
+Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **registrar o comportamento dos usuários** diante dessas mensagens.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ⚙️ Funcionalidades
+- 👤 Cadastro de destinatários (nome e e-mail)  
+- 🎣 Criação de campanhas de phishing simulado  
+- ✏️ Personalização de assunto, mensagem e anexos  
+- 📤 Envio automático de e-mails  
+- 🔎 Registro de cliques em links e abertura de anexos  
+- 📊 Visualização de dados para análise de comportamento dos usuários  
+
+---
+
+## 🛠 Tecnologias (previstas)
+
+**Front-end 🎨**
+- HTML  
+- CSS  
+- JavaScript  
+- React  
+- Vite  
+
+**Back-end ⚡**
+- Node.js  
+- React  
+- Vite  
+
+**Banco de Dados 🗄️**
+- MySQL  
+
+**Envio de E-mails 📧**
+- SMTP  
+
+---
+
+## 🚀 Resultados Esperados
+Espera-se que o sistema contribua para a **conscientização dos usuários sobre ataques de phishing**, além de permitir a aplicação de conhecimentos práticos relacionados a:
+
+- 💻 Desenvolvimento de software  
+- 🗄️ Banco de dados  
+- 🔐 Segurança da informação  
