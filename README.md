@@ -1,4 +1,20 @@
-# 🛡️ Sistema de Conscientização e Simulação de Phishing
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.png" />
+    <img alt="Nemo - Sistema de Conscientização e Simulação de Phishing" src="assets/logo-light.png" height="375">
+  </picture>
+  <br><br>
+
+  ![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow?logo=rocket&logoColor=white)
+  ![Versão](https://img.shields.io/badge/Versão-v0.0.1--alpha-blue?logo=git&logoColor=white)
+  ![Licença](https://img.shields.io/badge/Licença-CC%20BY--NC--ND%204.0-blue?logo=creativecommons&logoColor=white)
+
+  ![JavaScript](https://img.shields.io/badge/JavaScript-323330?logo=javascript&logoColor=F7DF1E)
+  ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
+  ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
+  ![MySQL](https://img.shields.io/badge/MySQL-005C84?logo=mysql&logoColor=white)
+</div>
 
 ## 📖 Descrição
 Este projeto consiste no desenvolvimento de um sistema de **simulação de ataques de phishing**, com o objetivo de avaliar o comportamento de usuários diante de e-mails suspeitos e promover a **conscientização sobre segurança da informação** por meio de conteúdos educativos.
