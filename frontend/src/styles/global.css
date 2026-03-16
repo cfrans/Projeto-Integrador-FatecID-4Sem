@@ -1,0 +1,33 @@
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #ffffff; /* a cor de todo o texto atualmente se encontra aqui */
+  background: #9c4040; /* cor header e footer */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: linear-gradient(180deg, #f8fafc 0%, #0f55ac 100%); /* cor background */
+}
+
+/* deixei cores bem aleatorias apenas para diferenciar a header e background */
+/* coloquei um gradient mas pode tirar qqr coisa */
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+/* estilos globais para o projeto, como fonte, cores, background etc.. 
+podem ser definidos aqui */
