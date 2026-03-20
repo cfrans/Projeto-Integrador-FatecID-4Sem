@@ -16,8 +16,8 @@ export default function Home() {
     <main className={styles.page}>
       <section className={`${styles.hero} ${styles.card}`}>
         <img className={styles.logo} src={logoNemo} alt="Logo do Nemo" />
-        <p className={styles.tag}>Nemo</p>
-        <h1>Sistema de Simulacao e Conscientizacao sobre Phishing</h1>
+        <p className={styles.tag}>Portal do Colaborador</p>
+        <h1>Treinamentos e Conscientizacao sobre Phishing</h1>
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
           Donec vitae purus laoreet lacus ullamcorper egestas non consequat risus. 
