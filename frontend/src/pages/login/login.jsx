@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/logo'
+import { Card, CardDescription } from '@/components/ui/card'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -24,41 +26,37 @@ export default function Login() {
       <section className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-400/30 shadow-2xl shadow-slate-950/60 backdrop-blur-xs lg:grid-cols-[1.2fr_1fr]">
         <aside className="grid content-between gap-8 bg-[linear-gradient(165deg,rgba(15,23,42,0.82)_0%,rgba(15,118,110,0.5)_100%),linear-gradient(120deg,#0b1729_0%,#0e2a3c_100%)] p-7 text-slate-200 sm:gap-5 sm:p-6">
           <div className="grid gap-4">
-            <p className="w-fit rounded-full border border-slate-400/35 bg-teal-500/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-teal-100">
-            Nemo Security Platform</p>
-            <h1 className='text-3xl font-bold'>Conscientizacao e Treinamento em Seguranca</h1>
-            <p className="text-blue-100">
-              Este acesso é destinado ao portal de treinamento, 
-              onde os colaboradores podem desenvolver suas habilidades 
-              por meio de trilhas de aprendizado.
-            </p>
-
-            <div className="mt-10 grid gap-4 rounded-xl border border-slate-400/25 bg-slate-900/35 p-4" aria-label="Fluxo de uso do portal">
-              <h3 className="text-sm text-slate-200">Como funciona </h3>
-              <ol className="grid list-none gap-2 p-0">
-                <li className="flex items-center gap-2 text-sm text-blue-100">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">1</span>
-                  <span>Entrar com credenciais corporativas</span>
-                </li>
-                <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
-                <li className="flex items-center gap-2 text-sm text-blue-100">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">2</span>
-                  <span>Realizar treinamentos e simulacoes</span>
-                </li>
-                <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
-                <li className="flex items-center gap-2 text-sm text-blue-100">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">3</span>
-                  <span>Acompanhar evolucao e indicadores</span>
-                </li>
-              </ol>
+            <div className="flex items-center justify-center">
+              <Logo className="w-32 h-32 justify-center" />
             </div>
+
+            <CardDescription className="text-slate-300">
+              <div className="mt-10 grid gap-4 rounded-xl border justify-center justify-items-center border-slate-400/25 bg-slate-900/35 p-4" aria-label="Fluxo de uso do portal">
+                <h3 className="text-sm text-bold text-slate-200">Como funciona </h3>
+                <ol className="grid list-none gap-2 p-0">
+                  <li className="flex items-center gap-2 text-sm text-blue-100">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">1</span>
+                    <span>Entrar com credenciais corporativas</span>
+                  </li>
+                  <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
+                  <li className="flex items-center gap-2 text-sm text-blue-100">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">2</span>
+                    <span>Realizar treinamentos e simulacoes</span>
+                  </li>
+                  <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
+                  <li className="flex items-center gap-2 text-sm text-blue-100">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">3</span>
+                    <span>Acompanhar evolucao e indicadores</span>
+                  </li>
+                </ol>
+              </div>
+            </CardDescription>
+
           </div>
-
         </aside>
-
         <section className="grid content-center bg-slate-50/95 p-6 text-slate-900 sm:p-5">
           <header className="mb-5">
-            <h2>Acesso ao portal corporativo</h2>
+            <h1 className='text-lg font-bold'>Acesso ao portal corporativo</h1>
             <p className="mt-2 text-slate-700">Use suas credenciais para autenticacao e entre no ambiente correto do seu perfil.</p>
           </header>
 
@@ -90,7 +88,7 @@ export default function Login() {
 
             {/* essa seleçao é apenas para simular o fluxo de acesso,
             sera removida quando tivermos a autenticaçao real */}
-            
+
             <div className="grid gap-2">
               <label className="text-sm font-semibold text-slate-800" htmlFor="role">Tipo de acesso (sera removido futuramente) </label>
               <select className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 outline-none transition focus:border-teal-700 focus:ring-3 focus:ring-teal-400/30" id="role" name="role" defaultValue="user" required>
