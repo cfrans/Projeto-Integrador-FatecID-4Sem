@@ -27,7 +27,7 @@ function Home() {
         </p>
       </section>
 
-      {/* Menu (da sua versão 💙) */}
+      {/* Menu */}
       <section className="menu">
         <Link to="/about"><button>Sobre</button></Link>
         <Link to="/create"><button>Criar Campanha</button></Link>
