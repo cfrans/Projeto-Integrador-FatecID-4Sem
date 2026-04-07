@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { Card, CardDescription } from '@/components/ui/card'
+import AnimatedBackground from '@/components/AnimatedBackground'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -22,7 +23,7 @@ export default function Login() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_14%_20%,rgba(13,148,136,0.2),transparent_35%),radial-gradient(circle_at_82%_78%,rgba(30,64,175,0.22),transparent_35%),linear-gradient(145deg,#051524_0%,#0b2538_55%,#0f172a_100%)] p-6 sm:p-3">
+    <AnimatedBackground>
       <section className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-400/30 shadow-2xl shadow-slate-950/60 backdrop-blur-xs lg:grid-cols-[1.2fr_1fr]">
         <aside className="grid content-between gap-8 bg-[linear-gradient(165deg,rgba(15,23,42,0.82)_0%,rgba(15,118,110,0.5)_100%),linear-gradient(120deg,#0b1729_0%,#0e2a3c_100%)] p-7 text-slate-200 sm:gap-5 sm:p-6">
           <div className="grid gap-4">
@@ -122,6 +123,6 @@ export default function Login() {
 
         </section>
       </section>
-    </main>
+    </AnimatedBackground>
   )
 }
