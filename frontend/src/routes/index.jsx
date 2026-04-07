@@ -9,6 +9,7 @@ import Graphics from "../pages/graphics"
 import Settings from "../pages/settings"
 import Templates from "../pages/templates"
 import Users from "../pages/users"
+import ModelosTeste from "../pages/ModelosTeste"; // Import teste de layout
 
 export default function AppRoutes() {
   return (
@@ -24,6 +25,8 @@ export default function AppRoutes() {
         <Route path="/templates" element={<Templates />} />
         <Route path="/users" element={<Users />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Teste de layout abaixo */}
+        <Route path="/modelosTeste" element={<ModelosTeste />} />
       </Routes>
     </BrowserRouter>
   )
