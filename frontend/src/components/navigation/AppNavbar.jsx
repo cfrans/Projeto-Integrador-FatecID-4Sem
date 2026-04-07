@@ -104,7 +104,7 @@ export default function AppNavbar({ activePage, onNavigate }) {
         variant="secondary"
         size="icon-sm"
         className={cn(SIDE_BUTTON_CLASS, isHomeRoute && SIDE_BUTTON_ACTIVE_CLASS)}
-        onClick={() => navigate("/home")}
+        onClick={() => navigate("/admin")}
         title="Inicio"
       >
         <HomeIcon className={ICON_CLASS} />

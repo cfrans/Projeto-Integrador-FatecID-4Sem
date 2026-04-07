@@ -17,8 +17,8 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route element={<AppShellLayout />}>
-          <Route path="/home" element={<HomePage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/create" element={<CampaignsPage />} />
