@@ -1,4 +1,4 @@
-function Users() {
+function UsersPage() {
   return (
     <div>
       <h1>Usuários</h1>
@@ -7,4 +7,4 @@ function Users() {
   );
 }
 
-export default Users;
+export default UsersPage;

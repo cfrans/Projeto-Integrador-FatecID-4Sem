@@ -1,4 +1,4 @@
-function Templates() {
+function TemplatesPage() {
   return (
     <div>
       <h1>Templates</h1>
@@ -7,4 +7,4 @@ function Templates() {
   );
 }
 
-export default Templates;
+export default TemplatesPage;

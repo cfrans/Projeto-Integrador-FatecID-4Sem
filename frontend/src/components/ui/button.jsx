@@ -30,7 +30,7 @@ const buttonVariants = cva(
         ghost:
           "text-slate-700 hover:bg-slate-100",
         destructive:
-          "bg-red-600 text-slate-50 hover:bg-red-700 focus-visible:ring-red-400/40",
+          "bg-red-600 text-slate-50 hover:bg-red-500 focus-visible:ring-red-400/40",
         link: "text-teal-700 underline-offset-4 hover:underline",
       },
       // Variantes de tamanho para reduzir repeticao de padding e tamanho de fonte.

@@ -1,32 +1,35 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 
-import Login from "../pages/login/login"
-import Home from "../pages/home/home"
-import AdminPortal from "../pages/admin/admin"
-import About from "../pages/about/about"
-import CreateCampaign from "../pages/createCampaign"
-import Graphics from "../pages/graphics"
-import Settings from "../pages/settings"
-import Templates from "../pages/templates"
-import Users from "../pages/users"
-import ModelosTeste from "../pages/ModelosTeste"; // Import teste de layout
+import AppShellLayout from "../layouts/AppShellLayout"
+import LoginPage from "../pages/login"
+import HomePage from "../pages/home"
+import AdminPage from "../pages/admin"
+import AboutPage from "../pages/about"
+import CampaignsPage from "../pages/campaigns"
+import GraphicsPage from "../pages/graphics"
+import SettingsPage from "../pages/settings"
+import TemplatesPage from "../pages/templates"
+import UsersPage from "../pages/users"
+import ModelsPage from "../pages/models"
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/admin" element={<AdminPortal />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/create" element={<CreateCampaign />} />
-        <Route path="/graphics" element={<Graphics />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/templates" element={<Templates />} />
-        <Route path="/users" element={<Users />} />
+        <Route path="/" element={<LoginPage />} />
+        <Route element={<AppShellLayout />}>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/create" element={<CampaignsPage />} />
+          <Route path="/graphics" element={<GraphicsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/models" element={<ModelsPage />} />
+        </Route>
+        <Route path="/modelosTeste" element={<Navigate to="/models" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-        {/* Teste de layout abaixo */}
-        <Route path="/modelosTeste" element={<ModelosTeste />} />
       </Routes>
     </BrowserRouter>
   )

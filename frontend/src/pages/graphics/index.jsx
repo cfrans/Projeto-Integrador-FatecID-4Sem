@@ -1,4 +1,4 @@
-function Graphics() {
+function GraphicsPage() {
   return (
     <div>
       <h1>Gráficos</h1>
@@ -7,4 +7,4 @@ function Graphics() {
   );
 }
 
-export default Graphics;
+export default GraphicsPage;

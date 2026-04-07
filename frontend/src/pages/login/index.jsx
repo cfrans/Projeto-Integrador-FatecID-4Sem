@@ -1,11 +1,22 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/logo'
-import { Card, CardDescription } from '@/components/ui/card'
-import AnimatedBackground from '@/components/AnimatedBackground'
+import { Logo } from '@/components/branding/Logo'
+import { CardDescription } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import AnimatedBackground from '@/components/effects/AnimatedBackground'
+import { useState } from 'react'
 
-export default function Login() {
+export default function LoginPage() {
   const navigate = useNavigate()
+  const [role, setRole] = useState('user')
 
   //essa funçao sera removida qunado tivermos a autenticaçao real, 
   // mas por enquanto serve para simular o fluxo de acesso
@@ -30,7 +41,7 @@ export default function Login() {
         <aside className="grid content-between gap-8 bg-[linear-gradient(165deg,rgba(15,23,42,0.82)_0%,rgba(15,118,110,0.5)_100%),linear-gradient(120deg,#0b1729_0%,#0e2a3c_100%)] p-7 text-slate-200 sm:gap-5 sm:p-6">
           <div className="grid gap-4">
             <div className="flex items-center justify-center">
-              <Logo className="w-32 h-32 justify-center" />
+              <Logo className="w-100 h-100 justify-center" />
             </div>
 
             <CardDescription className="text-slate-300">
@@ -65,9 +76,9 @@ export default function Login() {
 
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-slate-800" htmlFor="email">E-mail corporativo</label>
-              <input
-                className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 outline-none transition focus:border-teal-700 focus:ring-3 focus:ring-teal-400/30"
+              <Label htmlFor="email">E-mail corporativo</Label>
+              <Input
+                className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
                 id="email"
                 type="email"
                 name="email"
@@ -77,9 +88,9 @@ export default function Login() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-slate-800" htmlFor="password">Senha</label>
-              <input
-                className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 outline-none transition focus:border-teal-700 focus:ring-3 focus:ring-teal-400/30"
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
                 id="password"
                 type="password"
                 name="password"
@@ -93,18 +104,24 @@ export default function Login() {
             sera removida quando tivermos a autenticaçao real */}
 
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-slate-800" htmlFor="role">Tipo de acesso (sera removido futuramente) </label>
-              <select className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 outline-none transition focus:border-teal-700 focus:ring-3 focus:ring-teal-400/30" id="role" name="role" defaultValue="user" required>
-                <option value="user">Usuario comum (treinamentos)</option>
-                <option value="admin">Administrador (dados e campanhas)</option>
-              </select>
+              <Label htmlFor="role">Tipo de acesso (sera removido futuramente)</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger id="role" className="h-12 rounded-[10px] text-[0.96rem]">
+                  <SelectValue placeholder="Selecione o tipo de acesso" />
+                </SelectTrigger>
+                <SelectContent align="start">
+                  <SelectItem value="user">Usuario comum (treinamentos)</SelectItem>
+                  <SelectItem value="admin">Administrador (dados e campanhas)</SelectItem>
+                </SelectContent>
+              </Select>
+              <input type="hidden" name="role" value={role} />
             </div>
 
             <div className="mt-1 flex items-center justify-between gap-3 text-sm sm:flex-col sm:items-start">
-              <label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
+              <Label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
                 <input className="h-4 w-4" id="keepConnected" type="checkbox" name="keepConnected" />
                 Lembrar de mim
-              </label>
+              </Label>
               <a className="font-bold text-teal-700 hover:underline" href="#" aria-label="Recuperar senha">
                 Esqueci minha senha (fazer ainda)
               </a>

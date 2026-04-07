@@ -1,8 +1,6 @@
-import { Link } from "react-router-dom";
 import logoNemo from '../../assets/logo-dark.png';
-import "./home.css";
 
-function Home() {
+function HomePage() {
   const features = [
     "Criação de campanhas",
     "Visualização de gráficos",
@@ -13,7 +11,7 @@ function Home() {
 
   return (
     <main className="mx-auto grid w-[min(980px,92vw)] justify-items-center gap-4 py-8">
-      
+
       {/* Header */}
       <section className="grid w-full max-w-4xl justify-items-center gap-3 rounded-xl border border-slate-200 bg-white p-5 text-center shadow-lg shadow-slate-900/10">
         <img className="h-auto w-[min(260px,55vw)]" src={logoNemo} alt="Logo do Nemo" />
@@ -27,15 +25,6 @@ function Home() {
         </p>
       </section>
 
-      {/* Menu */}
-      <section className="menu">
-        <Link to="/about"><button>Sobre</button></Link>
-        <Link to="/create"><button>Criar Campanha</button></Link>
-        <Link to="/graphics"><button>Gráficos</button></Link>
-        <Link to="/settings"><button>Configurações</button></Link>
-        <Link to="/templates"><button>Templates</button></Link>
-        <Link to="/users"><button>Usuários</button></Link>
-      </section>
 
       {/* Funcionalidades */}
       <section className="grid w-full justify-items-center gap-4">
@@ -53,4 +42,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default HomePage;
