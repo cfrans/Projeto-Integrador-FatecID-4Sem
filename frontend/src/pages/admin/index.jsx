@@ -1,4 +1,4 @@
-export default function AdminPortal() {
+export default function AdminPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
       <h1 className="text-3xl font-bold text-slate-900">Portal Administrativo</h1>

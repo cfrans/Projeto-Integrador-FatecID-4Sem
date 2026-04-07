@@ -1,4 +1,4 @@
-function CreateCampaign() {
+function CampaignsPage() {
   return (
     <div>
       <h1>Criar Campanha</h1>
@@ -10,4 +10,4 @@ function CreateCampaign() {
   );
 }
 
-export default CreateCampaign;
+export default CampaignsPage;
