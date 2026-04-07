@@ -12,7 +12,9 @@ export default function AppShellLayout() {
 
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 mx-auto h-[320px] w-[min(1200px,98vw)] rounded-b-[48px] bg-[linear-gradient(180deg,#0f6d67_0%,#0f4f5b_58%,#17304f_100%)] shadow-[0_26px_70px_rgba(10,37,53,0.5)]"
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 
+                mx-auto h-[400px] w-[min(1230px,98vw)] rounded-[48px] 
+                bg-linear-to-t from-teal-600 to-cyan-900 opacity-30"
             />
 
             <div className="relative z-20 mx-auto flex w-full max-w-6xl flex-col gap-4">
