@@ -10,20 +10,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const SECTORS = [
-  { id: 1, name: "Financeiro" },
-  { id: 2, name: "TI" },
-  { id: 3, name: "RH" },
-  { id: 4, name: "Comercial" },
+const MODELS = [
+  { name: "Alerta de Senha Expirada" },
+  { id: 2, name: "Verificacao de Conta Bancaria" },
+  { id: 3, name: "Atualizacao de Cadastro RH" },
 ];
 
-export default function CampaignsPage() {
+export default function ModelsPage() {
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
+  const [modelName, setModelName] = useState("");
+  const [templateText, setTemplateText] = useState("");
 
   const handleClear = () => {
     setSelectedModel("");
     setSelectedSector("");
+    setModelName("");
+    setTemplateText("");
   };
 
   return (
@@ -40,7 +43,7 @@ export default function CampaignsPage() {
       <Card className="rounded-2xl border border-slate-200 bg-white py-5 shadow-lg shadow-slate-900/10">
         <CardContent className="grid gap-5">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            
+
             <Field>
               <FieldLabel>Data da Camapanha</FieldLabel>
               <Input
@@ -50,14 +53,33 @@ export default function CampaignsPage() {
               />
             </Field>
 
-            
-
-
+            <Field>
+              <FieldLabel>Modelo</FieldLabel>
+              <SelectField value={selectedModel} onChange={setSelectedModel} options={MODELS} placeholder="Nenhum modelo selecionado" />
+            </Field>
 
 
           </section>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function SelectField({ value, onChange, options, placeholder }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+
+      <SelectContent align="start">
+        {options.map((option) => (
+          <SelectItem key={option.name} value={String(option.name)}>
+            {option.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
