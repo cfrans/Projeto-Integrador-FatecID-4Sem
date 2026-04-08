@@ -27,6 +27,7 @@ const SECTORS = [
   { id: 2, name: "TI" },
   { id: 3, name: "RH" },
   { id: 4, name: "Comercial" },
+  { id: 5, name: "Nenhum" },
 ];
 
 export default function ModelsPage() {
@@ -54,7 +55,7 @@ export default function ModelsPage() {
       </header>
 
       <Card className="rounded-2xl border border-slate-200 bg-white py-5 shadow-lg shadow-slate-900/10">
-        <CardContent className="grid gap-5">
+        <CardContent className="grid gap-4">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
             <Field>
@@ -71,14 +72,29 @@ export default function ModelsPage() {
               <SelectField value={selectedModel} onChange={setSelectedModel} options={MODELS} placeholder="Nenhum modelo selecionado" />
             </Field>
 
-            <Field>
-              <FieldLabel>Setor Destino</FieldLabel>
-              <SelectField value={selectedSector} onChange={setSelectedSector} options={SECTORS} placeholder="Nenhum setor selecionado" />
-            </Field>
+            <div className="flex items-end gap-3">
+              <Field className="flex-1">
+                <FieldLabel>Setor Destino</FieldLabel>
+                <SelectField
+                  value={selectedSector}
+                  onChange={setSelectedSector}
+                  options={SECTORS}
+                  placeholder="Nenhum setor selecionado"
+                />
+              </Field>
 
-            <Button type="button" variant="create" size="lg" className={"size-10"}>
-              +
-            </Button>
+              <Button
+                type="button"
+                variant="create"
+                size="lg"
+                className="size-10 "
+              >
+                +
+              </Button>
+            </div>
+
+
+            
 
           </section>
         </CardContent>
@@ -102,5 +118,18 @@ function SelectField({ value, onChange, options, placeholder }) {
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+function FishPlaceholder() {
+  return (
+    <svg width="68" height="54" viewBox="0 0 120 90" fill="none" aria-hidden="true">
+      <ellipse cx="55" cy="50" rx="32" ry="22" fill="#c4d8d2" />
+      <path d="M87 50C100 36 108 26 104 14C96 30 90 38 87 50Z" fill="#b2cbc4" />
+      <path d="M87 50C100 64 108 74 104 86C96 70 90 62 87 50Z" fill="#b2cbc4" />
+      <ellipse cx="43" cy="44" rx="5" ry="5" fill="#7eaaa0" />
+      <circle cx="44" cy="43" r="2" fill="white" opacity="0.5" />
+      <path d="M35 42Q30 38 28 44Q30 50 35 48" fill="#b2cbc4" />
+    </svg>
   );
 }
