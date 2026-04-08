@@ -93,8 +93,11 @@ export default function ModelsPage() {
               </Button>
             </div>
 
+            <Field>
+              <FishPlaceholder />
+            </Field>
 
-            
+
 
           </section>
         </CardContent>
