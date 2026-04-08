@@ -32,6 +32,7 @@ const buttonVariants = cva(
         destructive:
           "bg-red-600 text-slate-50 hover:bg-red-500 focus-visible:ring-red-400/40",
         link: "text-teal-700 underline-offset-4 hover:underline",
+        create: "h-10- w-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-600/40 hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/50 active:scale-95 transition"
       },
       // Variantes de tamanho para reduzir repeticao de padding e tamanho de fonte.
       size: {

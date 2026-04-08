@@ -9,11 +9,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  CheckIcon,
+  TrashIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 
 const MODELS = [
   { name: "Alerta de Senha Expirada" },
   { id: 2, name: "Verificacao de Conta Bancaria" },
   { id: 3, name: "Atualizacao de Cadastro RH" },
+];
+
+const SECTORS = [
+  { id: 1, name: "Financeiro" },
+  { id: 2, name: "TI" },
+  { id: 3, name: "RH" },
+  { id: 4, name: "Comercial" },
 ];
 
 export default function ModelsPage() {
@@ -58,6 +71,14 @@ export default function ModelsPage() {
               <SelectField value={selectedModel} onChange={setSelectedModel} options={MODELS} placeholder="Nenhum modelo selecionado" />
             </Field>
 
+            <Field>
+              <FieldLabel>Setor Destino</FieldLabel>
+              <SelectField value={selectedSector} onChange={setSelectedSector} options={SECTORS} placeholder="Nenhum setor selecionado" />
+            </Field>
+
+            <Button type="button" variant="create" size="lg" className={"size-10"}>
+              +
+            </Button>
 
           </section>
         </CardContent>
