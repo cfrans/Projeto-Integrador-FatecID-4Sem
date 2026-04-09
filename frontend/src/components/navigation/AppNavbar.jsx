@@ -40,17 +40,17 @@ const SIDE_BUTTON_ACTIVE =
   "!bg-teal-700 !text-white";
 
 const MENU_ITEM_BASE_CLASS =
-  "relative z-10 flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black uppercase tracking-[0.02em] whitespace-nowrap [&_svg]:text-teal-700 [&_span]:text-black";
+  "relative z-10 flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-2 text-sm font-black uppercase tracking-[0.02em] whitespace-nowrap hover:bg-transparent focus:bg-transparent [&_svg]:text-teal-700 [&_span]:text-[#0b2437]";
 const MENU_ITEM_ACTIVE_CLASS =
   "!bg-teal-700 !text-white shadow-sm [&_svg]:!text-white [&_span]:!text-white";
 const MENU_ITEM_IDLE_CLASS = "text-black";
 
 const NAV_ITEMS = [
   { id: "campaigns", label: "Criar Campanha", path: "/create", icon: DocumentPlusIcon },
-  { id: "models",    label: "Modelos",        path: "/models", icon: RectangleStackIcon },
-  { id: "graphics",  label: "Graficos",       path: "/graphics", icon: ChartBarIcon },
-  { id: "users",     label: "Usuarios",       path: "/users", icon: UsersIcon },
-  { id: "about",     label: "Sobre",          path: "/about", icon: InformationCircleIcon },
+  { id: "models", label: "Modelos", path: "/models", icon: RectangleStackIcon },
+  { id: "graphics", label: "Gráficos", path: "/graphics", icon: ChartBarIcon },
+  { id: "users", label: "Usuários", path: "/users", icon: UsersIcon },
+  { id: "about", label: "Sobre", path: "/about", icon: InformationCircleIcon },
 ];
 
 const PATH_TO_ID = {
@@ -111,7 +111,11 @@ export default function AppNavbar({ activePage, onNavigate }) {
     <div className={NAVBAR_CONTAINER_CLASS}>
 
       {/* Logo — esquerda */}
-      <div className="shrink-0">
+      <div
+        className="shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+        onClick={() => navigate("/admin")}
+        title="Ir para o Início"
+      >
         <img
           src="/src/assets/logo-horizontal-dark.svg"
           alt="Logo"
