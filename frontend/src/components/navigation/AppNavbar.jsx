@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 const ICON_CLASS = "size-4";
 const NAVBAR_CONTAINER_CLASS =
-  "relative z-20 flex w-full items-center justify-center gap-10 bg-transparent px-2 py-3";
+  "relative z-20 flex w-full items-center justify-between gap-4 bg-transparent px-6 py-3";
 const NAVIGATION_MENU_CLASS = "min-w-0 flex-none justify-center";
 const NAVIGATION_MENU_LIST_CLASS =
   "max-w-full flex-nowrap gap-1 overflow-x-auto rounded-full border border-slate-300 bg-slate-100 px-5 py-1 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -82,8 +82,8 @@ const PATH_TO_ID = {
 export default function AppNavbar({ activePage, onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const isHomeRoute = location.pathname === "/home";
   const isSettingsRoute = location.pathname === "/settings";
+  const isHomeRoute = location.pathname === "/home";
 
   const currentPage = useMemo(() => {
     if (activePage) return activePage;
@@ -99,67 +99,84 @@ export default function AppNavbar({ activePage, onNavigate }) {
 
   return (
     <div className={NAVBAR_CONTAINER_CLASS}>
-      <Button
-        type="button"
-        variant="secondary"
-        size="icon-sm"
-        className={cn(SIDE_BUTTON_CLASS, isHomeRoute && SIDE_BUTTON_ACTIVE_CLASS)}
-        onClick={() => navigate("/admin")}
-        title="Inicio"
-      >
-        <HomeIcon className={ICON_CLASS} />
-      </Button>
 
-      <NavigationMenu className={NAVIGATION_MENU_CLASS}>
-        <NavigationMenuList className={NAVIGATION_MENU_LIST_CLASS}>
-          {NAV_ITEMS.map((item) => {
-            const isActive = currentPage === item.id;
-            const ItemIcon = item.icon;
-            return (
-              <NavigationMenuItem key={item.id}>
-                <NavigationMenuLink
-                  href={item.path}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    handleNavigate(item);
-                  }}
-                  className={cn(
-                    MENU_ITEM_BASE_CLASS,
-                    isActive ? MENU_ITEM_ACTIVE_CLASS : MENU_ITEM_IDLE_CLASS
-                  )}
-                >
-                  <ItemIcon className={ICON_CLASS} />
-                  <span>{item.label}</span>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            );
-          })}
-        </NavigationMenuList>
-      </NavigationMenu>
-
-      <div className={ACTIONS_CONTAINER_CLASS}>
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon-sm"
-          className={cn(SIDE_BUTTON_CLASS, isSettingsRoute && SIDE_BUTTON_ACTIVE_CLASS)}
-          onClick={() => navigate("/settings")}
-          title="Configuracoes"
-        >
-          <Cog6ToothIcon className={ICON_CLASS} />
-        </Button>
-
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon-sm"
-          className={SIDE_BUTTON_CLASS}
-          onClick={() => navigate("/")}
-          title="Sair"
-        >
-          <ArrowRightOnRectangleIcon className={ICON_CLASS} />
-        </Button>
+      {/* Logo — esquerda
+          Salve o arquivo em: public/assets/logo.png
+          Proporção 555×204 com h-10 (40px) → largura automática ~109px */}
+      <div className="flex-shrink-0 mt-2">
+        <img
+          src="/src/assets/logo-horizontal-dark.svg"
+          alt="Logo"
+          className="h-20 -ml-3 mt-6 w-auto"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
       </div>
+
+      {/* Nav + ações — direita */}
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon-sm"
+          className={cn(SIDE_BUTTON_CLASS, isHomeRoute && SIDE_BUTTON_ACTIVE_CLASS)}
+          onClick={() => navigate("/admin")}
+          title="Inicio"
+        >
+          <HomeIcon className={ICON_CLASS} />
+        </Button>
+
+        <NavigationMenu className={NAVIGATION_MENU_CLASS}>
+          <NavigationMenuList className={NAVIGATION_MENU_LIST_CLASS}>
+            {NAV_ITEMS.map((item) => {
+              const isActive = currentPage === item.id;
+              const ItemIcon = item.icon;
+              return (
+                <NavigationMenuItem key={item.id}>
+                  <NavigationMenuLink
+                    href={item.path}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      handleNavigate(item);
+                    }}
+                    className={cn(
+                      MENU_ITEM_BASE_CLASS,
+                      isActive ? MENU_ITEM_ACTIVE_CLASS : MENU_ITEM_IDLE_CLASS
+                    )}
+                  >
+                    <ItemIcon className={ICON_CLASS} />
+                    <span>{item.label}</span>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              );
+            })}
+          </NavigationMenuList>
+        </NavigationMenu>
+
+        <div className={ACTIONS_CONTAINER_CLASS}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon-sm"
+            className={cn(SIDE_BUTTON_CLASS, isSettingsRoute && SIDE_BUTTON_ACTIVE_CLASS)}
+            onClick={() => navigate("/settings")}
+            title="Configuracoes"
+          >
+            <Cog6ToothIcon className={ICON_CLASS} />
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon-sm"
+            className={SIDE_BUTTON_CLASS}
+            onClick={() => navigate("/")}
+            title="Sair"
+          >
+            <ArrowRightOnRectangleIcon className={ICON_CLASS} />
+          </Button>
+        </div>
+      </div>
+
     </div>
   );
 }
