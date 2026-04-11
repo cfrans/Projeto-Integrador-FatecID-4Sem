@@ -123,14 +123,28 @@ export default function ModelsPage() {
             </Field>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+          <section className="grid gap-4 md:grid-cols- xl:grid-cols-1
+          ">
             <Field>
               <FieldLabel>Link Phising</FieldLabel>
-              <Input
-                value={linkPhishing}
-                onChange={(e) => setLinkPhishing(e.target.value)}
-                className="h-9"
-              />
+              <div className="flex gap-2 justify-end">
+                <Input
+                  value={linkPhishing}
+                  onChange={(e) => setLinkPhishing(e.target.value)}
+                  className="h-9 flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="default"
+                  className="bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-400/40 h-9"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                  </svg>
+                  Anexo
+                </Button>
+              </div>
             </Field>
           </section>
 
@@ -170,3 +184,5 @@ function FishPlaceholder() {
     </svg>
   );
 }
+
+
