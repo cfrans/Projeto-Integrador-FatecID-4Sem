@@ -35,12 +35,20 @@ export default function ModelsPage() {
   const [selectedSector, setSelectedSector] = useState("");
   const [modelName, setModelName] = useState("");
   const [templateText, setTemplateText] = useState("");
+  const [chosenSectors, setChosenSectors] = useState([]);
 
   const handleClear = () => {
     setSelectedModel("");
     setSelectedSector("");
     setModelName("");
     setTemplateText("");
+    setChosenSectors([]);
+  };
+
+  const handleAddSector = () => {
+    if (selectedSector && !chosenSectors.includes(selectedSector)) {
+      setChosenSectors([...chosenSectors, selectedSector]);
+    }
   };
 
   return (
@@ -74,7 +82,7 @@ export default function ModelsPage() {
 
             <div className="flex items-end gap-3">
               <Field className="flex-1">
-                <FieldLabel>Setor Destino</FieldLabel>
+                <FieldLabel>Adicionar Setor Destino</FieldLabel>
                 <SelectField
                   value={selectedSector}
                   onChange={setSelectedSector}
@@ -88,6 +96,7 @@ export default function ModelsPage() {
                 variant="create"
                 size="lg"
                 className="size-10 "
+                onClick={handleAddSector}
               >
                 +
               </Button>
@@ -97,12 +106,22 @@ export default function ModelsPage() {
               <FishPlaceholder />
             </Field>
 
-
-
           </section>
-        </CardContent>
-      </Card>
-    </div>
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+          <Field>
+            <FieldLabel>Setor(es) escolhidos</FieldLabel>
+            <Input
+              value={chosenSectors.join(', ')}
+              readOnly
+              className="h-9 bg-slate-100 text-slate-500"
+            />
+          </Field>
+
+
+        </section>
+      </CardContent>
+    </Card>
+    </div >
   );
 }
 
