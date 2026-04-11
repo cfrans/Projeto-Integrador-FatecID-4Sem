@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -38,6 +39,7 @@ export default function ModelsPage() {
   const [chosenSectors, setChosenSectors] = useState([]);
   const [campaignDate, setCampaignDate] = useState("");
   const [linkPhishing, setLinkPhishing] = useState("");
+  const [emailtext, setEmailText] = useState("");
 
   const handleClear = () => {
     setSelectedModel("");
@@ -47,6 +49,7 @@ export default function ModelsPage() {
     setChosenSectors([]);
     setCampaignDate("");
     setLinkPhishing("");
+    setEmailText("");
   };
 
   const handleAddSector = () => {
@@ -145,6 +148,17 @@ export default function ModelsPage() {
                   Anexo
                 </Button>
               </div>
+            </Field>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+            <Field>
+              <FieldLabel>Texto</FieldLabel>
+              <Textarea
+                value={emailtext}
+                onChange={(e) => setEmailText(e.target.value)}
+                className="h-32"
+              />
             </Field>
           </section>
 
