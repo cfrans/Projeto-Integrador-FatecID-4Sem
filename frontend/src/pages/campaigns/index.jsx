@@ -36,6 +36,8 @@ export default function ModelsPage() {
   const [modelName, setModelName] = useState("");
   const [templateText, setTemplateText] = useState("");
   const [chosenSectors, setChosenSectors] = useState([]);
+  const [campaignDate, setCampaignDate] = useState("");
+  const [linkPhishing, setLinkPhishing] = useState("");
 
   const handleClear = () => {
     setSelectedModel("");
@@ -43,6 +45,8 @@ export default function ModelsPage() {
     setModelName("");
     setTemplateText("");
     setChosenSectors([]);
+    setCampaignDate("");
+    setLinkPhishing("");
   };
 
   const handleAddSector = () => {
@@ -69,9 +73,9 @@ export default function ModelsPage() {
             <Field>
               <FieldLabel>Data da Camapanha</FieldLabel>
               <Input
-                value=""
-                readOnly
-                className="h-9 bg-slate-100 text-slate-500"
+                value={campaignDate}
+                onChange={(e) => setCampaignDate(e.target.value)}
+                className="h-9"
               />
             </Field>
 
@@ -107,20 +111,31 @@ export default function ModelsPage() {
             </Field>
 
           </section>
+
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-          <Field>
-            <FieldLabel>Setor(es) escolhidos</FieldLabel>
-            <Input
-              value={chosenSectors.join(', ')}
-              readOnly
-              className="h-9 bg-slate-100 text-slate-500"
-            />
-          </Field>
+            <Field>
+              <FieldLabel>Setor(es) escolhidos</FieldLabel>
+              <Input
+                value={chosenSectors.join(', ')}
+                readOnly
+                className="h-9 bg-slate-100 text-slate-500"
+              />
+            </Field>
+          </section>
 
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+            <Field>
+              <FieldLabel>Link Phising</FieldLabel>
+              <Input
+                value={linkPhishing}
+                onChange={(e) => setLinkPhishing(e.target.value)}
+                className="h-9"
+              />
+            </Field>
+          </section>
 
-        </section>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </div >
   );
 }
