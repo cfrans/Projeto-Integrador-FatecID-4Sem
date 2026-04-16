@@ -55,12 +55,12 @@ export default function LoginPage() {
                   <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">2</span>
-                    <span>Realizar treinamentos e simulacoes</span>
+                    <span>Realizar treinamentos e simulações</span>
                   </li>
                   <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">3</span>
-                    <span>Acompanhar evolucao e indicadores</span>
+                    <span>Acompanhar evolução e indicadores</span>
                   </li>
                 </ol>
               </div>
@@ -101,16 +101,16 @@ export default function LoginPage() {
             </div>
 
             {/* essa seleçao é apenas para simular o fluxo de acesso,
-            sera removida quando tivermos a autenticaçao real */}
+            será removida quando tivermos a autenticação real */}
 
             <div className="grid gap-2">
-              <Label htmlFor="role">Tipo de acesso (sera removido futuramente)</Label>
+              <Label htmlFor="role">Tipo de acesso (será removido futuramente)</Label>
               <Select value={role} onValueChange={setRole}>
                 <SelectTrigger id="role" className="h-12 rounded-[10px] text-[0.96rem]">
                   <SelectValue placeholder="Selecione o tipo de acesso" />
                 </SelectTrigger>
                 <SelectContent align="start">
-                  <SelectItem value="user">Usuario comum (treinamentos)</SelectItem>
+                  <SelectItem value="user">Usuário comum (treinamentos)</SelectItem>
                   <SelectItem value="admin">Administrador (dados e campanhas)</SelectItem>
                 </SelectContent>
               </Select>
