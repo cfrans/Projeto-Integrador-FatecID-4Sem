@@ -67,4 +67,65 @@ Espera-se que o sistema contribua para a **conscientização dos usuários sobre
 
 - 💻 Desenvolvimento de software  
 - 🗄️ Banco de dados  
-- 🔐 Segurança da informação  
+- 🔐 Segurança da informação
+
+
+## Esta seção abaixo descreve a arquitetura lógica, as regras de negócio e o funcionamento geral da plataforma.
+
+---
+
+## 🏗️ 1. Arquitetura e Stack Tecnológica
+A plataforma foi desenhada como um sistema web full-stack, dividindo responsabilidades entre diferentes tecnologias para garantir performance, segurança e fins acadêmicos:
+*   **Front-end:** React com Vite, HTML, CSS e JS, oferecendo interfaces responsivas.
+*   **Back-end:** Node.js como API principal do sistema.
+*   **Banco de Dados:** MySQL.
+*   **Processamento Assíncrono:** Programa em linguagem C focado em multithreading para geração de hashes criptográficos.
+*   **Infraestrutura de E-mail:** Integração SMTP para envio e um serviço "SMTP to Webhook" para o recebimento e captura de reportes.
+
+---
+
+## 👥 2. Perfis de Acesso
+O sistema atende a dois públicos distintos com fluxos de uso completamente separados:
+1.  **Administradores (Equipe de Segurança):** Possuem acesso ao painel de gestão para cadastrar usuários, criar modelos de e-mail maliciosos falsos, disparar campanhas e visualizar o dashboard de resultados.
+2.  **Usuários Destino (Alvos/Colaboradores):** Não possuem acesso às ferramentas de disparo. Eles recebem os e-mails e, além disso, possuem um portal logado para visualizar sua pontuação de gamificação e realizar treinamentos de conscientização.
+
+---
+
+## ⚙️ 3. Fluxo de Criação e Disparo (Regras de Negócio)
+
+### 3.1. Criação de Modelos (Envelopamento)
+O administrador cria a "fantasia" do e-mail falso através de um editor WYSIWYG no front-end.
+*   **Spoofing:** É definido um remetente falso (ex: *ti@ms.acesso-seguro.top*) e um assunto padrão.
+*   **Domínio Alvo:** O admin seleciona o subdomínio malicioso para o qual a vítima será levada (ex: *bradesco.acesso-seguro.top*).
+*   **Injeção Dinâmica:** O corpo do e-mail é montado em HTML. Onde houver um link ou botão malicioso, o administrador utiliza a tag curinga `{{LINK_AQUI}}`.
+
+### 3.2. Criação da Campanha
+A campanha une o Modelo criado aos **Setores** (ex: TI, RH, Financeiro) que serão os alvos do teste. 
+
+### 3.3. O Motor Criptográfico (Script em C)
+Para rastrear os cliques sem expor os dados dos usuários na URL, o sistema gera **Tokens Únicos**.
+*   O back-end aciona o programa em **C**, que utiliza múltiplas **Threads** para processar os alvos em paralelo.
+*   Cada thread gera um token aplicando um algoritmo de embaralhamento de bits milhares de vezes (técnica de *Key Stretching*) sobre uma string combinando: `matrícula + email + departamento + ID_da_Campanha + ChaveSecreta`.
+*   Isso garante que o token seja exclusivo para **aquela interação específica** (Usuário X recebendo Campanha Y).
+*   Esses tokens são armazenados na tabela intermediária `disparos` no banco de dados.
+
+### 3.4. Disparo
+O Node.js lê o HTML do Modelo, substitui a tag `{{LINK_AQUI}}` pela URL contendo o Token Único recém-gerado, e envia os e-mails aos alvos via servidor SMTP.
+
+---
+
+## 🎯 4. Rastreamento e Captura de Interações
+O coração do sistema é medir a vulnerabilidade humana. As interações são capturadas de duas formas:
+
+*   **Rastreamento de Cliques (Vulnerabilidade):** Se o alvo clicar no link, ele é direcionado à URL controlada pelo back-end. A API lê o token presente na URL, identifica na tabela `disparos` quem foi a vítima e a campanha, e registra `clicou_link = TRUE`.
+*   **Rastreamento de Reportes (Conscientização):** Se o usuário perceber o ataque e encaminhar o e-mail para a caixa de denúncias (*Abuse Inbox*), um container "SMTP to Webhook" recebe a mensagem, extrai o token e envia um aviso via HTTP para a API Node.js, marcando `reportou_phishing = TRUE`.
+
+---
+
+## 🏆 5. Gamificação e Treinamentos Educativos
+O portal do "Usuário Destino" funciona sob um sistema de pontuação comportamental:
+
+*   **Penalidade (Perda de Pontos):** Ocorre caso o usuário clique em links maliciosos ou abra anexos suspeitos das campanhas.
+*   **Neutralidade:** Ocorre caso o usuário simplesmente ignore o e-mail, não alterando seu saldo de pontos.
+*   **Recompensa (Ganho de Pontos):** Concedida quando o usuário identifica e reporta corretamente o e-mail para a caixa de *Abuse*.
+*   **Consumo de Treinamentos:** O portal logado oferece vídeos e quizzes (inseridos no código React como MVP). Ao concluir um módulo, a API registra a ação na tabela `treinamento_concluido` e soma pontos ao perfil do usuário. A tabela impede que os pontos sejam ganhos em duplicidade pelo mesmo curso.
