@@ -6,7 +6,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # Flyway cuida da estrutura, JPA s¢ valida
+      ddl-auto: validate  # Flyway cuida da estrutura, JPA  valida
     show-sql: true
     properties:
       hibernate:
