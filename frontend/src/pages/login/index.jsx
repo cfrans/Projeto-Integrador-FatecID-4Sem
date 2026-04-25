@@ -4,33 +4,43 @@ import { Logo } from '@/components/branding/Logo'
 import { CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
+import Modal from '@/components/ui/Modal'
 import { useState } from 'react'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [role, setRole] = useState('user')
+  const [erro, setErro] = useState(null)
 
-  //essa funçao sera removida qunado tivermos a autenticaçao real, 
-  // mas por enquanto serve para simular o fluxo de acesso
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const role = formData.get('role')
+    const res = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: formData.get('email'),
+        senha: formData.get('password'),
+      }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      setErro(data.erro || 'Credenciais inválidas.')
+      return
+    }
+    const data = await res.json()
+    localStorage.setItem('token', data.token)
 
-    if (role === 'admin') {
-      navigate('/admin')
+    if (data.primeiroAcesso) {
+      navigate('/trocar-senha')
       return
     }
 
-    navigate('/home')
+    if (data.role === 'Admin') {
+      navigate('/admin')
+    } else {
+      navigate('/home')
+    }
   }
 
   return (
@@ -95,27 +105,18 @@ export default function LoginPage() {
                 type="password"
                 name="password"
                 placeholder="Digite sua senha"
-                minLength={6}
+                minLength={0}
                 required
               />
             </div>
 
-            {/* essa seleçao é apenas para simular o fluxo de acesso,
-            será removida quando tivermos a autenticação real */}
-
-            <div className="grid gap-2">
-              <Label htmlFor="role">Tipo de acesso (será removido futuramente)</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger id="role" className="h-12 rounded-[10px] text-[0.96rem]">
-                  <SelectValue placeholder="Selecione o tipo de acesso" />
-                </SelectTrigger>
-                <SelectContent align="start">
-                  <SelectItem value="user">Usuário comum (treinamentos)</SelectItem>
-                  <SelectItem value="admin">Administrador (dados e campanhas)</SelectItem>
-                </SelectContent>
-              </Select>
-              <input type="hidden" name="role" value={role} />
-            </div>
+            <Modal
+              open={!!erro}
+              onClose={() => setErro(null)}
+              title="Não foi possível entrar"
+              description="E-mail ou senha incorretos. Verifique suas credenciais e tente novamente."
+              variant="error"
+            />
 
             <div className="mt-1 flex items-center justify-between gap-3 text-sm sm:flex-col sm:items-start">
               <Label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
