@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 import { Button } from "@/components/ui/button";
+import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -116,12 +117,7 @@ export default function AppNavbar({ activePage, onNavigate }) {
         onClick={() => navigate("/admin")}
         title="Ir para o Início"
       >
-        <img
-          src="/src/assets/logo-horizontal-dark.svg"
-          alt="Logo"
-          className="h-20 -ml-3 mt-7 w-auto"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-        />
+        <LogoHorizontal className="h-20 -ml-3 mt-7 w-auto" variant="dark" />
       </div>
 
       {/* Nav + ações — direita */}

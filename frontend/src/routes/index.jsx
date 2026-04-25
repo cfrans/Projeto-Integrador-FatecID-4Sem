@@ -11,6 +11,7 @@ import SettingsPage from "../pages/settings"
 import TemplatesPage from "../pages/templates"
 import UsersPage from "../pages/users"
 import ModelsPage from "../pages/models"
+import ChangePasswordPage from "../pages/change-password"
 
 export default function AppRoutes() {
   return (
@@ -29,6 +30,7 @@ export default function AppRoutes() {
           <Route path="/models" element={<ModelsPage />} />
         </Route>
         <Route path="/modelosTeste" element={<Navigate to="/models" replace />} />
+        <Route path="/trocar-senha" element={<ChangePasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

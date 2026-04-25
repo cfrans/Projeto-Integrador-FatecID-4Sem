@@ -11,7 +11,7 @@
   ![Licença](https://img.shields.io/badge/Licença-CC%20BY--NC--ND%204.0-blue?logo=creativecommons&logoColor=white)
 
   ![JavaScript](https://img.shields.io/badge/JavaScript-323330?logo=javascript&logoColor=F7DF1E)
-  ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
+  ![Java Spring Boot](https://img.shields.io/badge/Java-Spring%20Boot-green)
   ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
   ![MySQL](https://img.shields.io/badge/MySQL-005C84?logo=mysql&logoColor=white)
 </div>
@@ -50,7 +50,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - Vite  
 
 **Back-end ⚡**
-- Node.js  
+- Java Spring Boot  
 - React  
 - Vite  
 
@@ -69,6 +69,91 @@ Espera-se que o sistema contribua para a **conscientização dos usuários sobre
 - 🗄️ Banco de dados  
 - 🔐 Segurança da informação
 
+
+---
+
+## 🚀 Como rodar o projeto localmente
+
+### Pré-requisitos
+- Java 21+
+- Maven
+- MySQL rodando (local ou em rede)
+- Node.js 18+
+
+---
+
+### 🗄️ Backend (Spring Boot)
+
+#### 1. Configure o banco de dados
+
+O Flyway cria todas as tabelas automaticamente na primeira execução — **não é necessário criar nada manualmente no MySQL**, apenas o servidor MySQL precisa estar rodando e acessível.
+
+#### 2. Crie o arquivo `application-local.yaml`
+
+Dentro de `backend/src/main/resources/`, crie o arquivo `application-local.yaml` com as suas credenciais locais:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: sua_senha_aqui
+
+jwt:
+  secret: nemo-jwt-secret-dev-apenas-local-nao-commitar
+  expiration-ms: 86400000
+
+logging:
+  level:
+    org.springframework.security: INFO
+```
+
+> ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
+
+#### 3. Suba o backend
+
+```bash
+cd backend
+mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+```
+
+A API ficará disponível em `http://localhost:8080`.
+
+#### 4. O que o Flyway faz automaticamente
+
+Na primeira execução, o Flyway aplica as migrations em ordem:
+
+| Migration | O que faz |
+|-----------|-----------|
+| `V1__create_schema.sql` | Cria todas as tabelas do banco |
+| `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
+
+> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V3__descricao.sql`, `V4__descricao.sql`, e assim por diante.
+
+#### 5. Acesso inicial
+
+Após subir o sistema pela primeira vez, use as credenciais padrão para entrar:
+
+| Campo | Valor |
+|-------|-------|
+| E-mail | `admin@nemo.com` |
+| Senha | `admin` |
+
+> 🔐 **No primeiro acesso, o sistema irá obrigatoriamente solicitar a troca de senha.** Defina uma senha segura antes de continuar. Essa é uma medida de segurança para garantir que a senha padrão nunca permaneça ativa em uso real.
+
+---
+
+### 🎨 Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O frontend ficará disponível em `http://localhost:5173`.
+
+---
 
 ## Esta seção abaixo descreve a arquitetura lógica, as regras de negócio e o funcionamento geral da plataforma.
 
