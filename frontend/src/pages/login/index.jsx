@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
 import Modal from '@/components/ui/Modal'
 import { useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [erro, setErro] = useState(null)
 
   async function handleSubmit(event) {
@@ -29,7 +31,7 @@ export default function LoginPage() {
       return
     }
     const data = await res.json()
-    localStorage.setItem('token', data.token)
+    login(data.token)
 
     if (data.primeiroAcesso) {
       navigate('/trocar-senha')

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRightOnRectangleIcon,
@@ -66,6 +67,7 @@ const PATH_TO_ID = {
 export default function AppNavbar({ activePage, onNavigate }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const isSettingsRoute = location.pathname === "/settings";
   const isHomeRoute = location.pathname === "/home";
 
@@ -207,7 +209,7 @@ export default function AppNavbar({ activePage, onNavigate }) {
             className={circleBtnClass("logout")}
             onMouseEnter={() => setHoveredBtn("logout")}
             onMouseLeave={() => setHoveredBtn(null)}
-            onClick={() => navigate("/")}
+            onClick={() => { logout(); navigate("/"); }}
             title="Sair"
           >
             <ArrowRightOnRectangleIcon className={ICON_CLASS} />
