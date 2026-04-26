@@ -124,6 +124,25 @@
   button, a, [role="button"] {
     cursor: pointer;
     }
+
+  button, [role="button"] {
+    position: relative;
+    overflow: hidden;
+    }
+
+  button::after, [role="button"]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      50px circle at var(--x, -100px) var(--y, -100px),
+      rgba(255,255,255,0.12) 0%,
+      transparent 100%
+    );
+    pointer-events: none;
+    border-radius: inherit;
+    transition: background 0.05s;
+    }
   input[type="checkbox"] {
     accent-color: #0f766e;
     }
@@ -133,4 +152,8 @@
   html {
     @apply font-sans;
     }
+}
+
+@layer base {
+  * { --x: -100px; --y: -100px; }
 }
