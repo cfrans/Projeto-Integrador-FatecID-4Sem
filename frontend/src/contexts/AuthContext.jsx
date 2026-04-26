@@ -11,16 +11,23 @@ function parseToken(token) {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const [token, setToken] = useState(() =>
+    localStorage.getItem('token') || sessionStorage.getItem('token')
+  )
   const user = token ? parseToken(token) : null
 
-  const login = useCallback((newToken) => {
-    localStorage.setItem('token', newToken)
+  const login = useCallback((newToken, lembrar = false) => {
+    if (lembrar) {
+      localStorage.setItem('token', newToken)
+    } else {
+      sessionStorage.setItem('token', newToken)
+    }
     setToken(newToken)
   }, [])
 
   const logout = useCallback(() => {
     localStorage.removeItem('token')
+    sessionStorage.removeItem('token')
     setToken(null)
   }, [])
 

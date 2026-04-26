@@ -124,6 +124,9 @@
   button, a, [role="button"] {
     cursor: pointer;
     }
+  input[type="checkbox"] {
+    accent-color: #0f766e;
+    }
   body {
     @apply bg-background text-foreground;
     }
