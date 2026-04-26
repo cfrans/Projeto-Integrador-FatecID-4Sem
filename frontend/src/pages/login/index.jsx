@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
 import Modal from '@/components/ui/Modal'
 import { useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [erro, setErro] = useState(null)
 
   async function handleSubmit(event) {
@@ -29,7 +31,8 @@ export default function LoginPage() {
       return
     }
     const data = await res.json()
-    localStorage.setItem('token', data.token)
+    const lembrar = formData.get('keepConnected') === 'on'
+    login(data.token, lembrar)
 
     if (data.primeiroAcesso) {
       navigate('/trocar-senha')
@@ -121,7 +124,7 @@ export default function LoginPage() {
             <div className="mt-1 flex items-center justify-between gap-3 text-sm sm:flex-col sm:items-start">
               <Label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
                 <input className="h-4 w-4" id="keepConnected" type="checkbox" name="keepConnected" />
-                Lembrar de mim
+                Manter sessão
               </Label>
               <a className="font-bold text-teal-700 hover:underline" href="#" aria-label="Recuperar senha">
                 Esqueci minha senha (fazer ainda)

@@ -1,7 +1,20 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import peixeSurpreso from '@/assets/peixe-icons/peixe-icon-surpreso.svg'
+import peixeHappy from '@/assets/peixe-icons/peixe-icon-happy.svg'
+import peixeDuvidoso from '@/assets/peixe-icons/peixe-icon-duvidoso.svg'
 
-export default function Modal({ open, onClose, title, description, variant = 'error' }) {
+export default function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  variant = 'error',
+  // Props opcionais para modo confirmação
+  confirm = false,
+  confirmLabel = 'Confirmar',
+  onConfirm,
+}) {
   useEffect(() => {
     if (!open) return
     const handleKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -12,21 +25,9 @@ export default function Modal({ open, onClose, title, description, variant = 'er
   if (!open) return null
 
   const colors = {
-    error: {
-      icon: '✕',
-      iconBg: 'bg-red-100 text-red-600',
-      title: 'text-red-700',
-    },
-    warning: {
-      icon: '!',
-      iconBg: 'bg-yellow-100 text-yellow-600',
-      title: 'text-yellow-700',
-    },
-    success: {
-      icon: '✓',
-      iconBg: 'bg-teal-100 text-teal-600',
-      title: 'text-teal-700',
-    },
+    error:   { img: peixeSurpreso, title: 'text-red-700' },
+    warning: { img: peixeDuvidoso, title: 'text-yellow-700' },
+    success: { img: peixeHappy,    title: 'text-teal-700' },
   }
 
   const c = colors[variant]
@@ -41,13 +42,19 @@ export default function Modal({ open, onClose, title, description, variant = 'er
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col items-center gap-3 text-center">
-          <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full text-xl font-bold ${c.iconBg}`}>
-            {c.icon}
-          </span>
+          <img src={c.img} alt="" className="h-18 w-auto" />
           <h2 className={`text-base font-bold ${c.title}`}>{title}</h2>
           {description && <p className="text-sm text-slate-600">{description}</p>}
         </div>
-        <Button className="mt-5 w-full" onClick={onClose}>Fechar</Button>
+
+        {confirm ? (
+          <div className="mt-5 flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
+            <Button className="flex-1 bg-red-600 hover:bg-red-700 text-white" onClick={onConfirm}>{confirmLabel}</Button>
+          </div>
+        ) : (
+          <Button className="mt-5 w-full" onClick={onClose}>Fechar</Button>
+        )}
       </div>
     </div>
   )

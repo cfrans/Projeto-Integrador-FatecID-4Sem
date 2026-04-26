@@ -1,13 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import JoditEditor from "jodit-react";
-import { 
-  CheckIcon, 
-  TrashIcon, 
-  XMarkIcon, 
-  InformationCircleIcon, 
-  PencilIcon, 
-  PlusIcon 
+import {
+  CheckIcon,
+  TrashIcon,
+  XMarkIcon,
+  InformationCircleIcon,
+  PencilIcon,
+  PlusIcon,
+  ArrowLeftIcon,
 } from "@heroicons/react/24/solid";
+import Modal from "@/components/ui/Modal";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,34 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// 1. Simulação de Dados Iniciais (Para a tabela não começar vazia)
-const INITIAL_MODELS = [
-  { 
-    id: 1, 
-    name: "Alerta de Senha Expirada", 
-    domain: "ti.acesso-seguro.top", 
-    sender: "Suporte TI <ti@ti.acesso-seguro.top>", 
-    subject: "Sua senha expira em 24h", 
-    html: "<div style='font-family: sans-serif; color: #333; padding: 20px; border: 1px solid #ccc; border-radius: 8px;'><h2>⚠️ Aviso da TI</h2><p>A sua senha de rede expira em 2 dias.</p><p>Por favor, atualize imediatamente clicando no botão abaixo:</p><a href='{{LINK_AQUI}}' style='display: inline-block; background: #ea580c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;'>Atualizar Senha</a></div>" 
-  },
-  { 
-    id: 2, 
-    name: "Falso Alerta de Segurança", 
-    domain: "bradesco.acesso-seguro.top", 
-    sender: "Segurança Bradesco <seguranca@bradesco.acesso-seguro.top>", 
-    subject: "Alerta de Segurança - Atividade Suspeita", 
-    html: "<div style='font-family: sans-serif; color: #333; padding: 20px; background-color: #f8fafc; border-left: 4px solid #0284c7;'><h2>🏦 Banco Bradesco</h2><p>Detetámos uma atividade suspeita na sua conta salário.</p><p>Aceda ao link para confirmar a sua identidade: <a href='{{LINK_AQUI}}'>Confirmar Dados Bancários</a></p></div>" 
-  },
-  { 
-    id: 3, 
-    name: "Recadastramento RH", 
-    domain: "rh.acesso-seguro.top", 
-    sender: "RH <rh@rh.acesso-seguro.top>", 
-    subject: "Atualização Cadastral Obrigatória", 
-    html: "<div style='font-family: sans-serif; color: #333; padding: 20px;'><h2>Prezado Colaborador,</h2><p>O setor de Recursos Humanos solicita a revisão dos seus dados cadastrais para o fecho do mês.</p><p>Aceda ao portal: <a href='{{LINK_AQUI}}'>Portal do Colaborador</a></p></div>" 
-  },
-];
-
 const DOMAINS = [
   { id: 1, name: "ti.acesso-seguro.top" },
   { id: 2, name: "rh.acesso-seguro.top" },
@@ -57,80 +31,120 @@ const DOMAINS = [
   { id: 5, name: "microsoft.acesso-seguro.top" },
 ];
 
-export default function ModelsPage() {
-  // --- ESTADOS DE CONTROLE DE TELA ---
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null); // null = Modo Criar, Número = Modo Editar
+const API = "http://localhost:8080/api/modelos";
 
-  // --- ESTADOS DOS CAMPOS DO FORMULÁRIO ---
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token") || sessionStorage.getItem("token")}`,
+  };
+}
+
+export default function ModelsPage() {
+  const [models, setModels] = useState([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [modelName, setModelName] = useState("");
   const [targetDomain, setTargetDomain] = useState("");
   const [fakeSender, setFakeSender] = useState("");
   const [defaultSubject, setDefaultSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
+  const [modal, setModal] = useState({ open: false, title: '', description: '', variant: 'error' });
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
-  // --- FUNÇÕES DE NAVEGAÇÃO E PREENCHIMENTO ---
-  const openCreateMode = () => {
-    setEditingId(null);
-    clearFields();
-    setIsFormOpen(true);
-  };
+  const showModal = (title, description, variant = 'error') =>
+    setModal({ open: true, title, description, variant });
+
+  useEffect(() => {
+    fetch(API, { headers: authHeaders() })
+      .then((r) => {
+        if (!r.ok) throw new Error("Erro ao carregar modelos");
+        return r.json();
+      })
+      .then(setModels)
+      .catch(() => setModels([]));
+  }, []);
+
+  const openCreateMode = () => { setEditingId(null); clearFields(); setIsFormOpen(true); };
 
   const openEditMode = (model) => {
-    setEditingId(model.id);
-    setModelName(model.name);
-    setTargetDomain(model.domain);
-    setFakeSender(model.sender);
-    setDefaultSubject(model.subject);
-    setHtmlContent(model.html);
+    setEditingId(model.idModelo);
+    setModelName(model.nomeModelo);
+    setTargetDomain(model.dominioAlvo);
+    setFakeSender(model.remetenteFalso);
+    setDefaultSubject(model.assuntoPadrao);
+    setHtmlContent(model.textoHtml);
     setIsFormOpen(true);
   };
 
   const clearFields = () => {
-    setModelName("");
-    setTargetDomain("");
-    setFakeSender("");
-    setDefaultSubject("");
-    setHtmlContent("");
+    setModelName(""); setTargetDomain(""); setFakeSender(""); setDefaultSubject(""); setHtmlContent("");
   };
 
-  // --- LÓGICA DE SALVAMENTO COM VALIDAÇÃO ---
-  const handleSave = () => {
-    // Validação de Segurança Front-end
-    if (!htmlContent.includes("{{LINK_AQUI}}")) {
-      alert("⚠️ ERRO: Você esqueceu de inserir a tag curinga {{LINK_AQUI}} no corpo do e-mail. O alvo não terá onde clicar!");
-      return;
-    }
+  const SENDER_REGEX = /^.+\s<[^@\s]+@[^@\s]+\.[^@\s]+>$/;
 
+  const handleSave = async () => {
     if (!modelName || !targetDomain || !fakeSender || !defaultSubject) {
-      alert("⚠️ ERRO: Preencha todos os campos do cabeçalho antes de salvar.");
+      showModal('Campos obrigatórios', 'Preencha todos os campos antes de salvar o modelo.', 'warning');
+      return;
+    }
+    if (!SENDER_REGEX.test(fakeSender)) {
+      showModal('Remetente inválido', 'O remetente deve estar no formato: Nome <email@dominio.com>', 'warning');
+      return;
+    }
+    if (!htmlContent.includes("{{LINK_AQUI}}")) {
+      showModal('Tag obrigatória ausente', 'Insira a tag {{LINK_AQUI}} no corpo do e-mail. Sem ela o alvo não terá onde clicar.', 'warning');
       return;
     }
 
-    const payload = { modelName, targetDomain, fakeSender, defaultSubject, html: htmlContent };
+    const body = JSON.stringify({
+      nomeModelo: modelName,
+      dominioAlvo: targetDomain,
+      remetenteFalso: fakeSender,
+      assuntoPadrao: defaultSubject,
+      textoHtml: htmlContent,
+    });
 
-    if (editingId) {
-      console.log(`EFETUANDO UPDATE NO BANCO (ID ${editingId}):`, payload);
-      alert("✅ Modelo atualizado com sucesso!");
-    } else {
-      console.log("EFETUANDO CREATE (POST) NO BANCO:", payload);
-      alert("✅ Novo modelo criado com sucesso!");
+    try {
+      if (editingId) {
+        const res = await fetch(`${API}/${editingId}`, { method: "PUT", headers: authHeaders(), body });
+        const updated = await res.json();
+        setModels((prev) => prev.map((m) => (m.idModelo === editingId ? updated : m)));
+      } else {
+        const res = await fetch(API, { method: "POST", headers: authHeaders(), body });
+        const created = await res.json();
+        setModels((prev) => [...prev, created]);
+      }
+      setIsFormOpen(false);
+      showModal('Modelo salvo!', editingId ? 'O modelo foi atualizado com sucesso.' : 'Novo modelo criado com sucesso.', 'success');
+    } catch {
+      showModal('Erro ao salvar', 'Ocorreu um erro ao salvar o modelo. Tente novamente.', 'error');
     }
-
-    setIsFormOpen(false); // Fecha o formulário e volta para a tabela
   };
 
-  // --- CONFIGURAÇÕES DO JODIT EDITOR ---
+  const handleDelete = (id) => {
+    setDeleteModal({ open: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteModal.id;
+    setDeleteModal({ open: false, id: null });
+    try {
+      await fetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
+      setModels((prev) => prev.filter((m) => m.idModelo !== id));
+      showModal('Modelo excluído', 'O modelo foi removido com sucesso.', 'success');
+    } catch {
+      showModal('Erro ao excluir', 'Não foi possível excluir o modelo. Tente novamente.', 'error');
+    }
+  };
+
   const editorConfig = useMemo(() => ({
     height: 400,
     language: "pt_br",
     placeholder: "Escreva o corpo do e-mail de phishing aqui...",
-    uploader: { 
-      insertImageAsBase64URI: false // Força o uso de URL para as imagens
-    }
+    uploader: { insertImageAsBase64URI: false },
   }), []);
 
-  // --- RENDERIZAÇÃO DA TABELA (LISTA DE MODELOS) ---
   const renderTable = () => (
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
@@ -154,16 +168,16 @@ export default function ModelsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {INITIAL_MODELS.map((model) => (
-              <tr key={model.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-900">{model.name}</td>
-                <td className="px-6 py-4 text-slate-600">{model.domain}</td>
-                <td className="px-6 py-4 text-slate-500">{model.sender}</td>
+            {models.map((model) => (
+              <tr key={model.idModelo} className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-medium text-slate-900">{model.nomeModelo}</td>
+                <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
+                <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
                 <td className="px-6 py-4 text-right flex justify-end gap-2">
                   <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
                     <PencilIcon className="size-4 mr-1" /> Editar
                   </Button>
-                  <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50">
                     <TrashIcon className="size-4" />
                   </Button>
                 </td>
@@ -175,106 +189,74 @@ export default function ModelsPage() {
     </div>
   );
 
-  // --- RENDERIZAÇÃO DO FORMULÁRIO (CRIAR/EDITAR) ---
   const renderForm = () => (
     <div className="grid gap-4">
-       <header>
-        <h1 className="text-2xl font-bold text-slate-900">
+      <header className="flex items-start gap-3">
+        <button
+          onClick={() => setIsFormOpen(false)}
+          className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 transition-colors"
+          title="Voltar"
+        >
+          <ArrowLeftIcon className="size-4 text-slate-700" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
             {editingId ? `Editando Modelo: ${modelName}` : "Criar Novo Modelo"}
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Desenhe o e-mail malicioso e configure os parâmetros de envio padrão.
-        </p>
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">Desenhe o e-mail malicioso e configure os parâmetros de envio padrão.</p>
+        </div>
       </header>
 
       <Card className="rounded-2xl border border-slate-200 bg-white py-5 shadow-lg shadow-slate-900/10">
         <CardContent className="grid gap-8">
-          
-          {/* SEÇÃO 1: Configurações da Simulação */}
           <section>
-             <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">1. Configurações da Simulação</h2>
-             <div className="grid gap-4 md:grid-cols-2">
-                <Field>
-                  <FieldLabel>Nome do Modelo (Uso Interno)</FieldLabel>
-                  <Input
-                    value={modelName}
-                    onChange={(event) => setModelName(event.target.value)}
-                    className="h-9"
-                    placeholder="Ex: Falso RH - Recadastramento"
-                  />
-                </Field>
-
-                <Field>
-                  <FieldLabel>Domínio Alvo (Página Falsa)</FieldLabel>
-                  <SelectField 
-                    value={targetDomain} 
-                    onChange={setTargetDomain} 
-                    options={DOMAINS} 
-                    placeholder="Selecione o subdomínio que será acessado" 
-                  />
-                </Field>
-             </div>
+            <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">1. Configurações da Simulação</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field>
+                <FieldLabel>Nome do Modelo (Uso Interno)</FieldLabel>
+                <Input value={modelName} onChange={(e) => setModelName(e.target.value)} className="h-9" placeholder="Ex: Falso RH - Recadastramento" />
+              </Field>
+              <Field>
+                <FieldLabel>Domínio Alvo (Página Falsa)</FieldLabel>
+                <SelectField value={targetDomain} onChange={setTargetDomain} options={DOMAINS} placeholder="Selecione o subdomínio" />
+              </Field>
+            </div>
           </section>
 
-          {/* SEÇÃO 2: Envelopamento do E-mail */}
           <section>
-             <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">2. Dados do E-mail (Envelopamento)</h2>
-             <div className="grid gap-4 md:grid-cols-2">
-                <Field>
-                  <FieldLabel>Remetente Falso (Spoofing)</FieldLabel>
-                  <Input
-                    value={fakeSender}
-                    onChange={(event) => setFakeSender(event.target.value)}
-                    className="h-9"
-                    placeholder="Ex: Recursos Humanos <rh@emicol-intranet.com>"
-                  />
-                </Field>
-
-                <Field>
-                  <FieldLabel>Assunto Padrão</FieldLabel>
-                  <Input
-                    value={defaultSubject}
-                    onChange={(event) => setDefaultSubject(event.target.value)}
-                    className="h-9"
-                    placeholder="Ex: URGENTE: Atualize seus dados cadastrais"
-                  />
-                </Field>
-             </div>
+            <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">2. Dados do E-mail (Envelopamento)</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field>
+                <FieldLabel>Remetente Falso (Spoofing)</FieldLabel>
+                <Input value={fakeSender} onChange={(e) => setFakeSender(e.target.value)} className="h-9" placeholder="Ex: RH <rh@empresa-intranet.com>" />
+              </Field>
+              <Field>
+                <FieldLabel>Assunto Padrão</FieldLabel>
+                <Input value={defaultSubject} onChange={(e) => setDefaultSubject(e.target.value)} className="h-9" placeholder="Ex: URGENTE: Atualize seus dados" />
+              </Field>
+            </div>
           </section>
 
-          {/* SEÇÃO 3: Construção Visual */}
           <section className="grid gap-4">
             <h2 className="text-lg font-semibold text-slate-800 mb-2 border-b pb-2">3. Corpo do E-mail</h2>
-            
-            {/* Aviso Estratégico */}
             <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4 border border-blue-200">
-               <InformationCircleIcon className="size-6 text-blue-600 shrink-0" />
-               <p className="text-sm text-blue-900 leading-relaxed">
-                 <strong>Dica Estratégica:</strong> Utilize a tag <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">{`{{LINK_AQUI}}`}</code> no campo de URL (link) dos botões ou textos. O sistema substituirá essa tag automaticamente pelo Token do usuário e o Domínio Alvo na hora do disparo.
-               </p>
+              <InformationCircleIcon className="size-6 text-blue-600 shrink-0" />
+              <p className="text-sm text-blue-900 leading-relaxed">
+                <strong>Dica Estratégica:</strong> Utilize a tag <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">{`{{LINK_AQUI}}`}</code> no campo de URL dos botões ou textos.
+              </p>
             </div>
-
-            {/* Editor de Texto Rico (Jodit) */}
             <Field>
-               <div className="border border-slate-300 rounded-md overflow-hidden bg-white">
-                  <JoditEditor
-                    value={htmlContent}
-                    config={editorConfig}
-                    tabIndex={1}
-                    onBlur={newContent => setHtmlContent(newContent)}
-                    onChange={(newContent) => {}}
-                  />
-               </div>
+              <div className="border border-slate-300 rounded-md overflow-hidden bg-white">
+                <JoditEditor value={htmlContent} config={editorConfig} tabIndex={1} onBlur={(newContent) => setHtmlContent(newContent)} onChange={() => { }} />
+              </div>
             </Field>
           </section>
 
           <footer className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6">
             <Button type="button" variant="secondary" size="sm" onClick={() => setIsFormOpen(false)} className="h-10 px-4">
-              <XMarkIcon className="size-4 mr-2" />
-              Cancelar
+              <XMarkIcon className="size-4 mr-2" /> Cancelar
             </Button>
-
-            <Button type="button" variant="primary" size="sm" onClick={handleSave} className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white">
+            <Button type="button" size="sm" onClick={handleSave} className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white">
               <CheckIcon className="size-4 mr-2" />
               {editingId ? "Atualizar Modelo" : "Salvar Modelo"}
             </Button>
@@ -286,13 +268,28 @@ export default function ModelsPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl pb-10">
-      {/* O Operador Ternário que faz a troca de tela acontecer */}
+      <Modal
+        open={modal.open}
+        onClose={() => setModal((m) => ({ ...m, open: false }))}
+        title={modal.title}
+        description={modal.description}
+        variant={modal.variant}
+      />
+      <Modal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, id: null })}
+        title="Excluir modelo"
+        description="Tem certeza que deseja excluir este modelo? Essa ação não pode ser desfeita."
+        variant="warning"
+        confirm
+        confirmLabel="Sim, excluir"
+        onConfirm={confirmDelete}
+      />
       {isFormOpen ? renderForm() : renderTable()}
     </div>
   );
 }
 
-// Componente SelectField reutilizável
 function SelectField({ value, onChange, options, placeholder }) {
   return (
     <Select value={value} onValueChange={onChange}>
