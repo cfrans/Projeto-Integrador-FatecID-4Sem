@@ -133,22 +133,25 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 #### 5. Compilação do Motor Criptográfico
 O coração do disparo das campanhas conta com um "operário" (Worker) escrito em linguagem C. Ele é acionado pelo Java e utiliza múltiplas *threads* da CPU para gerar os hashes criptográficos dos tokens em milissegundos. 
 
-Como o executável gerado depende do seu sistema operacional, ele não é versionado no GitHub. **Antes de subir o back-end, você precisa compilar este arquivo manualmente.**
+Como o executável gerado depende do seu sistema operacional, ele não é versionado no GitHub. **Antes de subir o back-end, é necessário compilar este arquivo manualmente.**
 
 **Passo a passo para compilação:**
 1. Abra o seu terminal e navegue até a pasta de scripts do backend:
-   ```bash
-   cd backend/scripts/
-
-    Utilize o compilador GCC para gerar o executável correspondente ao seu Sistema Operacional:
+```bash
+cd backend/scripts/
+```
+Utilize o compilador GCC para gerar o executável correspondente ao seu Sistema Operacional:
 
 🪟 Para Windows (usando MinGW):
 
+```bash
 gcc -Wall -O2 -o gerador_tokens_worker.exe gerador_tokens_worker.c
+```
 
 🐧/🍏 Para Linux ou Mac:
-
+```bash
 gcc -Wall -O2 -o gerador_tokens_worker gerador_tokens_worker.c -lpthread
+```
 
 #### 6. Acesso inicial
 
