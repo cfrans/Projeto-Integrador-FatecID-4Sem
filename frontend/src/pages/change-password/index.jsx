@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
+import { useAuth } from '../../contexts/AuthContext'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
 
 export default function ChangePasswordPage() {
@@ -21,7 +22,7 @@ export default function ChangePasswordPage() {
       return
     }
 
-    const token = localStorage.getItem('token')
+    const { token } = useAuth()
 
     const res = await fetch('http://localhost:8080/api/auth/trocar-senha', {
       method: 'PUT',
