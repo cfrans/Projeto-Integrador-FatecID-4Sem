@@ -114,7 +114,7 @@ logging:
 
 ```bash
 cd backend
-mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
 A API ficará disponível em `http://localhost:8080`.
