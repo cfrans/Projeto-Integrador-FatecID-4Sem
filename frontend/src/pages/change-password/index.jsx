@@ -9,6 +9,7 @@ import AnimatedBackground from '@/components/effects/AnimatedBackground'
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate()
+  const { token } = useAuth()
   const [erro, setErro] = useState('')
 
   async function handleSubmit(event) {
@@ -21,8 +22,6 @@ export default function ChangePasswordPage() {
       setErro('As senhas não coincidem.')
       return
     }
-
-    const { token } = useAuth()
 
     const res = await fetch('http://localhost:8080/api/auth/trocar-senha', {
       method: 'PUT',
