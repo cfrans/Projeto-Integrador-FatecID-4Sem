@@ -95,17 +95,17 @@ Dentro de `backend/src/main/resources/`, crie o arquivo `application-local.yaml`
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-    username: root
-    password: sua_senha_aqui
+    username: seu-usuario-do-mysql
+    password: sua-senha-do-mysql
+    url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+
+logging:
+  level:
+    org.springframework.security: TRACE
 
 jwt:
   secret: nemo-jwt-secret-dev-apenas-local-nao-commitar
   expiration-ms: 86400000
-
-logging:
-  level:
-    org.springframework.security: INFO
 ```
 
 > ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
@@ -114,7 +114,7 @@ logging:
 
 ```bash
 cd backend
-mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
 A API ficará disponível em `http://localhost:8080`.
