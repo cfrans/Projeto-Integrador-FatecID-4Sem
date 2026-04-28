@@ -7,12 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 repomix-output.xml*
+repomix.config.json*
 application-local.yaml*
 
 node_modules
 dist
 dist-ssr
 *.local
+
+# Backend runtime artifacts
+backend/tmp/
+backend/target/
 
 *.env
 .repomixignore*

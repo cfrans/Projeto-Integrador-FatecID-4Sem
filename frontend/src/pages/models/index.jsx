@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { api } from "@/lib/api";
 
 const DOMAINS = [
   { id: 1, name: "ti.acesso-seguro.top" },
@@ -30,15 +31,6 @@ const DOMAINS = [
   { id: 4, name: "consorcio.acesso-seguro.top" },
   { id: 5, name: "microsoft.acesso-seguro.top" },
 ];
-
-const API = "http://localhost:8080/api/modelos";
-
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token") || sessionStorage.getItem("token")}`,
-  };
-}
 
 export default function ModelsPage() {
   const [models, setModels] = useState([]);
@@ -56,11 +48,7 @@ export default function ModelsPage() {
     setModal({ open: true, title, description, variant });
 
   useEffect(() => {
-    fetch(API, { headers: authHeaders() })
-      .then((r) => {
-        if (!r.ok) throw new Error("Erro ao carregar modelos");
-        return r.json();
-      })
+    api.get("/api/modelos")
       .then(setModels)
       .catch(() => setModels([]));
   }, []);
@@ -97,22 +85,20 @@ export default function ModelsPage() {
       return;
     }
 
-    const body = JSON.stringify({
+    const body = {
       nomeModelo: modelName,
       dominioAlvo: targetDomain,
       remetenteFalso: fakeSender,
       assuntoPadrao: defaultSubject,
       textoHtml: htmlContent,
-    });
+    };
 
     try {
       if (editingId) {
-        const res = await fetch(`${API}/${editingId}`, { method: "PUT", headers: authHeaders(), body });
-        const updated = await res.json();
+        const updated = await api.put(`/api/modelos/${editingId}`, body);
         setModels((prev) => prev.map((m) => (m.idModelo === editingId ? updated : m)));
       } else {
-        const res = await fetch(API, { method: "POST", headers: authHeaders(), body });
-        const created = await res.json();
+        const created = await api.post("/api/modelos", body);
         setModels((prev) => [...prev, created]);
       }
       setIsFormOpen(false);
@@ -130,7 +116,7 @@ export default function ModelsPage() {
     const id = deleteModal.id;
     setDeleteModal({ open: false, id: null });
     try {
-      await fetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
+      await api.delete(`/api/modelos/${id}`);
       setModels((prev) => prev.filter((m) => m.idModelo !== id));
       showModal('Modelo excluído', 'O modelo foi removido com sucesso.', 'success');
     } catch {

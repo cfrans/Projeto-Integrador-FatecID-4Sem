@@ -1,5 +1,7 @@
 package com.nemo.api.auth;
 
+import com.nemo.api.config.exception.BadCredentialsException;
+import com.nemo.api.config.exception.ResourceNotFoundException;
 import com.nemo.api.repository.UsuarioSistemaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,10 +19,10 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         var usuario = repository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Credenciais inválidas"));
+                .orElseThrow(() -> new BadCredentialsException("Credenciais inválidas"));
 
         if (!passwordEncoder.matches(request.senha(), usuario.getSenhaHash())) {
-            throw new RuntimeException("Credenciais inválidas");
+            throw new BadCredentialsException("Credenciais inválidas");
         }
 
         var claims = Map.<String, Object>of(
@@ -43,10 +45,10 @@ public class AuthService {
         String email = jwtService.extractEmail(token);
 
         var usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (!passwordEncoder.matches(request.senhaAtual(), usuario.getSenhaHash())) {
-            throw new RuntimeException("Senha atual incorreta");
+            throw new BadCredentialsException("Senha atual incorreta");
         }
 
         usuario.setSenhaHash(passwordEncoder.encode(request.novaSenha()));

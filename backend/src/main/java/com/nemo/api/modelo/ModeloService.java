@@ -1,6 +1,7 @@
 package com.nemo.api.modelo;
 
 import com.nemo.api.auth.JwtService;
+import com.nemo.api.config.exception.ResourceNotFoundException;
 import com.nemo.api.model.Modelo;
 import com.nemo.api.repository.ModeloRepository;
 import com.nemo.api.repository.UsuarioSistemaRepository;
@@ -25,7 +26,7 @@ public class ModeloService {
     public ModeloDTO criar(ModeloRequest request, String token) {
         String email = jwtService.extractEmail(token);
         var usuario = usuarioSistemaRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         var modelo = new Modelo();
         modelo.setNomeModelo(request.nomeModelo());
@@ -41,7 +42,7 @@ public class ModeloService {
 
     public ModeloDTO atualizar(Integer id, ModeloRequest request) {
         var modelo = modeloRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Modelo não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo não encontrado"));
 
         modelo.setNomeModelo(request.nomeModelo());
         modelo.setDominioAlvo(request.dominioAlvo());

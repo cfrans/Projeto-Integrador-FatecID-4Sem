@@ -30,45 +30,82 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 
 ---
 
-## ⚙️ Funcionalidades
-- 👤 Cadastro de destinatários (nome e e-mail)  
-- 🎣 Criação de campanhas de phishing simulado  
-- ✏️ Personalização de assunto, mensagem e anexos  
-- 📤 Envio automático de e-mails  
-- 🔎 Registro de cliques em links e abertura de anexos  
-- 📊 Visualização de dados para análise de comportamento dos usuários  
+## 📊 Status atual
+
+> ⚠️ **Em desenvolvimento ativo (alpha).** O esqueleto da plataforma está pronto e várias telas já operam ponta-a-ponta com o backend, mas o disparo real de e-mails e o portal do colaborador ainda não foram implementados.
+
+### ✅ Implementado
+
+**Backend (Spring Boot)**
+- 🔐 Login com JWT e troca obrigatória de senha no primeiro acesso
+- 📝 CRUD de Modelos de e-mail (com domínio alvo, remetente falso, HTML)
+- 🎯 Criação de Campanhas vinculando Modelo + Setores alvo
+- ⚙️ Geração de tokens únicos via Worker em C (multithread, key stretching, DJB2, detecção automática de CPUs)
+- 🔎 Rastreamento de cliques (`/confirmar/{token}`) e abertura de anexo (`/doc/{token}`) com geração de arquivo HTML falso on-the-fly
+- 🧱 Migrations Flyway com schema completo + seeds de tipos de acesso, modelos e setores
+- 🛡️ Spring Security configurado (CORS, sessão stateless, BCrypt)
+
+**Frontend (React + Vite)**
+- 🎨 Tela de login com fundo animado e fluxo de "manter sessão"
+- 🔁 Tela de troca de senha obrigatória (primeiro acesso)
+- 📨 Tela de criação de Campanhas com preview do anexo simulado e seleção de departamentos via *chips*
+- 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit) e validação client-side da tag `{{LINK_AQUI}}`
+- 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
+- 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.)
+- 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
+
+**Qualidade / infraestrutura**
+- 🧹 `GlobalExceptionHandler` com handlers específicos (401 só para credenciais, 404 para "não encontrado", 400 para validação, 500 para o resto)
+- 📂 CSVs do worker C escritos em diretório dedicado (`backend/tmp/tokens`, configurável via `NEMO_CSV_DIR`)
+
+### 🚧 Em construção / falta fazer
+
+**Crítico (bloqueia o MVP)**
+- [ ] **Filtro JWT no backend** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
+- [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
+- [ ] **CRUD de `usuario_destino`** no backend — a página de Usuários no frontend existe mas opera sobre dados mockados.
+- [ ] **Página de Configurações** funcional — trocar a própria senha fora do primeiro acesso e promover/rebaixar usuários do sistema (Admin ↔ Colaborador).
+
+**Funcionalidade**
+- [ ] **Dashboard de gráficos** real (hoje a página `/graphics` é placeholder).
+- [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
+- [ ] **Portal do Colaborador** logado (com gamificação e treinamentos).
+- [ ] **Lógica de pontuação** comportamental (penalidade por clique, recompensa por reporte).
+- [ ] **Módulo de treinamentos** (vídeos + quizzes, alimentando `treinamento_concluido`).
+- [ ] **Recuperação de senha** ("Esqueci minha senha" do login não está conectado).
+
+**Qualidade**
+- [ ] Tornar a geração de tokens assíncrona (`@Async`) com endpoint de status.
+- [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
+- [ ] Suíte de testes (hoje só existe `contextLoads()`).
+- [ ] Documentação de API via springdoc-openapi (Swagger UI).
 
 ---
 
-## 🛠 Tecnologias (previstas)
+## 🛠 Stack tecnológica
 
-**Front-end 🎨**
-- HTML  
-- CSS  
-- JavaScript  
-- React  
-- Vite  
+**Front-end**
+- React 19 + Vite
+- Tailwind CSS 4
+- React Router
+- Jodit (editor WYSIWYG para os modelos)
+- Heroicons
 
-**Back-end ⚡**
-- Java Spring Boot  
-- React  
-- Vite  
+**Back-end**
+- Java 21
+- Spring Boot 4 (Web, Data JPA, Security, Validation, Flyway)
+- jjwt 0.12 (geração e parsing de JWT)
+- Lombok
 
-**Banco de Dados 🗄️**
-- MySQL  
+**Banco de Dados**
+- MySQL 8
 
-**Envio de E-mails 📧**
-- SMTP  
+**Processamento Assíncrono**
+- Worker em C (multithread, geração paralela de tokens com key stretching, algoritmo DJB2 modificado, estrutura de Lista Encadeada Simples com alocação dinâmica)
 
----
-
-## 🚀 Resultados Esperados
-Espera-se que o sistema contribua para a **conscientização dos usuários sobre ataques de phishing**, além de permitir a aplicação de conhecimentos práticos relacionados a:
-
-- 💻 Desenvolvimento de software  
-- 🗄️ Banco de dados  
-- 🔐 Segurança da informação
-
+**Envio de E-mails**
+- *(planejado)* SMTP via JavaMail
+- *(planejado)* Container SMTP-to-Webhook para captura de reportes (`alash3al/smtp2http` ou `rnwood/smtp4dev`)
 
 ---
 
@@ -79,6 +116,7 @@ Espera-se que o sistema contribua para a **conscientização dos usuários sobre
 - Maven
 - MySQL rodando (local ou em rede)
 - Node.js 18+
+- Compilador C (gcc/MinGW) — apenas se for recompilar o worker de tokens
 
 ---
 
@@ -127,11 +165,11 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 |-----------|-----------|
 | `V1__create_schema.sql` | Cria todas as tabelas do banco |
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
-| `V3__insert_modelos_base.sql` | Insere os modelos de e-mails base |
-| `V4__insert_setores_base.sql` | Insere os setores base |
-| `V5__insert_users_base.sql` | Insere uma base de usuários inicial |
+| `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
+| `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
+| `V5__insert_users_base.sql` | Insere 100 usuários alvo de teste (`usuario_destino`) |
 
-> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V3__descricao.sql`, `V4__descricao.sql`, e assim por diante.
+> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V5__descricao.sql`, `V6__descricao.sql`, e assim por diante.
 
 #### 5. Acesso inicial
 
@@ -158,62 +196,124 @@ O frontend ficará disponível em `http://localhost:5173`.
 
 ---
 
-## Esta seção abaixo descreve a arquitetura lógica, as regras de negócio e o funcionamento geral da plataforma.
+## 🏗️ Arquitetura
+
+### Visão geral
+
+```
+┌─────────────────┐         ┌──────────────────┐         ┌──────────────┐
+│   React + Vite  │ --HTTP->│  Spring Boot API │ --JPA-->│   MySQL 8    │
+│   (porta 5173)  │         │   (porta 8080)   │         │              │
+└─────────────────┘         └────────┬─────────┘         └──────────────┘
+                                     │
+                                     │ ProcessBuilder
+                                     ▼
+                            ┌──────────────────┐
+                            │  Worker em C     │
+                            │  (multithread)   │
+                            └──────────────────┘
+```
+
+### Perfis de acesso
+
+O sistema atende a dois públicos com fluxos completamente separados:
+
+1. **Administradores (Equipe de Segurança)** — `usuario_sistema` com `tipo_acesso = Admin`. Acessam o painel de gestão para cadastrar usuários alvo, criar modelos de e-mail, disparar campanhas e visualizar o dashboard de resultados.
+2. **Usuários Destino (Alvos/Colaboradores)** — `usuario_destino`. Não fazem login no painel administrativo. Recebem os e-mails simulados e *(planejado)* terão um portal próprio para visualizar pontuação e realizar treinamentos.
+
+### Fluxo de criação e disparo
+
+#### 1. Criação de Modelos (Envelopamento)
+O administrador cria a "fantasia" do e-mail falso através de um editor WYSIWYG (Jodit) na tela `/models`.
+- **Spoofing:** define remetente falso (ex: `ti@ti.acesso-seguro.top`) e assunto padrão.
+- **Domínio Alvo:** seleciona o subdomínio para onde a vítima será levada (ex: `bradesco.acesso-seguro.top`).
+- **Injeção dinâmica:** o corpo HTML deve conter a tag `{{LINK_AQUI}}` onde será inserido o link único da vítima. O frontend **bloqueia o salvamento** do modelo caso a tag esteja ausente (validação client-side, heurística de prevenção de erros).
+
+#### 2. Criação da Campanha
+Na tela `/create`, o admin une um Modelo a um conjunto de Setores alvo (selecionados via *chips* de múltipla escolha — ou nenhum, para envio global). Pode opcionalmente vincular um "documento" falso para rastrear abertura de anexo separadamente do clique no link principal.
+
+#### 3. Geração de tokens (Worker em C)
+Para rastrear cliques sem expor dados pessoais na URL (conformidade LGPD — trafegar `?email=vitima@empresa.com` em texto puro caracterizaria vazamento de PII), o sistema gera **tokens únicos opacos**:
+- O Spring escreve um CSV temporário com os alvos e dispara o programa em C via `ProcessBuilder`.
+- O worker usa **múltiplas threads** para processar os alvos em paralelo, aplicando key stretching sobre `matrícula + email + departamento + ID_da_Campanha + chave_secreta`.
+- O algoritmo de hash utilizado é o **DJB2 modificado**. Os dados são manipulados em memória utilizando uma **Lista Encadeada Simples com alocação dinâmica**, evitando desperdício de memória em lotes de tamanho imprevisível.
+- A quantidade de threads é determinada em tempo de execução consultando o sistema operacional (`GetSystemInfo` no Windows ou `sysconf(_SC_NPROCESSORS_ONLN)` no Linux). O worker subtrai de 1 a 2 threads do total detectado para não saturar o servidor durante o disparo.
+- Cada token é único para **aquela combinação específica** de usuário × campanha. O token mascara a identidade do alvo e a qual campanha ele pertence.
+- Os tokens voltam num CSV de saída e são gravados em `disparos`.
+
+#### 4. Disparo *(planejado)*
+O backend lerá o HTML do Modelo, substituirá `{{LINK_AQUI}}` pela URL contendo o token único, e enviará via SMTP. **Esta etapa ainda não está implementada.**
+
+### Rastreamento
+
+| Evento | Como funciona | Onde fica registrado |
+|--------|---------------|----------------------|
+| **Clique no link** | Vítima acessa `/confirmar/{token}` → 302 redirect pro domínio falso. | `disparos.clicou_link = TRUE` |
+| **Abertura do anexo** | Vítima acessa `/doc/{token}` → o backend gera on-the-fly um arquivo `.html` com nome configurável pelo admin (ex: `relatorio.pdf.html`) contendo apenas um script de redirecionamento para a API. O arquivo não é um PDF/DOCX real, evitando bloqueios por antivírus e filtros de spam, mas registra a interação. | `disparos.abriu_anexo = TRUE` |
+| **Reporte do e-mail** *(planejado)* | Vítima encaminha o e-mail para a *abuse inbox* → SMTP-to-Webhook extrai o token. | `disparos.reportou_phishing = TRUE` |
+
+### Gamificação *(planejado)*
+
+O portal do Usuário Destino funcionará sob um sistema de pontuação comportamental:
+
+- **Penalidade:** clique em link malicioso ou abertura de anexo suspeito subtrai pontos.
+- **Neutralidade:** ignorar o e-mail não altera o saldo.
+- **Recompensa:** identificar e reportar o e-mail para a *abuse inbox* soma pontos.
+- **Treinamentos:** módulos de vídeo e quiz somam pontos quando concluídos. A tabela `treinamento_concluido` impede ganho duplicado pelo mesmo curso.
 
 ---
 
-## 🏗️ 1. Arquitetura e Stack Tecnológica
-A plataforma foi desenhada como um sistema web full-stack, dividindo responsabilidades entre diferentes tecnologias para garantir performance, segurança e fins acadêmicos:
-*   **Front-end:** React com Vite, HTML, CSS e JS, oferecendo interfaces responsivas.
-*   **Back-end:** Node.js como API principal do sistema.
-*   **Banco de Dados:** MySQL.
-*   **Processamento Assíncrono:** Programa em linguagem C focado em multithreading para geração de hashes criptográficos.
-*   **Infraestrutura de E-mail:** Integração SMTP para envio e um serviço "SMTP to Webhook" para o recebimento e captura de reportes.
+## 📁 Estrutura do projeto
+
+```
+nemo/
+├── backend/
+│   ├── scripts/
+│   │   └── gerador_tokens_worker.c       # Worker multithread em C
+│   └── src/main/
+│       ├── java/com/nemo/api/
+│       │   ├── auth/                     # Login, JWT, troca de senha
+│       │   ├── campanha/                 # CRUD de campanhas + integração com worker
+│       │   ├── modelo/                   # CRUD de modelos de e-mail
+│       │   ├── setor/                    # Listagem de setores
+│       │   ├── tracking/                 # /confirmar e /doc (rastreamento)
+│       │   ├── config/                   # SecurityConfig, GlobalExceptionHandler
+│       │   ├── model/                    # Entidades JPA
+│       │   └── repository/               # Spring Data repositories
+│       └── resources/
+│           ├── application.yaml
+│           └── db/migration/             # Migrations Flyway (V1..V5)
+└── frontend/
+    └── src/
+        ├── components/                   # UI base, navbar, branding, routing guards
+        ├── contexts/AuthContext.jsx      # Estado de autenticação
+        ├── layouts/AppShellLayout.jsx    # Layout interno (navbar + outlet)
+        ├── pages/
+        │   ├── login/                    # ✅ Login
+        │   ├── change-password/          # ✅ Troca obrigatória
+        │   ├── campaigns/                # ✅ Criar campanha
+        │   ├── models/                   # ✅ CRUD de modelos
+        │   ├── users/                    # 🚧 mock (sem backend)
+        │   ├── admin/                    # 🚧 placeholder
+        │   ├── home/                     # 🚧 placeholder (portal do colaborador)
+        │   ├── graphics/                 # 🚧 placeholder (dashboard)
+        │   └── settings/                 # 🚧 placeholder
+        └── routes/index.jsx              # Definição de rotas
+```
 
 ---
 
-## 👥 2. Perfis de Acesso
-O sistema atende a dois públicos distintos com fluxos de uso completamente separados:
-1.  **Administradores (Equipe de Segurança):** Possuem acesso ao painel de gestão para cadastrar usuários, criar modelos de e-mail maliciosos falsos, disparar campanhas e visualizar o dashboard de resultados.
-2.  **Usuários Destino (Alvos/Colaboradores):** Não possuem acesso às ferramentas de disparo. Eles recebem os e-mails e, além disso, possuem um portal logado para visualizar sua pontuação de gamificação e realizar treinamentos de conscientização.
+## 🚀 Resultados esperados
+
+Espera-se que o sistema contribua para a **conscientização dos usuários sobre ataques de phishing**, além de permitir a aplicação de conhecimentos práticos relacionados a:
+
+- 💻 Desenvolvimento de software full-stack
+- 🗄️ Modelagem e operação de banco de dados relacional
+- 🔐 Segurança da informação (autenticação, criptografia, vetores de ataque)
+- ⚡ Programação concorrente (threading em C)
 
 ---
 
-## ⚙️ 3. Fluxo de Criação e Disparo (Regras de Negócio)
+## 📜 Licença
 
-### 3.1. Criação de Modelos (Envelopamento)
-O administrador cria a "fantasia" do e-mail falso através de um editor WYSIWYG no front-end.
-*   **Spoofing:** É definido um remetente falso (ex: *ti@ms.acesso-seguro.top*) e um assunto padrão.
-*   **Domínio Alvo:** O admin seleciona o subdomínio malicioso para o qual a vítima será levada (ex: *bradesco.acesso-seguro.top*).
-*   **Injeção Dinâmica:** O corpo do e-mail é montado em HTML. Onde houver um link ou botão malicioso, o administrador utiliza a tag curinga `{{LINK_AQUI}}`.
-
-### 3.2. Criação da Campanha
-A campanha une o Modelo criado aos **Setores** (ex: TI, RH, Financeiro) que serão os alvos do teste. 
-
-### 3.3. O Motor Criptográfico (Script em C)
-Para rastrear os cliques sem expor os dados dos usuários na URL, o sistema gera **Tokens Únicos**.
-*   O back-end aciona o programa em **C**, que utiliza múltiplas **Threads** para processar os alvos em paralelo.
-*   Cada thread gera um token aplicando um algoritmo de embaralhamento de bits milhares de vezes (técnica de *Key Stretching*) sobre uma string combinando: `matrícula + email + departamento + ID_da_Campanha + ChaveSecreta`.
-*   Isso garante que o token seja exclusivo para **aquela interação específica** (Usuário X recebendo Campanha Y).
-*   Esses tokens são armazenados na tabela intermediária `disparos` no banco de dados.
-
-### 3.4. Disparo
-O Node.js lê o HTML do Modelo, substitui a tag `{{LINK_AQUI}}` pela URL contendo o Token Único recém-gerado, e envia os e-mails aos alvos via servidor SMTP.
-
----
-
-## 🎯 4. Rastreamento e Captura de Interações
-O coração do sistema é medir a vulnerabilidade humana. As interações são capturadas de duas formas:
-
-*   **Rastreamento de Cliques (Vulnerabilidade):** Se o alvo clicar no link, ele é direcionado à URL controlada pelo back-end. A API lê o token presente na URL, identifica na tabela `disparos` quem foi a vítima e a campanha, e registra `clicou_link = TRUE`.
-*   **Rastreamento de Reportes (Conscientização):** Se o usuário perceber o ataque e encaminhar o e-mail para a caixa de denúncias (*Abuse Inbox*), um container "SMTP to Webhook" recebe a mensagem, extrai o token e envia um aviso via HTTP para a API Node.js, marcando `reportou_phishing = TRUE`.
-
----
-
-## 🏆 5. Gamificação e Treinamentos Educativos
-O portal do "Usuário Destino" funciona sob um sistema de pontuação comportamental:
-
-*   **Penalidade (Perda de Pontos):** Ocorre caso o usuário clique em links maliciosos ou abra anexos suspeitos das campanhas.
-*   **Neutralidade:** Ocorre caso o usuário simplesmente ignore o e-mail, não alterando seu saldo de pontos.
-*   **Recompensa (Ganho de Pontos):** Concedida quando o usuário identifica e reporta corretamente o e-mail para a caixa de *Abuse*.
-*   **Consumo de Treinamentos:** O portal logado oferece vídeos e quizzes (inseridos no código React como MVP). Ao concluir um módulo, a API registra a ação na tabela `treinamento_concluido` e soma pontos ao perfil do usuário. A tabela impede que os pontos sejam ganhos em duplicidade pelo mesmo curso.
+Este projeto está sob a licença **CC BY-NC-ND 4.0** (Creative Commons — Atribuição, Não Comercial, Sem Derivações).

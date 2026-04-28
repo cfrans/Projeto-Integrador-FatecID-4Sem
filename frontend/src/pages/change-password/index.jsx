@@ -4,12 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
-import { useAuth } from '../../contexts/AuthContext'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
+import { api, ApiError } from '@/lib/api'
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate()
-  const { token } = useAuth()
   const [erro, setErro] = useState('')
 
   async function handleSubmit(event) {
@@ -23,21 +22,13 @@ export default function ChangePasswordPage() {
       return
     }
 
-    const res = await fetch('http://localhost:8080/api/auth/trocar-senha', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
+    try {
+      await api.put('/api/auth/trocar-senha', {
         senhaAtual: formData.get('senhaAtual'),
         novaSenha,
-      }),
-    })
-
-    if (!res.ok) {
-      const data = await res.json()
-      setErro(data.erro || 'Erro ao trocar senha.')
+      })
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : 'Erro ao trocar senha.')
       return
     }
 

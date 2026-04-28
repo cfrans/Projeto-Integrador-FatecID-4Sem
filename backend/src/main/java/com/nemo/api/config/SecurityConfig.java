@@ -26,7 +26,15 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/error", "/api/modelos/**", "/api/campanhas/**", "/api/setores/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/modelos/**",
+                                "/api/campanhas/**",
+                                "/api/setores/**",
+                                "/confirmar/**",   // ← link click
+                                "/doc/**",          // ← abertura de anexo
+                                "/error"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
