@@ -5,7 +5,6 @@ target/
 !**/src/test/**/target/
 *.env
 application-local.yaml*
-*.exe
 
 ### STS ###
 .apt_generated
