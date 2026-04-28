@@ -129,7 +129,7 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
 | `V3__insert_modelos_base.sql` | Insere os modelos de e-mails base |
 | `V4__insert_setores_base.sql` | Insere os setores base |
-| `V5__insert_users_base.sql | Insere uma base de usuários inicial |
+| `V5__insert_users_base.sql` | Insere uma base de usuários inicial |
 
 > ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V3__descricao.sql`, `V4__descricao.sql`, e assim por diante.
 
