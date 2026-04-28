@@ -127,33 +127,13 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 |-----------|-----------|
 | `V1__create_schema.sql` | Cria todas as tabelas do banco |
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
+| `V3__insert_modelos_base.sql` | Insere os modelos de e-mails base |
+| `V4__insert_setores_base.sql` | Insere os setores base |
+| `V5__insert_users_base.sql | Insere uma base de usuários inicial |
 
 > ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V3__descricao.sql`, `V4__descricao.sql`, e assim por diante.
 
-#### 5. Compilação do Motor Criptográfico
-O coração do disparo das campanhas conta com um "operário" (Worker) escrito em linguagem C. Ele é acionado pelo Java e utiliza múltiplas *threads* da CPU para gerar os hashes criptográficos dos tokens em milissegundos. 
-
-Como o executável gerado depende do seu sistema operacional, ele não é versionado no GitHub. **Antes de subir o back-end, é necessário compilar este arquivo manualmente.**
-
-**Passo a passo para compilação:**
-1. Abra o seu terminal e navegue até a pasta de scripts do backend:
-```bash
-cd backend/scripts/
-```
-Utilize o compilador GCC para gerar o executável correspondente ao seu Sistema Operacional:
-
-🪟 Para Windows (usando MinGW):
-
-```bash
-gcc -Wall -O2 -o gerador_tokens_worker.exe gerador_tokens_worker.c
-```
-
-🐧/🍏 Para Linux ou Mac:
-```bash
-gcc -Wall -O2 -o gerador_tokens_worker gerador_tokens_worker.c -lpthread
-```
-
-#### 6. Acesso inicial
+#### 5. Acesso inicial
 
 Após subir o sistema pela primeira vez, use as credenciais padrão para entrar:
 
