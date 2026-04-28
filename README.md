@@ -40,16 +40,16 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 🔐 Login com JWT e troca obrigatória de senha no primeiro acesso
 - 📝 CRUD de Modelos de e-mail (com domínio alvo, remetente falso, HTML)
 - 🎯 Criação de Campanhas vinculando Modelo + Setores alvo
-- ⚙️ Geração de tokens únicos via Worker em C (multithread, key stretching)
-- 🔎 Rastreamento de cliques (`/confirmar/{token}`) e abertura de anexo (`/doc/{token}`)
+- ⚙️ Geração de tokens únicos via Worker em C (multithread, key stretching, DJB2, detecção automática de CPUs)
+- 🔎 Rastreamento de cliques (`/confirmar/{token}`) e abertura de anexo (`/doc/{token}`) com geração de arquivo HTML falso on-the-fly
 - 🧱 Migrations Flyway com schema completo + seeds de tipos de acesso, modelos e setores
 - 🛡️ Spring Security configurado (CORS, sessão stateless, BCrypt)
 
 **Frontend (React + Vite)**
 - 🎨 Tela de login com fundo animado e fluxo de "manter sessão"
 - 🔁 Tela de troca de senha obrigatória (primeiro acesso)
-- 📨 Tela de criação de Campanhas com preview do anexo simulado
-- 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit)
+- 📨 Tela de criação de Campanhas com preview do anexo simulado e seleção de departamentos via *chips*
+- 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit) e validação client-side da tag `{{LINK_AQUI}}`
 - 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
 - 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.)
 - 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
@@ -68,7 +68,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 
 **Funcionalidade**
 - [ ] **Dashboard de gráficos** real (hoje a página `/graphics` é placeholder).
-- [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox*.
+- [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
 - [ ] **Portal do Colaborador** logado (com gamificação e treinamentos).
 - [ ] **Lógica de pontuação** comportamental (penalidade por clique, recompensa por reporte).
 - [ ] **Módulo de treinamentos** (vídeos + quizzes, alimentando `treinamento_concluido`).
@@ -101,11 +101,11 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - MySQL 8
 
 **Processamento Assíncrono**
-- Worker em C (multithread, geração paralela de tokens com key stretching)
+- Worker em C (multithread, geração paralela de tokens com key stretching, algoritmo DJB2 modificado, estrutura de Lista Encadeada Simples com alocação dinâmica)
 
 **Envio de E-mails**
 - *(planejado)* SMTP via JavaMail
-- *(planejado)* Container SMTP-to-Webhook para captura de reportes
+- *(planejado)* Container SMTP-to-Webhook para captura de reportes (`alash3al/smtp2http` ou `rnwood/smtp4dev`)
 
 ---
 
@@ -202,7 +202,7 @@ O frontend ficará disponível em `http://localhost:5173`.
 
 ```
 ┌─────────────────┐         ┌──────────────────┐         ┌──────────────┐
-│   React + Vite  │ ──HTTP─▶│  Spring Boot API │ ──JPA──▶│   MySQL 8    │
+│   React + Vite  │ --HTTP->│  Spring Boot API │ --JPA-->│   MySQL 8    │
 │   (porta 5173)  │         │   (porta 8080)   │         │              │
 └─────────────────┘         └────────┬─────────┘         └──────────────┘
                                      │
@@ -227,16 +227,18 @@ O sistema atende a dois públicos com fluxos completamente separados:
 O administrador cria a "fantasia" do e-mail falso através de um editor WYSIWYG (Jodit) na tela `/models`.
 - **Spoofing:** define remetente falso (ex: `ti@ti.acesso-seguro.top`) e assunto padrão.
 - **Domínio Alvo:** seleciona o subdomínio para onde a vítima será levada (ex: `bradesco.acesso-seguro.top`).
-- **Injeção dinâmica:** o corpo HTML deve conter a tag `{{LINK_AQUI}}` onde será inserido o link único da vítima.
+- **Injeção dinâmica:** o corpo HTML deve conter a tag `{{LINK_AQUI}}` onde será inserido o link único da vítima. O frontend **bloqueia o salvamento** do modelo caso a tag esteja ausente (validação client-side, heurística de prevenção de erros).
 
 #### 2. Criação da Campanha
-Na tela `/create`, o admin une um Modelo a um conjunto de Setores alvo (ou nenhum, para envio global). Pode opcionalmente anexar um "documento" falso para rastrear quem clica em anexo separadamente do clique no link principal.
+Na tela `/create`, o admin une um Modelo a um conjunto de Setores alvo (selecionados via *chips* de múltipla escolha — ou nenhum, para envio global). Pode opcionalmente vincular um "documento" falso para rastrear abertura de anexo separadamente do clique no link principal.
 
 #### 3. Geração de tokens (Worker em C)
-Para rastrear cliques sem expor dados na URL, o sistema gera **tokens únicos**:
+Para rastrear cliques sem expor dados pessoais na URL (conformidade LGPD — trafegar `?email=vitima@empresa.com` em texto puro caracterizaria vazamento de PII), o sistema gera **tokens únicos opacos**:
 - O Spring escreve um CSV temporário com os alvos e dispara o programa em C via `ProcessBuilder`.
 - O worker usa **múltiplas threads** para processar os alvos em paralelo, aplicando key stretching sobre `matrícula + email + departamento + ID_da_Campanha + chave_secreta`.
-- Cada token é único para **aquela combinação específica** de usuário × campanha.
+- O algoritmo de hash utilizado é o **DJB2 modificado**. Os dados são manipulados em memória utilizando uma **Lista Encadeada Simples com alocação dinâmica**, evitando desperdício de memória em lotes de tamanho imprevisível.
+- A quantidade de threads é determinada em tempo de execução consultando o sistema operacional (`GetSystemInfo` no Windows ou `sysconf(_SC_NPROCESSORS_ONLN)` no Linux). O worker subtrai de 1 a 2 threads do total detectado para não saturar o servidor durante o disparo.
+- Cada token é único para **aquela combinação específica** de usuário × campanha. O token mascara a identidade do alvo e a qual campanha ele pertence.
 - Os tokens voltam num CSV de saída e são gravados em `disparos`.
 
 #### 4. Disparo *(planejado)*
@@ -247,7 +249,7 @@ O backend lerá o HTML do Modelo, substituirá `{{LINK_AQUI}}` pela URL contendo
 | Evento | Como funciona | Onde fica registrado |
 |--------|---------------|----------------------|
 | **Clique no link** | Vítima acessa `/confirmar/{token}` → 302 redirect pro domínio falso. | `disparos.clicou_link = TRUE` |
-| **Abertura do anexo** | Vítima acessa `/doc/{token}` → recebe HTML falso de "documento confidencial". | `disparos.abriu_anexo = TRUE` |
+| **Abertura do anexo** | Vítima acessa `/doc/{token}` → o backend gera on-the-fly um arquivo `.html` com nome configurável pelo admin (ex: `relatorio.pdf.html`) contendo apenas um script de redirecionamento para a API. O arquivo não é um PDF/DOCX real, evitando bloqueios por antivírus e filtros de spam, mas registra a interação. | `disparos.abriu_anexo = TRUE` |
 | **Reporte do e-mail** *(planejado)* | Vítima encaminha o e-mail para a *abuse inbox* → SMTP-to-Webhook extrai o token. | `disparos.reportou_phishing = TRUE` |
 
 ### Gamificação *(planejado)*
@@ -280,7 +282,7 @@ nemo/
 │       │   └── repository/               # Spring Data repositories
 │       └── resources/
 │           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V4)
+│           └── db/migration/             # Migrations Flyway (V1..V5)
 └── frontend/
     └── src/
         ├── components/                   # UI base, navbar, branding, routing guards
