@@ -7,12 +7,14 @@ import com.nemo.api.model.Disparo;
 import com.nemo.api.model.UsuarioDestino;
 import com.nemo.api.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,6 +29,9 @@ public class CampanhaService {
     private final UsuarioDestinoRepository usuarioDestinoRepository;
     private final DisparoRepository disparoRepository;
     private final JwtService jwtService;
+
+    @Value("${nemo.csv-dir}")
+    private String csvDir;
 
     public List<CampanhaDTO> listar() {
         return campanhaRepository.findAll().stream().map(this::toDTO).toList();
@@ -89,12 +94,14 @@ public class CampanhaService {
     }
 
     public void processarGeracaoDeTokens(Integer idCampanha, List<UsuarioDestino> alvos) throws Exception {
-        String baseDir = System.getProperty("user.dir");
-        String nomeArquivoTemp  = baseDir + File.separator + "alvos_temp_" + idCampanha + ".csv";
-        String nomeArquivoSaida = baseDir + File.separator + "disparos_campanha_" + idCampanha + ".csv";
+        Path tokensDir = Paths.get(csvDir).toAbsolutePath();
+        Files.createDirectories(tokensDir);
+
+        Path arquivoTemp  = tokensDir.resolve("alvos_temp_" + idCampanha + ".csv");
+        Path arquivoSaida = tokensDir.resolve("disparos_campanha_" + idCampanha + ".csv");
 
         // 1. Criar o arquivo CSV temporário
-        try (PrintWriter writer = new PrintWriter(new File(nomeArquivoTemp))) {
+        try (PrintWriter writer = new PrintWriter(arquivoTemp.toFile())) {
             writer.println("matricula,nome,email,departamento");
             for (UsuarioDestino alvo : alvos) {
                 writer.printf("%d,%s,%s,%s\n",
@@ -105,12 +112,16 @@ public class CampanhaService {
             }
         }
 
-        // 2. Acionar o Worker em C
+        // 2. Acionar o Worker em C (working dir = tokensDir, para o output cair lá)
         boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-        String caminhoWorker = isWindows ? "scripts/gerador_tokens_worker.exe" : "scripts/gerador_tokens_worker";
+        String workerName = isWindows ? "gerador_tokens_worker.exe" : "gerador_tokens_worker";
+        Path workerPath = Paths.get(System.getProperty("user.dir"), "scripts", workerName).toAbsolutePath();
 
-        ProcessBuilder pb = new ProcessBuilder(caminhoWorker, nomeArquivoTemp, String.valueOf(idCampanha));
-        pb.directory(new File(System.getProperty("user.dir")));
+        ProcessBuilder pb = new ProcessBuilder(
+                workerPath.toString(),
+                arquivoTemp.toString(),
+                String.valueOf(idCampanha));
+        pb.directory(tokensDir.toFile());
         pb.inheritIO();
 
         Process process = pb.start();
@@ -121,7 +132,7 @@ public class CampanhaService {
         }
 
         // 3. Ler o CSV com os tokens
-        List<String> linhasResultado = Files.readAllLines(Path.of(nomeArquivoSaida));
+        List<String> linhasResultado = Files.readAllLines(arquivoSaida);
 
         for (int i = 1; i < linhasResultado.size(); i++) {
             String[] colunas = linhasResultado.get(i).split(",");
@@ -139,19 +150,21 @@ public class CampanhaService {
         }
 
         // 4. LIMPEZA: Excluir os CSVs temporários
-        Files.deleteIfExists(Path.of(nomeArquivoTemp));
-        Files.deleteIfExists(Path.of(nomeArquivoSaida));
+        Files.deleteIfExists(arquivoTemp);
+        Files.deleteIfExists(arquivoSaida);
     }
 
     // Método temporário para testar o C via PowerShell
     public String testarWorkerC() throws Exception {
         Integer idCampanha = 999;
-        String baseDir = System.getProperty("user.dir");
-        String nomeArquivoTemp  = baseDir + File.separator + "alvos_temp_" + idCampanha + ".csv";
-        String nomeArquivoSaida = baseDir + File.separator + "disparos_campanha_" + idCampanha + ".csv";
+        Path tokensDir = Paths.get(csvDir).toAbsolutePath();
+        Files.createDirectories(tokensDir);
+
+        Path arquivoTemp  = tokensDir.resolve("alvos_temp_" + idCampanha + ".csv");
+        Path arquivoSaida = tokensDir.resolve("disparos_campanha_" + idCampanha + ".csv");
 
         // 1. Gera um CSV falso com 2 usuários
-        try (PrintWriter writer = new PrintWriter(new File(nomeArquivoTemp))) {
+        try (PrintWriter writer = new PrintWriter(arquivoTemp.toFile())) {
             writer.println("matricula,nome,email,departamento");
             writer.println("1001,Caio,caio@fatec.edu.br,TI");
             writer.println("1002,Professor,mome@fatec.edu.br,Diretoria");
@@ -159,10 +172,14 @@ public class CampanhaService {
 
         // 2. Aciona o Worker
         boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-        String caminhoWorker = isWindows ? "scripts/gerador_tokens_worker.exe" : "scripts/gerador_tokens_worker";
+        String workerName = isWindows ? "gerador_tokens_worker.exe" : "gerador_tokens_worker";
+        Path workerPath = Paths.get(System.getProperty("user.dir"), "scripts", workerName).toAbsolutePath();
 
-        ProcessBuilder pb = new ProcessBuilder(caminhoWorker, nomeArquivoTemp, String.valueOf(idCampanha));
-        pb.directory(new File(System.getProperty("user.dir")));
+        ProcessBuilder pb = new ProcessBuilder(
+                workerPath.toString(),
+                arquivoTemp.toString(),
+                String.valueOf(idCampanha));
+        pb.directory(tokensDir.toFile());
         pb.inheritIO();
         Process process = pb.start();
 
@@ -172,7 +189,7 @@ public class CampanhaService {
         }
 
         // Não vamos deletar os arquivos para você poder ver eles na sua pasta!
-        return "Sucesso! Verifique a pasta backend/ e veja se o arquivo " + nomeArquivoSaida + " foi criado com os tokens.";
+        return "Sucesso! Verifique " + arquivoSaida + " — o worker gerou os tokens lá.";
     }
 
 }
