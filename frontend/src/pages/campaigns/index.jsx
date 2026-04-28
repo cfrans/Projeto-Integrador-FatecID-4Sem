@@ -15,8 +15,8 @@ import Modal from "@/components/ui/Modal";
 
 
 const API_CAMPANHAS = "http://localhost:8080/api/campanhas";
-const API_MODELOS   = "http://localhost:8080/api/modelos";
-const API_SETORES   = "http://localhost:8080/api/setores";
+const API_MODELOS = "http://localhost:8080/api/modelos";
+const API_SETORES = "http://localhost:8080/api/setores";
 
 
 function authHeaders() {
@@ -28,15 +28,15 @@ function authHeaders() {
 
 
 export default function CampaignsPage() {
-  const [modelos, setModelos]               = useState([]);
-  const [setores, setSetores]               = useState([]);
-  const [campaignName, setCampaignName]     = useState("");
-  const [emailSubject, setEmailSubject]     = useState("");
-  const [selectedModel, setSelectedModel]   = useState("");
-  const [chosenSectors, setChosenSectors]   = useState([]);
+  const [modelos, setModelos] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [campaignName, setCampaignName] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [chosenSectors, setChosenSectors] = useState([]);
   const [attachmentName, setAttachmentName] = useState("");
-  const [includeAnexo, setIncludeAnexo]     = useState(false);
-  const [modal, setModal]   = useState({ open: false, title: "", description: "", variant: "error" });
+  const [includeAnexo, setIncludeAnexo] = useState(false);
+  const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
   const [loading, setLoading] = useState(false);
 
 
@@ -184,16 +184,39 @@ export default function CampaignsPage() {
         description="Isso pode levar alguns segundos"
       />
 
-      <header>
-        <h1 className="text-2xl font-bold text-slate-900">Criação de Campanhas</h1>
-        <p className="mt-1 text-sm text-slate-600">Configure e dispare novas simulações de phishing.</p>
+      <header className="flex items-center gap-3">
+        {/* Anzol (SVG) — temático: phishing = pescar */}
+        <div className="flex items-center justify-center rounded-xl bg-linear-to-br from-orange-500 to-rose-500 p-2.5 shadow-md shadow-orange-500/30">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-6 text-white"
+            aria-hidden="true"
+          >
+            {/* Olhal */}
+            <circle cx="16.5" cy="5" r="2" />
+            {/* Haste + curva + ponta voltando para cima */}
+            <path d="M16.5 7v9a4.5 4.5 0 0 1-9 0v-1.5" />
+            {/* Barba (farpa) */}
+            <path d="M7.5 14l2 1.5" />
+          </svg>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Criação de Campanhas</h1>
+          <p className="mt-0.5 text-sm text-slate-600">Configure e dispare novas simulações de phishing.</p>
+        </div>
       </header>
 
       <Card className="rounded-2xl border border-slate-200 bg-white py-5 shadow-lg shadow-slate-900/10">
         <CardContent className="grid gap-6">
 
-          {/* Linha 1 — Nome da campanha + Assunto */}
-          <section className="grid gap-4 md:grid-cols-2">
+          {/* Linha 1 — Nome da campanha + Modelo + Assunto (3 colunas) */}
+          <section className="grid gap-4 md:grid-cols-3">
             <Field>
               <FieldLabel>Nome da Campanha (Uso Interno)</FieldLabel>
               <Input
@@ -203,21 +226,7 @@ export default function CampaignsPage() {
                 className="h-9"
               />
             </Field>
-            <Field>
-              <FieldLabel>Assunto do E-mail</FieldLabel>
-              <Input
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                placeholder="Selecione um modelo para pré-preencher"
-                className="h-9"
-              />
-            </Field>
-          </section>
 
-          {/* Linha 2 — Modelo + Domínio + Anexo (3 colunas) */}
-          <section className="grid gap-4 md:grid-cols-3">
-
-            {/* Coluna 1: Modelo */}
             <Field>
               <FieldLabel>Modelo de E-mail</FieldLabel>
               <Select value={selectedModel} onValueChange={handleModelChange}>
@@ -236,7 +245,21 @@ export default function CampaignsPage() {
               </Select>
             </Field>
 
-            {/* Coluna 2: Domínio (read-only) */}
+            <Field>
+              <FieldLabel>Assunto do E-mail</FieldLabel>
+              <Input
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="Selecione um modelo para pré-preencher"
+                className="h-9"
+              />
+            </Field>
+          </section>
+
+          {/* Linha 2 — Domínio Alvo + Anexo Falso (2 colunas) */}
+          <section className="grid gap-4 md:grid-cols-2">
+
+            {/* Domínio (read-only) */}
             <Field>
               <FieldLabel className="text-xs text-slate-500">🔗 Domínio Alvo da Simulação</FieldLabel>
               <Input
@@ -248,11 +271,11 @@ export default function CampaignsPage() {
               />
             </Field>
 
-            {/* Coluna 3: Anexo */}
+            {/* Anexo: checkbox + input + botão tudo na mesma linha */}
             <Field>
-              <div className="flex items-center justify-between mb-1.5">
-                <FieldLabel className="mb-0">Anexo Falso</FieldLabel>
-                <label className="flex items-center gap-1.5 cursor-pointer">
+              <FieldLabel>Anexo Falso</FieldLabel>
+              <div className="flex items-center gap-2">
+                <label className="flex shrink-0 items-center gap-1.5 cursor-pointer rounded-md border border-slate-300 bg-white px-2.5 h-9">
                   <input
                     type="checkbox"
                     checked={includeAnexo}
@@ -262,10 +285,9 @@ export default function CampaignsPage() {
                     }}
                     className="w-3.5 h-3.5 rounded accent-orange-500 cursor-pointer"
                   />
-                  <span className="text-xs text-slate-500 select-none">Incluir no e-mail</span>
+                  <span className="text-xs text-slate-600 select-none font-medium">Incluir</span>
                 </label>
-              </div>
-              <div className="flex gap-2">
+
                 <Input
                   value={attachmentName}
                   onChange={(e) => setAttachmentName(e.target.value)}
@@ -273,6 +295,7 @@ export default function CampaignsPage() {
                   disabled={!includeAnexo}
                   className="h-9 flex-1 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed disabled:italic"
                 />
+
                 <Button
                   type="button"
                   variant="outline"
