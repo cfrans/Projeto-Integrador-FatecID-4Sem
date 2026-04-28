@@ -8,6 +8,7 @@ import AnimatedBackground from '@/components/effects/AnimatedBackground'
 import Modal from '@/components/ui/Modal'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { api, ApiError } from '@/lib/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -17,20 +18,18 @@ export default function LoginPage() {
   async function handleSubmit(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const res = await fetch('http://localhost:8080/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+
+    let data
+    try {
+      data = await api.post('/api/auth/login', {
         email: formData.get('email'),
         senha: formData.get('password'),
-      }),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setErro(data.erro || 'Credenciais inválidas.')
+      }, { auth: false })
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : 'Credenciais inválidas.')
       return
     }
-    const data = await res.json()
+
     const lembrar = formData.get('keepConnected') === 'on'
     login(data.token, lembrar)
 

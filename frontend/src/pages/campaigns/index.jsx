@@ -12,19 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
-
-
-const API_CAMPANHAS = "http://localhost:8080/api/campanhas";
-const API_MODELOS = "http://localhost:8080/api/modelos";
-const API_SETORES = "http://localhost:8080/api/setores";
-
-
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token") || sessionStorage.getItem("token")}`,
-  };
-}
+import { api } from "@/lib/api";
 
 
 export default function CampaignsPage() {
@@ -45,15 +33,8 @@ export default function CampaignsPage() {
 
 
   useEffect(() => {
-    fetch(API_MODELOS, { headers: authHeaders() })
-      .then((r) => r.ok ? r.json() : [])
-      .then(setModelos)
-      .catch(() => setModelos([]));
-
-    fetch(API_SETORES, { headers: authHeaders() })
-      .then((r) => r.ok ? r.json() : [])
-      .then(setSetores)
-      .catch(() => setSetores([]));
+    api.get("/api/modelos").then(setModelos).catch(() => setModelos([]));
+    api.get("/api/setores").then(setSetores).catch(() => setSetores([]));
   }, []);
 
 
@@ -94,19 +75,13 @@ export default function CampaignsPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(API_CAMPANHAS, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          nomeCampanha: campaignName,
-          assuntoEmail: emailSubject,
-          nomeAnexo: includeAnexo && attachmentName ? attachmentName : null,
-          idModelo: Number(selectedModel),
-          idSetores: chosenSectors.map((s) => s.idSetor),
-        }),
+      await api.post("/api/campanhas", {
+        nomeCampanha: campaignName,
+        assuntoEmail: emailSubject,
+        nomeAnexo: includeAnexo && attachmentName ? attachmentName : null,
+        idModelo: Number(selectedModel),
+        idSetores: chosenSectors.map((s) => s.idSetor),
       });
-
-      if (!res.ok) throw new Error();
       showModal("Campanha criada!", "A campanha foi salva e os tokens foram gerados com sucesso.", "success");
       handleClear();
     } catch {
