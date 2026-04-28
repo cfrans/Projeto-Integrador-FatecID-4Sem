@@ -128,10 +128,10 @@ int ler_csv(struct No **cabeca, const char *nome_arquivo)
 
         char mat_str[16];
         int campos = sscanf(linha,
-            "%15[^,],%63[^,],%63[^,],%127[^,],%63[^,\r\n]",
-            mat_str, u.nome, u.sobrenome, u.email, u.departamento);
+            "%15[^,],%63[^,],%127[^,],%63[^,\r\n]",
+            mat_str, u.nome, u.email, u.departamento);
 
-        if (campos < 5) continue;
+        if (campos < 4) continue;
 
         u.matricula = atoi(mat_str);
         inserir_na_lista(cabeca, u);
