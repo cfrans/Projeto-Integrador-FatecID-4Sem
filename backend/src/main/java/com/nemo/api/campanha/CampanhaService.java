@@ -1,6 +1,7 @@
 package com.nemo.api.campanha;
 
 import com.nemo.api.auth.JwtService;
+import com.nemo.api.config.exception.ResourceNotFoundException;
 import com.nemo.api.model.Campanha;
 import com.nemo.api.model.Disparo;
 import com.nemo.api.model.UsuarioDestino;
@@ -34,9 +35,9 @@ public class CampanhaService {
     public CampanhaDTO criar(CampanhaRequest request, String token) {
         String email = jwtService.extractEmail(token);
         var usuario = usuarioSistemaRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         var modelo = modeloRepository.findById(request.idModelo())
-                .orElseThrow(() -> new RuntimeException("Modelo não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo não encontrado"));
         var setores = setorRepository.findAllById(request.idSetores());
 
         var campanha = new Campanha();
