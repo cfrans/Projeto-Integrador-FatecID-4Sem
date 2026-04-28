@@ -25,8 +25,11 @@ CREATE TABLE usuario_destino (
     email              VARCHAR(100) NOT NULL UNIQUE,
     senha_hash         VARCHAR(255) NOT NULL,
     pontuacao          INT          DEFAULT 0,
+    primeiro_acesso    BOOLEAN      DEFAULT TRUE,
     id_setor           INT          NOT NULL,
-    CONSTRAINT fk_setor FOREIGN KEY (id_setor) REFERENCES setor (id_setor)
+    id_tipo_acesso     INT          NOT NULL DEFAULT 2,
+    CONSTRAINT fk_setor_destino    FOREIGN KEY (id_setor)         REFERENCES setor (id_setor),
+    CONSTRAINT fk_tipo_acesso_dest FOREIGN KEY (id_tipo_acesso)   REFERENCES tipo_acesso (id_tipo_acesso)
 );
 
 CREATE TABLE modelo (
@@ -67,7 +70,6 @@ CREATE TABLE disparos (
     id_usuario_destino INT          NOT NULL,
     id_campanha        INT          NOT NULL,
     token_unico        VARCHAR(255) NOT NULL UNIQUE,
-    abriu_email        BOOLEAN      DEFAULT FALSE,
     clicou_link        BOOLEAN      DEFAULT FALSE,
     abriu_anexo        BOOLEAN      DEFAULT FALSE,
     reportou_phishing  BOOLEAN      DEFAULT FALSE,

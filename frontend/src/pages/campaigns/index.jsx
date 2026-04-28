@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ export default function CampaignsPage() {
   const [chosenSectors, setChosenSectors] = useState([]);
   const [attachmentName, setAttachmentName] = useState("");
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
+  const [loading, setLoading] = useState(false);
 
   const showModal = (title, description, variant = "error") =>
     setModal({ open: true, title, description, variant });
@@ -78,6 +80,7 @@ export default function CampaignsPage() {
       return;
     }
 
+    setLoading(true);
     try {
       const res = await fetch(API_CAMPANHAS, {
         method: "POST",
@@ -96,6 +99,8 @@ export default function CampaignsPage() {
       handleClear();
     } catch {
       showModal("Erro ao criar campanha", "Ocorreu um erro ao salvar a campanha. Tente novamente.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,6 +112,12 @@ export default function CampaignsPage() {
         title={modal.title}
         description={modal.description}
         variant={modal.variant}
+      />
+
+      <LoadingOverlay
+        open={loading}
+        message="Gerando tokens da campanha..."
+        description="Isso pode levar alguns segundos"
       />
 
       <header>
