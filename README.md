@@ -60,25 +60,41 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 
 ### 🚧 Em construção / falta fazer
 
+#### Backend
+
 **Crítico (bloqueia o MVP)**
-- [ ] **Filtro JWT no backend** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
+- [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
-- [ ] **CRUD de `usuario_destino`** no backend — a página de Usuários no frontend existe mas opera sobre dados mockados.
-- [ ] **Página de Configurações** funcional — trocar a própria senha fora do primeiro acesso e promover/rebaixar usuários do sistema (Admin ↔ Colaborador).
+- [ ] **CRUD de `usuario_destino`** — a página de Usuários no frontend existe mas opera sobre dados mockados.
+- [ ] **Lógica de pontuação** comportamental — service que aplica penalidade por clique/abertura de anexo e recompensa por reporte, gravando em `pontuacao` ou campo equivalente em `usuario_destino`.
 
 **Funcionalidade**
-- [ ] **Dashboard de gráficos** real (hoje a página `/graphics` é placeholder).
+- [ ] **Endpoints de monitoramento de campanha** — `GET /api/campanhas/{id}/disparos` retornando status individual por destinatário (enviado, clicou\_link, abriu\_anexo, reportou\_phishing) com suporte a filtros via query params (ex: `?clicou=true&abriu=false`). A tabela `disparos` já possui as colunas necessárias.
 - [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
-- [ ] **Portal do Colaborador** logado (com gamificação e treinamentos).
-- [ ] **Lógica de pontuação** comportamental (penalidade por clique, recompensa por reporte).
-- [ ] **Módulo de treinamentos** (vídeos + quizzes, alimentando `treinamento_concluido`).
-- [ ] **Recuperação de senha** ("Esqueci minha senha" do login não está conectado).
+- [ ] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
+- [ ] **Módulo de treinamentos** — CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão em `treinamento_concluido` (impede ganho duplicado pelo mesmo curso).
+- [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
 
 **Qualidade**
 - [ ] Tornar a geração de tokens assíncrona (`@Async`) com endpoint de status.
 - [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
 - [ ] Documentação de API via springdoc-openapi (Swagger UI).
+
+---
+
+#### Frontend
+
+**Crítico (bloqueia o MVP)**
+- [ ] **Página de Configurações** funcional — trocar a própria senha fora do primeiro acesso e promover/rebaixar usuários do sistema (Admin ↔ Colaborador).
+
+**Funcionalidade — Painel Admin**
+- [ ] **Página de Monitoramento de Campanha** (`/campaigns/{id}`) — exibe cards de resumo (total de alvos, % que clicou, % que abriu anexo, % que reportou) e uma tabela paginada com uma linha por destinatário. Cada linha mostra nome, e-mail, setor e ícones de status para cada evento. A tabela deve suportar filtros rápidos via *chips* (ex: "Clicou no link", "Não interagiu", "Reportou") que disparam chamada ao endpoint com os query params correspondentes. Acessível a partir da listagem de campanhas existente.
+- [ ] **Dashboard de gráficos** real (`/graphics`) — visão consolidada de todas as campanhas (hoje é placeholder).
+
+**Funcionalidade — Portal do Colaborador**
+- [ ] **Página de Pontuação** (`/home` ou `/colaborador`) — card com saldo atual e gráfico de linha mostrando a evolução histórica da pontuação ao longo do tempo (alimentado pelo endpoint de histórico de eventos).
+- [ ] **Página de Treinamentos** (`/treinamentos`) — listagem dos módulos disponíveis com indicador de conclusão. Cada módulo abre uma tela com vídeo embedado (YouTube/Vimeo via `<iframe>`) seguido de um quiz de múltipla escolha. A conclusão do quiz envia o resultado ao backend e libera os pontos.
 
 ---
 
