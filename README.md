@@ -52,15 +52,19 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit)
 - 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
 - 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.)
+- 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
+
+**Qualidade / infraestrutura**
+- 🧹 `GlobalExceptionHandler` com handlers específicos (401 só para credenciais, 404 para "não encontrado", 400 para validação, 500 para o resto)
+- 📂 CSVs do worker C escritos em diretório dedicado (`backend/tmp/tokens`, configurável via `NEMO_CSV_DIR`)
 
 ### 🚧 Em construção / falta fazer
 
 **Crítico (bloqueia o MVP)**
-- [ ] **Filtro JWT no backend** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Próxima sprint.
+- [ ] **Filtro JWT no backend** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
 - [ ] **CRUD de `usuario_destino`** no backend — a página de Usuários no frontend existe mas opera sobre dados mockados.
-- [ ] **Migration V5** com base inicial de usuários alvo.
-- [ ] **Página de Configurações** funcional (mínimo: trocar a própria senha fora do primeiro acesso).
+- [ ] **Página de Configurações** funcional — trocar a própria senha fora do primeiro acesso e promover/rebaixar usuários do sistema (Admin ↔ Colaborador).
 
 **Funcionalidade**
 - [ ] **Dashboard de gráficos** real (hoje a página `/graphics` é placeholder).
@@ -71,11 +75,8 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - [ ] **Recuperação de senha** ("Esqueci minha senha" do login não está conectado).
 
 **Qualidade**
-- [ ] Refatorar `GlobalExceptionHandler` (hoje retorna 401 para qualquer `RuntimeException`).
-- [ ] Centralizar API client no frontend (hoje cada página tem seu `fetch` + base URL hardcoded).
 - [ ] Tornar a geração de tokens assíncrona (`@Async`) com endpoint de status.
-- [ ] Mover CSVs temporários do `user.dir` para diretório dedicado.
-- [ ] Remover endpoint de debug `/api/campanhas/teste-worker`.
+- [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
 - [ ] Documentação de API via springdoc-openapi (Swagger UI).
 
@@ -166,6 +167,7 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
 | `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
 | `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
+| `V5__insert_users_base.sql` | Insere 100 usuários alvo de teste (`usuario_destino`) |
 
 > ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V5__descricao.sql`, `V6__descricao.sql`, e assim por diante.
 
