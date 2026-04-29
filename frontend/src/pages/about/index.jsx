@@ -22,8 +22,10 @@ export default function AboutPage() {
       {/* Cabeçalho principal */}
       <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 border-b border-slate-200 pb-8">
         <div className="flex-1">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Sobre o Projeto</h1>
-          <p className="mt-1 text-sm text-slate-600 text-justify">
+          
+          
+          <h1 className="text-2xl font-bold text-slate-900">Sobre o Projeto</h1>
+          <p className="mt-0.5 text-sm text-slate-600">
             Plataforma de simulação de phishing para análise e reforço da segurança digital.
           </p>
         </div>

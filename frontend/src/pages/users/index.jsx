@@ -295,7 +295,7 @@ export default function UsersPage() {
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Lista de Usuários Cadastrados</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Lista de usuários cadastrados</h1>
           <p className="mt-1 text-sm text-slate-600">Adicione, edite e exclua usuários cadastrados no sistema.</p>
         </div>
         <div className="flex items-center gap-2">

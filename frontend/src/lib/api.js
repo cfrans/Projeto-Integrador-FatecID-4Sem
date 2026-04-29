@@ -24,11 +24,22 @@ async function request(path, { method = "GET", body, auth = true, headers = {} }
     if (token) finalHeaders.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const fetchOptions = {
     method,
-    headers: finalHeaders,
     body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  // Só adiciona headers se não for FormData (FormData precisa do navegador definir Content-Type)
+  if (!(body instanceof FormData)) {
+    fetchOptions.headers = finalHeaders;
+  } else {
+    // Para FormData, adiciona apenas Authorization
+    if (finalHeaders.Authorization) {
+      fetchOptions.headers = { Authorization: finalHeaders.Authorization };
+    }
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, fetchOptions);
 
   if (res.status === 204) return null;
 

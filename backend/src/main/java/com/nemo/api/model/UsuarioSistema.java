@@ -18,6 +18,10 @@ public class UsuarioSistema {
     private String senhaHash;
     private Boolean primeiroAcesso;
 
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] foto;
+
     @ManyToOne
     @JoinColumn(name = "id_tipo_acesso")
     private TipoAcesso tipoAcesso;
