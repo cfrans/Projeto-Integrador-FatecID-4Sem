@@ -1,162 +1,152 @@
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/branding/Logo'
+import { CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
+import Modal from '@/components/ui/Modal'
+import { useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { api, ApiError } from '@/lib/api'
 
-export default function ConfiguracoesPage() {
-  const [editMode, setEditMode] = useState(false)
-  const [mostrarTrocarSenha, setMostrarTrocarSenha] = useState(false)
+export default function LoginPage() {
+  const navigate = useNavigate()
+  const { login } = useAuth()
+  const [erro, setErro] = useState(null)
 
-  const [nome, setNome] = useState('Seu Nome')
-  const [email, setEmail] = useState('seu@email.com')
+  async function handleSubmit(event) {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
 
-  const [senhaAtual, setSenhaAtual] = useState('')
-  const [novaSenha, setNovaSenha] = useState('')
-  const [confirmarSenha, setConfirmarSenha] = useState('')
+    let data
+    try {
+      data = await api.post('/api/auth/login', {
+        email: formData.get('email'),
+        senha: formData.get('password'),
+      }, { auth: false })
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : 'Credenciais inválidas.')
+      return
+    }
 
-  function handleSalvarPerfil() {
-    setEditMode(false)
-  }
+    const lembrar = formData.get('keepConnected') === 'on'
+    login(data.token, lembrar)
 
-  function handleCancelarEdicao() {
-    setEditMode(false)
-  }
+    if (data.primeiroAcesso) {
+      navigate('/trocar-senha')
+      return
+    }
 
-  function handleTrocarSenha(e) {
-    e.preventDefault()
-    setMostrarTrocarSenha(false)
-    setSenhaAtual('')
-    setNovaSenha('')
-    setConfirmarSenha('')
+    if (data.role === 'Admin') {
+      navigate('/admin')
+    } else {
+      navigate('/home')
+    }
   }
 
   return (
+    // Linha abaixo comentada caso queira remover o fundo animado
+    // <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_14%_20%,rgba(13,148,136,0.2),transparent_35%),radial-gradient(circle_at_82%_78%,rgba(30,64,175,0.22),transparent_35%),linear-gradient(145deg,#051524_0%,#0b2538_55%,#0f172a_100%)] p-6 sm:p-3"></main>
     <AnimatedBackground>
-      <section className="grid w-full max-w-3xl mx-auto rounded-2xl border border-slate-400/30 shadow-2xl shadow-slate-950/60 backdrop-blur-xs bg-slate-50/95 p-6 sm:p-5 text-slate-900">
+      <section className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-400/30 shadow-2xl shadow-slate-950/60 backdrop-blur-xs lg:grid-cols-[1.2fr_1fr]">
+        <aside className="grid content-between gap-8 bg-[linear-gradient(165deg,rgba(15,23,42,0.82)_0%,rgba(15,118,110,0.5)_100%),linear-gradient(120deg,#0b1729_0%,#0e2a3c_100%)] p-7 text-slate-200 sm:gap-5 sm:p-6">
+          <div className="grid gap-4">
+            <div className="flex items-center justify-center">
+              <Logo className="w-100 h-100 justify-center" />
+            </div>
 
-        <header className="mb-5">
-          <h1 className="text-lg font-bold">Configurações da conta</h1>
-          <p className="mt-2 text-slate-700">
-            Gerencie suas informações pessoais e mantenha seu acesso seguro.
-          </p>
-        </header>
+            <CardDescription className="text-slate-300">
+              <div className="mt-10 grid gap-4 rounded-xl border justify-center justify-items-center border-slate-400/25 bg-slate-900/35 p-4" aria-label="Fluxo de uso do portal">
+                <h3 className="text-sm text-bold text-slate-200">Como funciona </h3>
+                <ol className="grid list-none gap-2 p-0">
+                  <li className="flex items-center gap-2 text-sm text-blue-100">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">1</span>
+                    <span>Entrar com credenciais corporativas</span>
+                  </li>
+                  <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
+                  <li className="flex items-center gap-2 text-sm text-blue-100">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">2</span>
+                    <span>Realizar treinamentos e simulações</span>
+                  </li>
+                  <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
+                  <li className="flex items-center gap-2 text-sm text-blue-100">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">3</span>
+                    <span>Acompanhar evolução e indicadores</span>
+                  </li>
+                </ol>
+              </div>
+            </CardDescription>
 
-        <Card className="p-6">
-          <CardHeader className="p-0 mb-5">
-            <CardTitle className="text-base font-bold">
-              Perfil
-            </CardTitle>
-          </CardHeader>
+          </div>
+        </aside>
+        <section className="grid content-center bg-slate-50/95 p-6 text-slate-900 sm:p-5">
+          <header className="mb-5">
+            <h1 className='text-lg font-bold'>Acesso ao portal corporativo</h1>
+            <p className="mt-2 text-slate-700">Use suas credenciais para autenticacao e entre no ambiente correto do seu perfil.</p>
+          </header>
 
-          <CardContent className="p-0 grid gap-4">
-
+          <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <Label>Nome</Label>
+              <Label htmlFor="email">E-mail corporativo</Label>
               <Input
-                value={nome}
-                disabled={!editMode}
-                onChange={(e) => setNome(e.target.value)}
-                className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
+                className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
+                id="email"
+                type="email"
+                name="email"
+                placeholder="exemplo@nemo.com"
+                required
               />
             </div>
 
             <div className="grid gap-2">
-              <Label>E-mail</Label>
+              <Label htmlFor="password">Senha</Label>
               <Input
-                value={email}
-                disabled={!editMode}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
+                className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] text-slate-900 focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
+                id="password"
+                type="password"
+                name="password"
+                placeholder="Digite sua senha"
+                minLength={0}
+                required
               />
             </div>
 
-            <div className="mt-2 grid gap-3">
-              {!editMode ? (
-                <Button onClick={() => setEditMode(true)}>
-                  Editar Perfil
-                </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button type="button" onClick={handleSalvarPerfil}>
-                    Salvar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancelarEdicao}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              )}
+            <Modal
+              open={!!erro}
+              onClose={() => setErro(null)}
+              title="Não foi possível entrar"
+              description="E-mail ou senha incorretos. Verifique suas credenciais e tente novamente."
+              variant="error"
+            />
 
-              {/* Botão verde abaixo */}
+            <div className="mt-1 flex items-center justify-between gap-3 text-sm sm:flex-col sm:items-start">
+              <Label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
+                <input className="h-4 w-4" id="keepConnected" type="checkbox" name="keepConnected" />
+                Manter sessão
+              </Label>
+              <a className="font-bold text-teal-700 hover:underline" href="#" aria-label="Recuperar senha">
+                Esqueci minha senha (fazer ainda)
+              </a>
+            </div>
+
+            <div className="mt-1 grid gap-3">
+              <Button type="submit">
+                Entrar no portal
+              </Button>
               <Button
                 type="button"
-                onClick={() => setMostrarTrocarSenha(!mostrarTrocarSenha)}
+                variant="link"
               >
-                Trocar senha
+                Solicitar suporte de acesso
               </Button>
             </div>
+          </form>
 
-            {mostrarTrocarSenha && (
-              <form onSubmit={handleTrocarSenha} className="grid gap-4 mt-2 border-t pt-4">
-
-                <div className="grid gap-2">
-                  <Label>Senha atual</Label>
-                  <Input
-                    type="password"
-                    value={senhaAtual}
-                    onChange={(e) => setSenhaAtual(e.target.value)}
-                    className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
-                    required
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Nova senha</Label>
-                  <Input
-                    type="password"
-                    value={novaSenha}
-                    onChange={(e) => setNovaSenha(e.target.value)}
-                    className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
-                    required
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Confirmar nova senha</Label>
-                  <Input
-                    type="password"
-                    value={confirmarSenha}
-                    onChange={(e) => setConfirmarSenha(e.target.value)}
-                    className="w-full rounded-[10px] border-slate-300 bg-white px-3 py-3 text-[0.96rem] focus-visible:border-teal-700 focus-visible:ring-3 focus-visible:ring-teal-400/30"
-                    required
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button type="submit">
-                    Salvar senha
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setMostrarTrocarSenha(false)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-
-              </form>
-            )}
-
-          </CardContent>
-        </Card>
-
+        </section>
       </section>
     </AnimatedBackground>
+    // Linha abaixo comentada caso queira remover o fundo animado
+    // </main>
   )
 }
