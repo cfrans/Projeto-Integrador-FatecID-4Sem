@@ -57,11 +57,16 @@ const IconEye = () => (
   </svg>
 );
 const IconHook = ({ className = "size-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="5" r="2" />
-    <line x1="12" y1="7" x2="12" y2="19" />
-    <line x1="5" y1="11" x2="19" y2="11" />
-    <path d="M5 11c0 5 3.5 8 7 8s7-3 7-8" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.91" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="3.41" r="1.91" />
+    <path d="M12,5.32v.21a8.5,8.5,0,0,0,3.49,6.7,5.73,5.73,0,1,1-9.22,4.54" />
+    <polyline points="9.14 16.77 6.27 13.91 6.27 16.77" />
+  </svg>
+);
+const IconArchive = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+    <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375Z" />
+    <path fillRule="evenodd" d="m3.087 9 .54 9.176A3 3 0 0 0 6.62 21h10.757a3 3 0 0 0 2.995-2.824L20.913 9H3.087Zm6.163 3.75A.75.75 0 0 1 10 12h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
   </svg>
 );
 
@@ -121,13 +126,20 @@ function FilterChip({ label, active, onClick }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // VIEW 1 — Lista de campanhas
 // ═══════════════════════════════════════════════════════════════════════════════
-function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
+const STATUSES = ["Pendente", "Enviando", "Concluída", "Erro"];
+
+function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar }) {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [mostrarArquivados, setMostrarArquivados] = useState(false);
 
-  const limparFiltro = () => { setDataInicio(""); setDataFim(""); };
+  const limparFiltros = () => { setDataInicio(""); setDataFim(""); setFiltroStatus("todos"); };
 
   const campanhasFiltradas = campanhas.filter((c) => {
+    const arquivada = archivedIds.has(c.idCampanha);
+    if (mostrarArquivados ? !arquivada : arquivada) return false;
+    if (!mostrarArquivados && filtroStatus !== "todos" && c.statusEnvio !== filtroStatus) return false;
     if (!dataInicio && !dataFim) return true;
     const criacao = new Date(c.dataCriacao);
     if (dataInicio) {
@@ -143,14 +155,15 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
     return true;
   });
 
-  const filtroAtivo = dataInicio || dataFim;
+  const filtroAtivo = dataInicio || dataFim || filtroStatus !== "todos";
+  const totalVisiveis = campanhas.filter((c) => mostrarArquivados ? archivedIds.has(c.idCampanha) : !archivedIds.has(c.idCampanha)).length;
 
   return (
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center size-10 rounded-xl bg-orange-500 shrink-0">
-            <IconHook className="size-5 text-white" />
+          <div className="flex items-center justify-center size-12 rounded-xl bg-orange-500 shrink-0">
+            <IconHook className="size-6 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
@@ -163,42 +176,43 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
       </header>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
           <div className="flex items-end gap-2">
             <Field className="grid gap-1">
               <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
-              <Input
-                type="date"
-                value={dataInicio}
-                onChange={(e) => setDataInicio(e.target.value)}
-                max={dataFim || undefined}
-                className="h-9 w-40"
-              />
+              <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
             </Field>
             <Field className="grid gap-1">
               <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
-              <Input
-                type="date"
-                value={dataFim}
-                onChange={(e) => setDataFim(e.target.value)}
-                min={dataInicio || undefined}
-                className="h-9 w-40"
-              />
+              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
             </Field>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={limparFiltro}
-              disabled={!filtroAtivo}
-              className="h-9 self-end"
-            >
-              Todos
+            <Button type="button" variant="outline" size="sm" onClick={limparFiltros} disabled={!filtroAtivo} className="h-9 self-end">
+              Limpar
             </Button>
           </div>
-          <span className="ml-auto text-xs text-slate-500">
-            {campanhasFiltradas.length} de {campanhas.length}
-          </span>
+
+          {!mostrarArquivados && (
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="h-9 w-36 text-sm">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos status</SelectItem>
+                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+
+          <div className="ml-auto flex items-center gap-3">
+            <Button
+              type="button" variant="outline" size="sm"
+              onClick={() => { setMostrarArquivados((v) => !v); limparFiltros(); }}
+              className={`h-9 gap-1.5 ${mostrarArquivados ? "border-slate-400 bg-slate-100 text-slate-700" : "text-slate-600"}`}
+            >
+              <IconArchive /> {mostrarArquivados ? "Ver ativas" : "Arquivadas"}
+            </Button>
+            <span className="text-xs text-slate-500">{campanhasFiltradas.length} de {totalVisiveis}</span>
+          </div>
         </div>
 
         {campanhasFiltradas.length === 0 ? (
@@ -207,7 +221,7 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
             </svg>
             <p className="text-sm">
-              {filtroAtivo ? "Nenhuma campanha no período selecionado." : "Nenhuma campanha criada ainda."}
+              {mostrarArquivados ? "Nenhuma campanha arquivada." : filtroAtivo ? "Nenhuma campanha no período/status selecionado." : "Nenhuma campanha criada ainda."}
             </p>
           </div>
         ) : (
@@ -222,34 +236,33 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {campanhasFiltradas.map((c) => (
-                <tr key={c.idCampanha} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-900">{c.nomeCampanha}</td>
-                  <td className="px-6 py-4 text-slate-600">{c.nomeModelo}</td>
-                  <td className="px-6 py-4"><StatusBadge status={c.statusEnvio} /></td>
-                  <td className="px-6 py-4 text-slate-500 text-xs">
-                    {new Date(c.dataCriacao).toLocaleDateString("pt-BR")}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline" size="sm"
-                        onClick={() => onMonitorar(c)}
-                        className="text-teal-700 border-teal-200 hover:bg-teal-50"
-                      >
-                        <span className="mr-1"><IconChart /></span> Monitorar
-                      </Button>
-                      <Button
-                        variant="outline" size="sm"
-                        onClick={() => onDeletar(c.idCampanha)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <IconTrash />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {campanhasFiltradas.map((c) => {
+                const arquivada = archivedIds.has(c.idCampanha);
+                return (
+                  <tr key={c.idCampanha} className={`transition-colors ${arquivada ? "opacity-60 bg-slate-50" : "hover:bg-slate-50"}`}>
+                    <td className="px-6 py-4 font-medium text-slate-900">{c.nomeCampanha}</td>
+                    <td className="px-6 py-4 text-slate-600">{c.nomeModelo}</td>
+                    <td className="px-6 py-4"><StatusBadge status={c.statusEnvio} /></td>
+                    <td className="px-6 py-4 text-slate-500 text-xs">{new Date(c.dataCriacao).toLocaleDateString("pt-BR")}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        {!arquivada && (
+                          <Button variant="outline" size="sm" onClick={() => onMonitorar(c)} className="text-teal-700 border-teal-200 hover:bg-teal-50">
+                            <span className="mr-1"><IconChart /></span> Monitorar
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline" size="sm"
+                          onClick={() => onArquivar(c.idCampanha)}
+                          className={arquivada ? "text-slate-600 border-slate-200 hover:bg-slate-100 gap-1.5" : "text-orange-600 border-orange-200 hover:bg-orange-50 gap-1.5"}
+                        >
+                          <IconArchive /> {arquivada ? "Desarquivar" : "Arquivar"}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -518,6 +531,7 @@ function MonitoringView({ campanha, onBack }) {
   const [disparos, setDisparos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivo, setFiltroAtivo] = useState("todos");
+  const [setorFiltro, setSetorFiltro] = useState("todos");
   const [pesquisa, setPesquisa] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
@@ -565,6 +579,7 @@ function MonitoringView({ campanha, onBack }) {
     setFiltroAtivo(key);
     setPage(1);
     setPesquisa("");
+    setSetorFiltro("todos");
     if (key === "todos") {
       fetchDisparos("todos");
     } else {
@@ -572,18 +587,21 @@ function MonitoringView({ campanha, onBack }) {
     }
   };
 
-  useEffect(() => { setPage(1); }, [pesquisa]);
+  useEffect(() => { setPage(1); }, [pesquisa, setorFiltro]);
 
-  const disparosFiltrados = pesquisa.trim()
-    ? disparos.filter((d) => {
-        const q = pesquisa.toLowerCase();
-        return (
-          d.nomeDestinatario.toLowerCase().includes(q) ||
-          d.emailDestinatario.toLowerCase().includes(q) ||
-          d.setor.toLowerCase().includes(q)
-        );
-      })
-    : disparos;
+  const setoresUnicos = [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort();
+
+  const disparosFiltrados = disparos
+    .filter((d) => setorFiltro === "todos" || d.setor === setorFiltro)
+    .filter((d) => {
+      if (!pesquisa.trim()) return true;
+      const q = pesquisa.toLowerCase();
+      return (
+        d.nomeDestinatario.toLowerCase().includes(q) ||
+        d.emailDestinatario.toLowerCase().includes(q) ||
+        d.setor.toLowerCase().includes(q)
+      );
+    });
 
   const totalPaginas = Math.max(1, Math.ceil(disparosFiltrados.length / pageSize));
   const paginaAtual = Math.min(page, totalPaginas);
@@ -626,6 +644,19 @@ function MonitoringView({ campanha, onBack }) {
           {FILTROS.map((f) => (
             <FilterChip key={f.key} label={f.label} active={filtroAtivo === f.key} onClick={() => handleFiltro(f.key)} />
           ))}
+          {setoresUnicos.length > 0 && (
+            <div className="ml-auto">
+              <Select value={setorFiltro} onValueChange={setSetorFiltro}>
+                <SelectTrigger className="h-8 w-40 text-xs">
+                  <SelectValue placeholder="Setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos setores</SelectItem>
+                  {setoresUnicos.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Busca de texto */}
@@ -726,12 +757,17 @@ function MonitoringView({ campanha, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROOT — Orquestra as três views
 // ═══════════════════════════════════════════════════════════════════════════════
+const ARCHIVE_KEY = "nemo_archived_campaigns";
+
 export default function CampaignsPage() {
   const [view, setView] = useState("list"); // "list" | "form" | "monitoring"
   const [campanhas, setCampanhas] = useState([]);
   const [campanhaAtiva, setCampanhaAtiva] = useState(null);
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
-  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
+  const [archivedIds, setArchivedIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(ARCHIVE_KEY) ?? "[]")); }
+    catch { return new Set(); }
+  });
 
   const showModal = (title, description, variant = "error") =>
     setModal({ open: true, title, description, variant });
@@ -742,20 +778,13 @@ export default function CampaignsPage() {
 
   useEffect(() => { loadCampanhas(); }, [loadCampanhas]);
 
-  const handleDeletar = (id) => {
-    setConfirmDelete({ open: true, id });
-  };
-
-  const confirmarDelecao = async () => {
-    const id = confirmDelete.id;
-    setConfirmDelete({ open: false, id: null });
-    if (id == null) return;
-    try {
-      await api.delete(`/api/campanhas/${id}`);
-      loadCampanhas();
-    } catch {
-      showModal("Erro", "Não foi possível deletar a campanha.", "error");
-    }
+  const handleArquivar = (id) => {
+    setArchivedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      localStorage.setItem(ARCHIVE_KEY, JSON.stringify([...next]));
+      return next;
+    });
   };
 
   const handleMonitorar = (campanha) => {
@@ -766,23 +795,14 @@ export default function CampaignsPage() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-4">
       <Modal open={modal.open} onClose={() => setModal((m) => ({ ...m, open: false }))} title={modal.title} description={modal.description} variant={modal.variant} />
-      <Modal
-        open={confirmDelete.open}
-        onClose={() => setConfirmDelete({ open: false, id: null })}
-        title="Deletar campanha?"
-        description="Esta ação não pode ser desfeita."
-        variant="warning"
-        confirm
-        confirmLabel="Deletar"
-        onConfirm={confirmarDelecao}
-      />
 
       {view === "list" && (
         <CampaignList
           campanhas={campanhas}
+          archivedIds={archivedIds}
           onNova={() => setView("form")}
           onMonitorar={handleMonitorar}
-          onDeletar={handleDeletar}
+          onArquivar={handleArquivar}
         />
       )}
 
