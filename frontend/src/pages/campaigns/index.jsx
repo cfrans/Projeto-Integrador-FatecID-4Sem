@@ -56,11 +56,12 @@ const IconEye = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
   </svg>
 );
-const IconHook = ({ className = "size-7 text-orange-500" }) => (
+const IconHook = ({ className = "size-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M16 3v10a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4" />
-    <circle cx="16" cy="3" r="1.2" fill="currentColor" />
-    <path d="M8 13c-2 0-3.5 1.5-3.5 3.5S6 20 8 20" />
+    <circle cx="12" cy="5" r="2" />
+    <line x1="12" y1="7" x2="12" y2="19" />
+    <line x1="5" y1="11" x2="19" y2="11" />
+    <path d="M5 11c0 5 3.5 8 7 8s7-3 7-8" />
   </svg>
 );
 
@@ -148,7 +149,9 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <IconHook />
+          <div className="flex items-center justify-center size-10 rounded-xl bg-orange-500 shrink-0">
+            <IconHook className="size-5 text-white" />
+          </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
             <p className="mt-1 text-sm text-slate-600">Gerencie e monitore as campanhas de simulação de phishing.</p>
@@ -160,38 +163,40 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
       </header>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-end gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
-          <Field className="grid gap-1">
-            <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
-            <Input
-              type="date"
-              value={dataInicio}
-              onChange={(e) => setDataInicio(e.target.value)}
-              max={dataFim || undefined}
-              className="h-9 w-44"
-            />
-          </Field>
-          <Field className="grid gap-1">
-            <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
-            <Input
-              type="date"
-              value={dataFim}
-              onChange={(e) => setDataFim(e.target.value)}
-              min={dataInicio || undefined}
-              className="h-9 w-44"
-            />
-          </Field>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={limparFiltro}
-            disabled={!filtroAtivo}
-            className="h-9"
-          >
-            Todos
-          </Button>
-          <span className="ml-auto text-xs text-slate-500 self-center">
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+          <div className="flex items-end gap-2">
+            <Field className="grid gap-1">
+              <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
+              <Input
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
+                max={dataFim || undefined}
+                className="h-9 w-40"
+              />
+            </Field>
+            <Field className="grid gap-1">
+              <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
+              <Input
+                type="date"
+                value={dataFim}
+                onChange={(e) => setDataFim(e.target.value)}
+                min={dataInicio || undefined}
+                className="h-9 w-40"
+              />
+            </Field>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={limparFiltro}
+              disabled={!filtroAtivo}
+              className="h-9 self-end"
+            >
+              Todos
+            </Button>
+          </div>
+          <span className="ml-auto text-xs text-slate-500">
             {campanhasFiltradas.length} de {campanhas.length}
           </span>
         </div>
@@ -471,12 +476,49 @@ const FILTROS = [
   { label: "Sem interação", key: "semInteracao" },
 ];
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
+
+function PaginationBar({ inicio, fim, total, paginaAtual, totalPaginas, pageSize, setPage, setPageSize, borderTop = false }) {
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm ${borderTop ? "border-t border-slate-100" : "border-b border-slate-100"}`}>
+      <div className="text-xs text-slate-500">
+        Mostrando <span className="font-medium text-slate-700">{total === 0 ? 0 : inicio + 1}</span>–
+        <span className="font-medium text-slate-700">{Math.min(fim, total)}</span> de{" "}
+        <span className="font-medium text-slate-700">{total}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={paginaAtual === 1} className="h-8 px-3">
+          Anterior
+        </Button>
+        <span className="text-xs text-slate-600">
+          Página <span className="font-medium text-slate-800">{paginaAtual}</span> de{" "}
+          <span className="font-medium text-slate-800">{totalPaginas}</span>
+        </span>
+        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))} disabled={paginaAtual === totalPaginas} className="h-8 px-3">
+          Próxima
+        </Button>
+        <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+          <SelectTrigger className="h-8 w-28 text-xs">
+            <SelectValue placeholder="Exibir" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10 por página</SelectItem>
+            <SelectItem value="15">15 por página</SelectItem>
+            <SelectItem value="30">30 por página</SelectItem>
+            <SelectItem value="50">50 por página</SelectItem>
+            <SelectItem value="100">100 por página</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
 
 function MonitoringView({ campanha, onBack }) {
   const [disparos, setDisparos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivo, setFiltroAtivo] = useState("todos");
+  const [pesquisa, setPesquisa] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
@@ -522,6 +564,7 @@ function MonitoringView({ campanha, onBack }) {
   const handleFiltro = (key) => {
     setFiltroAtivo(key);
     setPage(1);
+    setPesquisa("");
     if (key === "todos") {
       fetchDisparos("todos");
     } else {
@@ -529,11 +572,24 @@ function MonitoringView({ campanha, onBack }) {
     }
   };
 
-  const totalPaginas = Math.max(1, Math.ceil(disparos.length / pageSize));
+  useEffect(() => { setPage(1); }, [pesquisa]);
+
+  const disparosFiltrados = pesquisa.trim()
+    ? disparos.filter((d) => {
+        const q = pesquisa.toLowerCase();
+        return (
+          d.nomeDestinatario.toLowerCase().includes(q) ||
+          d.emailDestinatario.toLowerCase().includes(q) ||
+          d.setor.toLowerCase().includes(q)
+        );
+      })
+    : disparos;
+
+  const totalPaginas = Math.max(1, Math.ceil(disparosFiltrados.length / pageSize));
   const paginaAtual = Math.min(page, totalPaginas);
   const inicio = (paginaAtual - 1) * pageSize;
   const fim = inicio + pageSize;
-  const disparosPagina = disparos.slice(inicio, fim);
+  const disparosPagina = disparosFiltrados.slice(inicio, fim);
 
   return (
     <div className="grid gap-4">
@@ -572,6 +628,21 @@ function MonitoringView({ campanha, onBack }) {
           ))}
         </div>
 
+        {/* Busca de texto */}
+        <div className="border-b border-slate-100 px-4 py-3">
+          <div className="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <Input
+              placeholder="Buscar por nome, e-mail ou departamento..."
+              value={pesquisa}
+              onChange={(e) => setPesquisa(e.target.value)}
+              className="h-9 pl-9"
+            />
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-20 text-slate-400 text-sm gap-3">
             <svg className="animate-spin size-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -580,12 +651,19 @@ function MonitoringView({ campanha, onBack }) {
             </svg>
             Carregando disparos...
           </div>
-        ) : disparos.length === 0 ? (
+        ) : disparosFiltrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
-            <p className="text-sm">Nenhum registro encontrado para este filtro.</p>
+            <p className="text-sm">
+              {pesquisa ? "Nenhum resultado para a busca." : "Nenhum registro encontrado para este filtro."}
+            </p>
           </div>
         ) : (
           <>
+            <PaginationBar
+              inicio={inicio} fim={fim} total={disparosFiltrados.length}
+              paginaAtual={paginaAtual} totalPaginas={totalPaginas}
+              pageSize={pageSize} setPage={setPage} setPageSize={setPageSize}
+            />
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
                 <tr>
@@ -632,51 +710,12 @@ function MonitoringView({ campanha, onBack }) {
               </tbody>
             </table>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-sm">
-              <div className="text-xs text-slate-500">
-                Mostrando <span className="font-medium text-slate-700">{inicio + 1}</span>–
-                <span className="font-medium text-slate-700">{Math.min(fim, disparos.length)}</span> de{" "}
-                <span className="font-medium text-slate-700">{disparos.length}</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline" size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={paginaAtual === 1}
-                  className="h-8 px-3"
-                >
-                  Anterior
-                </Button>
-                <span className="text-xs text-slate-600">
-                  Página <span className="font-medium text-slate-800">{paginaAtual}</span> de{" "}
-                  <span className="font-medium text-slate-800">{totalPaginas}</span>
-                </span>
-                <Button
-                  variant="outline" size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
-                  disabled={paginaAtual === totalPaginas}
-                  className="h-8 px-3"
-                >
-                  Próxima
-                </Button>
-
-                <Select
-                  value={String(pageSize)}
-                  onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}
-                >
-                  <SelectTrigger className="h-8 w-28 text-xs">
-                    <SelectValue placeholder="Exibir" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 por página</SelectItem>
-                    <SelectItem value="30">30 por página</SelectItem>
-                    <SelectItem value="50">50 por página</SelectItem>
-                    <SelectItem value="100">100 por página</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <PaginationBar
+              inicio={inicio} fim={fim} total={disparosFiltrados.length}
+              paginaAtual={paginaAtual} totalPaginas={totalPaginas}
+              pageSize={pageSize} setPage={setPage} setPageSize={setPageSize}
+              borderTop
+            />
           </>
         )}
       </Card>
