@@ -32,3 +32,7 @@ backend/target/
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code
+.claude/
+CLAUDE.md
