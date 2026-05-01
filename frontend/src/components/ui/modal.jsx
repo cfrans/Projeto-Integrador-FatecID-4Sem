@@ -22,8 +22,6 @@ export default function Modal({
     return () => window.removeEventListener('keydown', handleKey)
   }, [open, onClose])
 
-  if (!open) return null
-
   const colors = {
     error:   { img: peixeSurpreso, title: 'text-red-700' },
     warning: { img: peixeDuvidoso, title: 'text-yellow-700' },
@@ -34,11 +32,11 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+        className={`relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl transition-all duration-200 ${open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col items-center gap-3 text-center">

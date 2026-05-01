@@ -31,8 +31,9 @@ public class SecurityConfig {
                                 "/api/modelos/**",
                                 "/api/campanhas/**",
                                 "/api/setores/**",
-                                "/confirmar/**",   // ← link click
-                                "/doc/**",          // ← abertura de anexo
+                                "/api/usuarios-destino/**",
+                                "/confirmar/**",
+                                "/doc/**",
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated()

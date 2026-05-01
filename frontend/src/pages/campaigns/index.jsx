@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
 import { api } from "@/lib/api";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
 // ─── Ícones inline ────────────────────────────────────────────────────────────
 const IconSend = () => (
@@ -133,6 +134,7 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
   const [dataFim, setDataFim] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [mostrarArquivados, setMostrarArquivados] = useState(false);
+  const [filtroAberto, setFiltroAberto] = useState(false);
 
   const limparFiltros = () => { setDataInicio(""); setDataFim(""); setFiltroStatus("todos"); };
 
@@ -177,28 +179,23 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
-          <div className="flex flex-wrap items-end gap-3 gap-y-2">
-            <div className="flex flex-col gap-1 shrink-0">
-              <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
-              <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
-            </div>
-            <div className="flex flex-col gap-1 shrink-0">
-              <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
-              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={limparFiltros} disabled={!filtroAtivo} className="h-9 shrink-0">
-              Limpar
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setFiltroAberto((v) => !v)}
+              className={`h-9 px-4 gap-1.5 border transition-colors ${filtroAberto || filtroAtivo ? "border-teal-500 bg-teal-50 text-teal-700 hover:bg-teal-100" : "border-slate-300 text-slate-700 hover:bg-slate-50"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                <path fillRule="evenodd" d="M3.792 2.938A49.069 49.069 0 0 1 12 2.25c2.797 0 5.54.236 8.209.688a1.857 1.857 0 0 1 1.541 1.836v1.044a3 3 0 0 1-.879 2.121l-6.182 6.182a1.5 1.5 0 0 0-.439 1.061v2.927a3 3 0 0 1-1.658 2.684l-1.757.878A.75.75 0 0 1 9.75 21v-5.818a1.5 1.5 0 0 0-.44-1.06L3.13 7.938a3 3 0 0 1-.879-2.121V4.774c0-.897.64-1.683 1.542-1.836Z" clipRule="evenodd" />
+              </svg>
+              Filtrar campanhas
             </Button>
-            {!mostrarArquivados && (
-              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger className="h-9 w-40 text-sm shrink-0">
-                  <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos status</SelectItem>
-                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            {filtroAtivo && (
+              <Button type="button" variant="outline" size="sm" onClick={limparFiltros} className="h-9 text-slate-500">
+                Limpar
+              </Button>
             )}
           </div>
 
@@ -211,6 +208,30 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
               <IconArchive /> {mostrarArquivados ? "Ver ativas" : "Arquivadas"}
             </Button>
             <span className="text-xs text-slate-500">{campanhasFiltradas.length} de {totalVisiveis}</span>
+          </div>
+        </div>
+
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filtroAberto ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
+          <div className="flex flex-wrap items-end gap-3 gap-y-2 border-b border-slate-100 px-4 py-3">
+            <div className="flex flex-col gap-1 shrink-0">
+              <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
+              <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
+              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
+            </div>
+            {!mostrarArquivados && (
+              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                <SelectTrigger className="h-9 w-40 text-sm shrink-0">
+                  <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos status</SelectItem>
+                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
 
@@ -490,48 +511,7 @@ const FILTROS = [
 
 const PAGE_SIZE = 10;
 
-function PaginationBar({ inicio, fim, total, paginaAtual, totalPaginas, pageSize, setPage, setPageSize, borderTop = false }) {
-  return (
-    <div className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm ${borderTop ? "border-t border-slate-100" : "border-b border-slate-100"}`}>
-      <div className="text-xs text-slate-500">
-        Mostrando <span className="font-medium text-slate-700">{total === 0 ? 0 : inicio + 1}</span>–
-        <span className="font-medium text-slate-700">{Math.min(fim, total)}</span> de{" "}
-        <span className="font-medium text-slate-700">{total}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={paginaAtual === 1} className="h-8 px-3 gap-1.5 font-medium border-slate-300 hover:bg-slate-100 disabled:opacity-40">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5">
-            <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-          </svg>
-          Anterior
-        </Button>
-        <span className="text-xs text-slate-600 tabular-nums">
-          <span className="font-semibold text-slate-800">{paginaAtual}</span>
-          {" / "}
-          <span className="font-semibold text-slate-800">{totalPaginas}</span>
-        </span>
-        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))} disabled={paginaAtual === totalPaginas} className="h-8 px-3 gap-1.5 font-medium border-slate-300 hover:bg-slate-100 disabled:opacity-40">
-          Próxima
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5">
-            <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-          </svg>
-        </Button>
-        <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue>{pageSize} por página</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10 por página</SelectItem>
-            <SelectItem value="15">15 por página</SelectItem>
-            <SelectItem value="30">30 por página</SelectItem>
-            <SelectItem value="50">50 por página</SelectItem>
-            <SelectItem value="100">100 por página</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
-}
+<PaginationBar />
 
 function MonitoringView({ campanha, onBack }) {
   const [disparos, setDisparos] = useState([]);

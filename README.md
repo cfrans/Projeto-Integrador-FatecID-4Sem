@@ -70,7 +70,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 **Crítico (bloqueia o MVP)**
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
-- [ ] **CRUD de `usuario_destino`** — a página de Usuários no frontend existe mas opera sobre dados mockados.
+- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna e filtros por nome/e-mail e setor.
 - [ ] **Lógica de pontuação** comportamental — service que aplica penalidade por clique/abertura de anexo e recompensa por reporte, gravando em `pontuacao` ou campo equivalente em `usuario_destino`.
 
 **Funcionalidade**
@@ -110,7 +110,8 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - React Router
 - Jodit (editor WYSIWYG para os modelos)
 - Chart.js + react-chartjs-2 (dashboard de gráficos)
-- Hugeicons
+- Heroicons
+- Hugeicons (componentes internos do shadcn)
 
 **Back-end**
 - Java 21

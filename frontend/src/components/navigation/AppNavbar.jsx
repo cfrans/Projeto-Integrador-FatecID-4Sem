@@ -48,7 +48,7 @@ const MENU_ITEM_ACTIVE_CLASS =
 const MENU_ITEM_IDLE_CLASS = "text-black";
 
 const NAV_ITEMS = [
-  { id: "campaigns", label: "Criar Campanha", path: "/create", icon: DocumentPlusIcon },
+  { id: "campaigns", label: "Campanhas", path: "/create", icon: DocumentPlusIcon },
   { id: "models", label: "Modelos", path: "/models", icon: RectangleStackIcon },
   { id: "graphics", label: "Gráficos", path: "/graphics", icon: ChartBarIcon },
   { id: "users", label: "Usuários", path: "/users", icon: UsersIcon },

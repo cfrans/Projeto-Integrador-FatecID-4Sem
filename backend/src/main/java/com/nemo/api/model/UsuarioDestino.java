@@ -18,6 +18,7 @@ public class UsuarioDestino {
     private String email;
     private String senhaHash;
     private Integer pontuacao;
+    private Boolean primeiroAcesso;
 
     @ManyToOne
     @JoinColumn(name = "id_setor")
