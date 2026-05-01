@@ -7,6 +7,7 @@ public record DisparoDTO(
         String nomeDestinatario,
         String emailDestinatario,
         String setor,
+        Integer pontuacao,
         Boolean clicouLink,
         Boolean abriuAnexo,
         Boolean reportouPhishing,

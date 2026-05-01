@@ -56,6 +56,13 @@ const IconEye = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
   </svg>
 );
+const IconHook = ({ className = "size-7 text-orange-500" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 3v10a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4" />
+    <circle cx="16" cy="3" r="1.2" fill="currentColor" />
+    <path d="M8 13c-2 0-3.5 1.5-3.5 3.5S6 20 8 20" />
+  </svg>
+);
 
 // ─── Badge de status da campanha ─────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -114,12 +121,38 @@ function FilterChip({ label, active, onClick }) {
 // VIEW 1 — Lista de campanhas
 // ═══════════════════════════════════════════════════════════════════════════════
 function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+
+  const limparFiltro = () => { setDataInicio(""); setDataFim(""); };
+
+  const campanhasFiltradas = campanhas.filter((c) => {
+    if (!dataInicio && !dataFim) return true;
+    const criacao = new Date(c.dataCriacao);
+    if (dataInicio) {
+      const ini = new Date(dataInicio);
+      ini.setHours(0, 0, 0, 0);
+      if (criacao < ini) return false;
+    }
+    if (dataFim) {
+      const fim = new Date(dataFim);
+      fim.setHours(23, 59, 59, 999);
+      if (criacao > fim) return false;
+    }
+    return true;
+  });
+
+  const filtroAtivo = dataInicio || dataFim;
+
   return (
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
-          <p className="mt-1 text-sm text-slate-600">Gerencie e monitore as campanhas de simulação de phishing.</p>
+        <div className="flex items-center gap-3">
+          <IconHook />
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
+            <p className="mt-1 text-sm text-slate-600">Gerencie e monitore as campanhas de simulação de phishing.</p>
+          </div>
         </div>
         <Button onClick={onNova} className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-4">
           <span className="mr-2"><IconPlus /></span> Nova Campanha
@@ -127,12 +160,50 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
       </header>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        {campanhas.length === 0 ? (
+        <div className="flex items-end gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
+          <Field className="grid gap-1">
+            <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
+            <Input
+              type="date"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+              max={dataFim || undefined}
+              className="h-9 w-44"
+            />
+          </Field>
+          <Field className="grid gap-1">
+            <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
+            <Input
+              type="date"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+              min={dataInicio || undefined}
+              className="h-9 w-44"
+            />
+          </Field>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={limparFiltro}
+            disabled={!filtroAtivo}
+            className="h-9"
+          >
+            Todos
+          </Button>
+          <span className="ml-auto text-xs text-slate-500 self-center">
+            {campanhasFiltradas.length} de {campanhas.length}
+          </span>
+        </div>
+
+        {campanhasFiltradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="size-12 opacity-40">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
             </svg>
-            <p className="text-sm">Nenhuma campanha criada ainda.</p>
+            <p className="text-sm">
+              {filtroAtivo ? "Nenhuma campanha no período selecionado." : "Nenhuma campanha criada ainda."}
+            </p>
           </div>
         ) : (
           <table className="w-full text-left text-sm">
@@ -146,7 +217,7 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {campanhas.map((c) => (
+              {campanhasFiltradas.map((c) => (
                 <tr key={c.idCampanha} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-900">{c.nomeCampanha}</td>
                   <td className="px-6 py-4 text-slate-600">{c.nomeModelo}</td>
@@ -400,10 +471,14 @@ const FILTROS = [
   { label: "Sem interação", key: "semInteracao" },
 ];
 
+const PAGE_SIZE = 15;
+
 function MonitoringView({ campanha, onBack }) {
   const [disparos, setDisparos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivo, setFiltroAtivo] = useState("todos");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
   const fetchDisparos = useCallback(async (filtro) => {
     setLoading(true);
@@ -446,12 +521,19 @@ function MonitoringView({ campanha, onBack }) {
 
   const handleFiltro = (key) => {
     setFiltroAtivo(key);
+    setPage(1);
     if (key === "todos") {
       fetchDisparos("todos");
     } else {
       fetchDisparos(key);
     }
   };
+
+  const totalPaginas = Math.max(1, Math.ceil(disparos.length / pageSize));
+  const paginaAtual = Math.min(page, totalPaginas);
+  const inicio = (paginaAtual - 1) * pageSize;
+  const fim = inicio + pageSize;
+  const disparosPagina = disparos.slice(inicio, fim);
 
   return (
     <div className="grid gap-4">
@@ -503,45 +585,99 @@ function MonitoringView({ campanha, onBack }) {
             <p className="text-sm">Nenhum registro encontrado para este filtro.</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
-              <tr>
-                <th className="px-6 py-4">Destinatário</th>
-                <th className="px-6 py-4">Setor</th>
-                <th className="px-6 py-4 text-center">Link</th>
-                <th className="px-6 py-4 text-center">Anexo</th>
-                <th className="px-6 py-4 text-center">Reportou</th>
-                <th className="px-6 py-4 text-slate-400 text-right">Envio</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {disparos.map((d) => (
-                <tr key={d.idDisparo} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-3">
-                    <p className="font-medium text-slate-900">{d.nomeDestinatario}</p>
-                    <p className="text-xs text-slate-400">{d.emailDestinatario}</p>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 border border-slate-200">
-                      {d.setor}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    {d.clicouLink ? <IconCheck className="size-5 text-red-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    {d.abriuAnexo ? <IconCheck className="size-5 text-orange-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    {d.reportouPhishing ? <IconCheck className="size-5 text-teal-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
-                  </td>
-                  <td className="px-6 py-3 text-right text-xs text-slate-400">
-                    {new Date(d.dataEnvio).toLocaleDateString("pt-BR")}
-                  </td>
+          <>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+                <tr>
+                  <th className="px-6 py-4">Destinatário</th>
+                  <th className="px-6 py-4">Setor</th>
+                  <th className="px-6 py-4 text-center">Pontuação</th>
+                  <th className="px-6 py-4 text-center">Link</th>
+                  <th className="px-6 py-4 text-center">Anexo</th>
+                  <th className="px-6 py-4 text-center">Reportou</th>
+                  <th className="px-6 py-4 text-slate-400 text-right">Envio</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {disparosPagina.map((d) => (
+                  <tr key={d.idDisparo} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-3">
+                      <p className="font-medium text-slate-900">{d.nomeDestinatario}</p>
+                      <p className="text-xs text-slate-400">{d.emailDestinatario}</p>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 border border-slate-200">
+                        {d.setor}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      <span className="inline-flex min-w-9 items-center justify-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 border border-teal-200">
+                        {d.pontuacao ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {d.clicouLink ? <IconCheck className="size-5 text-red-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {d.abriuAnexo ? <IconCheck className="size-5 text-orange-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {d.reportouPhishing ? <IconCheck className="size-5 text-teal-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
+                    </td>
+                    <td className="px-6 py-3 text-right text-xs text-slate-400">
+                      {new Date(d.dataEnvio).toLocaleDateString("pt-BR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-sm">
+              <div className="text-xs text-slate-500">
+                Mostrando <span className="font-medium text-slate-700">{inicio + 1}</span>–
+                <span className="font-medium text-slate-700">{Math.min(fim, disparos.length)}</span> de{" "}
+                <span className="font-medium text-slate-700">{disparos.length}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline" size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={paginaAtual === 1}
+                  className="h-8 px-3"
+                >
+                  Anterior
+                </Button>
+                <span className="text-xs text-slate-600">
+                  Página <span className="font-medium text-slate-800">{paginaAtual}</span> de{" "}
+                  <span className="font-medium text-slate-800">{totalPaginas}</span>
+                </span>
+                <Button
+                  variant="outline" size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="h-8 px-3"
+                >
+                  Próxima
+                </Button>
+
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}
+                >
+                  <SelectTrigger className="h-8 w-28 text-xs">
+                    <SelectValue placeholder="Exibir" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 por página</SelectItem>
+                    <SelectItem value="30">30 por página</SelectItem>
+                    <SelectItem value="50">50 por página</SelectItem>
+                    <SelectItem value="100">100 por página</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </>
         )}
       </Card>
     </div>
@@ -556,6 +692,7 @@ export default function CampaignsPage() {
   const [campanhas, setCampanhas] = useState([]);
   const [campanhaAtiva, setCampanhaAtiva] = useState(null);
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, id: null });
 
   const showModal = (title, description, variant = "error") =>
     setModal({ open: true, title, description, variant });
@@ -566,8 +703,14 @@ export default function CampaignsPage() {
 
   useEffect(() => { loadCampanhas(); }, [loadCampanhas]);
 
-  const handleDeletar = async (id) => {
-    if (!window.confirm("Deletar esta campanha? Esta ação não pode ser desfeita.")) return;
+  const handleDeletar = (id) => {
+    setConfirmDelete({ open: true, id });
+  };
+
+  const confirmarDelecao = async () => {
+    const id = confirmDelete.id;
+    setConfirmDelete({ open: false, id: null });
+    if (id == null) return;
     try {
       await api.delete(`/api/campanhas/${id}`);
       loadCampanhas();
@@ -584,6 +727,16 @@ export default function CampaignsPage() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-4">
       <Modal open={modal.open} onClose={() => setModal((m) => ({ ...m, open: false }))} title={modal.title} description={modal.description} variant={modal.variant} />
+      <Modal
+        open={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, id: null })}
+        title="Deletar campanha?"
+        description="Esta ação não pode ser desfeita."
+        variant="warning"
+        confirm
+        confirmLabel="Deletar"
+        onConfirm={confirmarDelecao}
+      />
 
       {view === "list" && (
         <CampaignList
