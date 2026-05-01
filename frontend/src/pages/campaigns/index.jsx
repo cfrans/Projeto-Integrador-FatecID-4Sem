@@ -177,21 +177,21 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
-          <div className="flex items-end gap-2">
-            <Field className="grid gap-1">
+          <div className="flex flex-wrap items-end gap-3 gap-y-2">
+            <div className="flex flex-col gap-1 shrink-0">
               <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
               <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
-            </Field>
-            <Field className="grid gap-1">
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
               <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
               <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
-            </Field>
-            <Button type="button" variant="outline" size="sm" onClick={limparFiltros} disabled={!filtroAtivo} className="h-9">
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={limparFiltros} disabled={!filtroAtivo} className="h-9 shrink-0">
               Limpar
             </Button>
             {!mostrarArquivados && (
               <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger className="h-9 w-36 text-sm">
+                <SelectTrigger className="h-9 w-40 text-sm shrink-0">
                   <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
