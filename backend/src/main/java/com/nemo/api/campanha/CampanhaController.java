@@ -25,6 +25,17 @@ public class CampanhaController {
         return ResponseEntity.ok(campanhaService.criar(request, authHeader.replace("Bearer ", "")));
     }
 
+    @GetMapping("/{id}/disparos")
+    public ResponseEntity<List<DisparoDTO>> listarDisparos(
+            @PathVariable Integer id,
+            @RequestParam(required = false) Boolean clicouLink,
+            @RequestParam(required = false) Boolean abriuAnexo,
+            @RequestParam(required = false) Boolean reportouPhishing) {
+        return ResponseEntity.ok(
+                campanhaService.listarDisparos(id, clicouLink, abriuAnexo, reportouPhishing)
+        );
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Integer id) {
         campanhaService.deletar(id);

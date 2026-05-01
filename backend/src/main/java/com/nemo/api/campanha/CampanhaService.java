@@ -75,6 +75,31 @@ public class CampanhaService {
         campanhaRepository.deleteById(id);
     }
 
+    public List<DisparoDTO> listarDisparos(Integer idCampanha,
+                                           Boolean clicouLink,
+                                           Boolean abriuAnexo,
+                                           Boolean reportouPhishing) {
+        return disparoRepository.findByCampanha_IdCampanha(idCampanha).stream()
+                .filter(d -> clicouLink      == null || d.getClicouLink().equals(clicouLink))
+                .filter(d -> abriuAnexo     == null || d.getAbriuAnexo().equals(abriuAnexo))
+                .filter(d -> reportouPhishing == null || d.getReportouPhishing().equals(reportouPhishing))
+                .map(this::toDisparoDTO)
+                .toList();
+    }
+
+    private DisparoDTO toDisparoDTO(Disparo d) {
+        return new DisparoDTO(
+                d.getIdDisparo(),
+                d.getUsuarioDestino().getNome(),
+                d.getUsuarioDestino().getEmail(),
+                d.getUsuarioDestino().getSetor().getNomeSetor(),
+                d.getClicouLink(),
+                d.getAbriuAnexo(),
+                d.getReportouPhishing(),
+                d.getDataEnvio()
+        );
+    }
+
     private CampanhaDTO toDTO(Campanha c) {
         return new CampanhaDTO(
                 c.getIdCampanha(),
