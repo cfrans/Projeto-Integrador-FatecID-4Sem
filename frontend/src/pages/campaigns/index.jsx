@@ -193,8 +193,8 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
 
           {!mostrarArquivados && (
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-              <SelectTrigger className="h-9 w-36 text-sm">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className="h-9 w-36 text-sm ml-2">
+                <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos status</SelectItem>
@@ -500,19 +500,26 @@ function PaginationBar({ inicio, fim, total, paginaAtual, totalPaginas, pageSize
         <span className="font-medium text-slate-700">{total}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={paginaAtual === 1} className="h-8 px-3">
+        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={paginaAtual === 1} className="h-8 px-3 gap-1.5 font-medium border-slate-300 hover:bg-slate-100 disabled:opacity-40">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5">
+            <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
           Anterior
         </Button>
-        <span className="text-xs text-slate-600">
-          Página <span className="font-medium text-slate-800">{paginaAtual}</span> de{" "}
-          <span className="font-medium text-slate-800">{totalPaginas}</span>
+        <span className="text-xs text-slate-600 tabular-nums">
+          <span className="font-semibold text-slate-800">{paginaAtual}</span>
+          {" / "}
+          <span className="font-semibold text-slate-800">{totalPaginas}</span>
         </span>
-        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))} disabled={paginaAtual === totalPaginas} className="h-8 px-3">
+        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))} disabled={paginaAtual === totalPaginas} className="h-8 px-3 gap-1.5 font-medium border-slate-300 hover:bg-slate-100 disabled:opacity-40">
           Próxima
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5">
+            <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+          </svg>
         </Button>
         <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-          <SelectTrigger className="h-8 w-28 text-xs">
-            <SelectValue placeholder="Exibir" />
+          <SelectTrigger className="h-8 w-32 text-xs">
+            <SelectValue>{pageSize} por página</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="10">10 por página</SelectItem>
@@ -647,8 +654,8 @@ function MonitoringView({ campanha, onBack }) {
           {setoresUnicos.length > 0 && (
             <div className="ml-auto">
               <Select value={setorFiltro} onValueChange={setSetorFiltro}>
-                <SelectTrigger className="h-8 w-40 text-xs">
-                  <SelectValue placeholder="Setor" />
+                <SelectTrigger className="h-8 w-44 text-xs">
+                  <SelectValue>{setorFiltro === "todos" ? "Todos setores" : setorFiltro}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos setores</SelectItem>
@@ -764,6 +771,7 @@ export default function CampaignsPage() {
   const [campanhas, setCampanhas] = useState([]);
   const [campanhaAtiva, setCampanhaAtiva] = useState(null);
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
+  const [confirmArchive, setConfirmArchive] = useState({ open: false, id: null, arquivada: false });
   const [archivedIds, setArchivedIds] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem(ARCHIVE_KEY) ?? "[]")); }
     catch { return new Set(); }
@@ -779,6 +787,13 @@ export default function CampaignsPage() {
   useEffect(() => { loadCampanhas(); }, [loadCampanhas]);
 
   const handleArquivar = (id) => {
+    setConfirmArchive({ open: true, id, arquivada: archivedIds.has(id) });
+  };
+
+  const confirmarArquivar = () => {
+    const { id } = confirmArchive;
+    setConfirmArchive({ open: false, id: null, arquivada: false });
+    if (id == null) return;
     setArchivedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -795,6 +810,16 @@ export default function CampaignsPage() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-4">
       <Modal open={modal.open} onClose={() => setModal((m) => ({ ...m, open: false }))} title={modal.title} description={modal.description} variant={modal.variant} />
+      <Modal
+        open={confirmArchive.open}
+        onClose={() => setConfirmArchive({ open: false, id: null, arquivada: false })}
+        title={confirmArchive.arquivada ? "Desarquivar campanha?" : "Arquivar campanha?"}
+        description={confirmArchive.arquivada ? "A campanha voltará para a lista ativa." : "A campanha será movida para o arquivo. Você pode reativá-la depois."}
+        variant="warning"
+        confirm
+        confirmLabel={confirmArchive.arquivada ? "Desarquivar" : "Arquivar"}
+        onConfirm={confirmarArquivar}
+      />
 
       {view === "list" && (
         <CampaignList
