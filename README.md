@@ -42,6 +42,8 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 🎯 Criação de Campanhas vinculando Modelo + Setores alvo
 - ⚙️ Geração de tokens únicos via Worker em C (multithread, key stretching, DJB2, detecção automática de CPUs)
 - 🔎 Rastreamento de cliques (`/confirmar/{token}`) e abertura de anexo (`/doc/{token}`) com geração de arquivo HTML falso on-the-fly
+- 📊 Endpoint de monitoramento `GET /api/campanhas/{id}/disparos` com filtros via query params (`clicouLink`, `abriuAnexo`, `reportouPhishing`)
+- 👤 Endpoints de gerenciamento de perfil: `GET/PUT /api/auth/me` (nome, e-mail), `PUT /api/auth/me/foto` (upload de imagem), `PUT /api/auth/trocar-senha`, `GET /api/auth/usuarios`, `PUT /api/auth/usuarios/{id}/role` (alterar papel Admin ↔ Colaborador)
 - 🧱 Migrations Flyway com schema completo + seeds de tipos de acesso, modelos e setores
 - 🛡️ Spring Security configurado (CORS, sessão stateless, BCrypt)
 
@@ -50,6 +52,9 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 🔁 Tela de troca de senha obrigatória (primeiro acesso)
 - 📨 Tela de criação de Campanhas com preview do anexo simulado e seleção de departamentos via *chips*
 - 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit) e validação client-side da tag `{{LINK_AQUI}}`
+- 🔬 Tela de monitoramento de campanha (`/campaigns/{id}`) — cards de resumo, tabela paginada com busca por texto, filtros por chip (clicou, abriu anexo, reportou) e por setor, coluna de pontuação
+- 📈 Dashboard de gráficos (`/graphics`) — gráfico de barras (interações por setor), pizza (distribuição por setor), linha (evolução mensal) e tabela de últimas campanhas; filtros de período implementados; **dados ainda mockados** (aguardando endpoint consolidado no backend)
+- ⚙️ Tela de Configurações (`/settings`) — edição de perfil (nome, e-mail), upload de foto, troca de senha
 - 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
 - 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.)
 - 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
@@ -65,12 +70,12 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 **Crítico (bloqueia o MVP)**
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
-- [ ] **CRUD de `usuario_destino`** — a página de Usuários no frontend existe mas opera sobre dados mockados.
+- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna e filtros por nome/e-mail e setor.
 - [ ] **Lógica de pontuação** comportamental — service que aplica penalidade por clique/abertura de anexo e recompensa por reporte, gravando em `pontuacao` ou campo equivalente em `usuario_destino`.
 
 **Funcionalidade**
-- [ ] **Endpoints de monitoramento de campanha** — `GET /api/campanhas/{id}/disparos` retornando status individual por destinatário (enviado, clicou\_link, abriu\_anexo, reportou\_phishing) com suporte a filtros via query params (ex: `?clicou=true&abriu=false`). A tabela `disparos` já possui as colunas necessárias.
 - [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
+- [ ] **Endpoint consolidado de gráficos** — estatísticas agregadas de todas as campanhas para alimentar o dashboard `/graphics` (hoje com dados mockados).
 - [ ] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
 - [ ] **Módulo de treinamentos** — CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão em `treinamento_concluido` (impede ganho duplicado pelo mesmo curso).
 - [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
@@ -86,11 +91,10 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 #### Frontend
 
 **Crítico (bloqueia o MVP)**
-- [ ] **Página de Configurações** funcional — trocar a própria senha fora do primeiro acesso e promover/rebaixar usuários do sistema (Admin ↔ Colaborador).
+- [ ] **Gerenciamento de usuários do sistema na tela de Configurações** — promover/rebaixar entre Admin ↔ Colaborador (o backend já expõe `GET /api/auth/usuarios` e `PUT /api/auth/usuarios/{id}/role`; falta a UI).
 
 **Funcionalidade — Painel Admin**
-- [ ] **Página de Monitoramento de Campanha** (`/campaigns/{id}`) — exibe cards de resumo (total de alvos, % que clicou, % que abriu anexo, % que reportou) e uma tabela paginada com uma linha por destinatário. Cada linha mostra nome, e-mail, setor e ícones de status para cada evento. A tabela deve suportar filtros rápidos via *chips* (ex: "Clicou no link", "Não interagiu", "Reportou") que disparam chamada ao endpoint com os query params correspondentes. Acessível a partir da listagem de campanhas existente.
-- [ ] **Dashboard de gráficos** real (`/graphics`) — visão consolidada de todas as campanhas (hoje é placeholder).
+- [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
 
 **Funcionalidade — Portal do Colaborador**
 - [ ] **Página de Pontuação** (`/home` ou `/colaborador`) — card com saldo atual e gráfico de linha mostrando a evolução histórica da pontuação ao longo do tempo (alimentado pelo endpoint de histórico de eventos).
@@ -105,7 +109,9 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - Tailwind CSS 4
 - React Router
 - Jodit (editor WYSIWYG para os modelos)
+- Chart.js + react-chartjs-2 (dashboard de gráficos)
 - Heroicons
+- Hugeicons (componentes internos do shadcn)
 
 **Back-end**
 - Java 21
@@ -307,13 +313,13 @@ nemo/
         ├── pages/
         │   ├── login/                    # ✅ Login
         │   ├── change-password/          # ✅ Troca obrigatória
-        │   ├── campaigns/                # ✅ Criar campanha
+        │   ├── campaigns/                # ✅ Criar campanha, listar, monitorar
         │   ├── models/                   # ✅ CRUD de modelos
+        │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
+        │   ├── settings/                 # ✅ Perfil, senha e foto (gerenciamento de usuários pendente)
         │   ├── users/                    # 🚧 mock (sem backend)
         │   ├── admin/                    # 🚧 placeholder
-        │   ├── home/                     # 🚧 placeholder (portal do colaborador)
-        │   ├── graphics/                 # 🚧 placeholder (dashboard)
-        │   └── settings/                 # 🚧 placeholder
+        │   └── home/                     # 🚧 placeholder (portal do colaborador)
         └── routes/index.jsx              # Definição de rotas
 ```
 

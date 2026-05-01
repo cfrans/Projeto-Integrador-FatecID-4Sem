@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   PlusIcon,
   FunnelIcon,
-  MagnifyingGlassIcon,
   PencilIcon,
   XCircleIcon,
+  UserIcon,
 } from "@heroicons/react/24/solid";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
@@ -19,33 +19,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Modal from "@/components/ui/Modal";
+import { api } from "@/lib/api";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
-// ── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_USERS = [
-  { id: 1, nome: "Fulano de Tal da Silva", cargo: "Algum aí Senior", setor: "Aquele lá da empresa", email: "FulanoDeTalDaSilva@gmail.com" },
-];
-
-const CARGOS = ["Analista Junior", "Analista Pleno", "Analista Senior", "Algum aí Senior", "Gestor"];
-const SETORES = ["TI", "RH", "Financeiro", "Aquele lá da empresa", "Comercial"];
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function Badge({ children }) {
+// ── Ícones ────────────────────────────────────────────────────────────────────
+function IconSortAsc() {
   return (
-    <span className="inline-flex items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-medium text-teal-700 border border-teal-200">
-      {children}
-    </span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1">
+      <path fillRule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04L10.75 5.612V16.25A.75.75 0 0 1 10 17Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function IconSortDesc() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1">
+      <path fillRule="evenodd" d="M10 3a.75.75 0 0 1 .75.75v10.638l3.96-4.158a.75.75 0 1 1 1.08 1.04l-5.25 5.5a.75.75 0 0 1-1.08 0l-5.25-5.5a.75.75 0 1 1 1.08-1.04l3.96 4.158V3.75A.75.75 0 0 1 10 3Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function IconSortNone() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1 opacity-30">
+      <path fillRule="evenodd" d="M2.24 6.8a.75.75 0 0 0 1.06-.04l1.95-2.1v8.59a.75.75 0 0 0 1.5 0V4.66l1.95 2.1a.75.75 0 1 0 1.1-1.02L7.33 3.18a.75.75 0 0 0-1.1 0L3.7 5.74a.75.75 0 0 0 .04 1.06Zm9.96 6.4a.75.75 0 0 1-1.06.04l-1.95-2.1v-8.59a.75.75 0 0 1 1.5 0v8.59l1.95-2.1a.75.75 0 1 1 1.1 1.02l-2.54 2.56Z" clipRule="evenodd" />
+    </svg>
   );
 }
 
+<PaginationBar />
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function Checkbox({ checked, onChange }) {
   return (
     <button
       type="button"
       onClick={onChange}
       className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-        checked
-          ? "bg-teal-600 border-teal-600"
-          : "border-slate-400 bg-white hover:border-teal-500"
+        checked ? "bg-teal-600 border-teal-600" : "border-slate-400 bg-white hover:border-teal-500"
       }`}
     >
       {checked && <CheckIcon className="w-3 h-3 text-white stroke-[3]" />}
@@ -53,433 +62,425 @@ function Checkbox({ checked, onChange }) {
   );
 }
 
-function FishIcon() {
-  return (
-    <svg viewBox="0 0 40 40" className="w-9 h-9" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* body */}
-      <ellipse cx="18" cy="21" rx="13" ry="9" fill="#F97316" />
-      {/* tail */}
-      <polygon points="5,21 0,13 0,29" fill="#FB923C" />
-      {/* fin top */}
-      <ellipse cx="20" cy="13" rx="6" ry="3.5" fill="#FDBA74" transform="rotate(-20 20 13)" />
-      {/* eye */}
-      <circle cx="27" cy="19" r="2.5" fill="white" />
-      <circle cx="27.8" cy="19" r="1.2" fill="#1e293b" />
-      {/* white stripe */}
-      <ellipse cx="20" cy="21" rx="2.5" ry="8.5" fill="white" opacity="0.55" />
-      {/* mouth */}
-      <path d="M30 22 Q32 24 30 25" stroke="#c2410c" strokeWidth="1" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-// ── Broom / clear icon ────────────────────────────────────────────────────────
-function BroomIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M3 17l8-8M14 3l-3 3 3 3 3-3-3-3zM11 6L3 14v3h3l8-8-3-3z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
+function SortIcon({ col, sortCol, sortDir }) {
+  if (sortCol !== col) return <IconSortNone />;
+  return sortDir === "asc" ? <IconSortAsc /> : <IconSortDesc />;
 }
 
 // ── Add/Edit Modal Form ───────────────────────────────────────────────────────
-function UserFormModal({ open, onClose, onSave, editingUser }) {
-  const emptyForm = { nome: "", setor: "", cargo: "", email: "" };
+function UserFormModal({ open, onClose, onSave, editingUser, setores }) {
+  const emptyForm = { matricula: "", nome: "", email: "", idSetor: "" };
   const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setForm(editingUser || emptyForm);
+    if (editingUser) {
+      setForm({
+        matricula: String(editingUser.matricula),
+        nome: editingUser.nome,
+        email: editingUser.email,
+        idSetor: String(editingUser.idSetor),
+      });
+    } else {
+      setForm(emptyForm);
+    }
   }, [open]);
 
   const set = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: typeof e === "string" ? e : e.target.value }));
 
-  const handleClear = () => setForm(emptyForm);
-
-  const handleSave = (andClose) => {
-    if (!form.nome || !form.cargo || !form.setor || !form.email) return;
-    onSave(form, andClose);
-    if (!andClose) setForm(emptyForm);
+  const handleSave = async (andClose) => {
+    if (!form.matricula || !form.nome || !form.email || !form.idSetor) return;
+    setSaving(true);
+    try {
+      await onSave({ ...form, matricula: Number(form.matricula), idSetor: Number(form.idSetor) }, andClose);
+      if (!andClose) setForm(emptyForm);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-
-        {/* Header */}
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transition-all duration-200 ${open ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-          <div className="flex items-center gap-2.5">
-            <FishIcon />
+          <div className="flex items-center gap-2">
+            {editingUser && <PencilIcon className="w-4 h-4 text-slate-400" />}
             <h2 className="text-lg font-semibold text-slate-800">
               {editingUser ? "Editar Usuário" : "Cadastro de Usuário"}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-full p-1 hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
-          >
+          <button onClick={onClose} className="rounded-full p-1 hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700">
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-5 py-5 grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Field>
+              <FieldLabel className="text-sm font-medium text-slate-700">Matrícula</FieldLabel>
+              <Input value={form.matricula} onChange={set("matricula")} type="number" className="h-10 bg-slate-100 border-slate-200 rounded-lg" />
+            </Field>
+            <Field>
+              <FieldLabel className="text-sm font-medium text-slate-700">Setor</FieldLabel>
+              <Select value={form.idSetor} onValueChange={(v) => setForm((f) => ({ ...f, idSetor: v }))}>
+                <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-lg">
+                  <SelectValue placeholder="Selecione">
+                    {form.idSetor ? (setores.find((s) => String(s.idSetor) === String(form.idSetor))?.nomeSetor ?? "Selecione") : "Selecione"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {setores.map((s) => (
+                    <SelectItem key={s.idSetor} value={String(s.idSetor)}>{s.nomeSetor}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+
           <Field>
             <FieldLabel className="text-sm font-medium text-slate-700">Nome</FieldLabel>
-            <Input
-              value={form.nome}
-              onChange={set("nome")}
-              className="h-10 bg-slate-100 border-slate-200 rounded-lg"
-            />
-          </Field>
-
-          <Field>
-            <FieldLabel className="text-sm font-medium text-slate-700">Setor</FieldLabel>
-            <Select value={form.setor} onValueChange={set("setor")}>
-              <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-lg">
-                <SelectValue placeholder="" />
-              </SelectTrigger>
-              <SelectContent>
-                {SETORES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field>
-            <FieldLabel className="text-sm font-medium text-slate-700">Cargo</FieldLabel>
-            <Select value={form.cargo} onValueChange={set("cargo")}>
-              <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-lg">
-                <SelectValue placeholder="" />
-              </SelectTrigger>
-              <SelectContent>
-                {CARGOS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input value={form.nome} onChange={set("nome")} className="h-10 bg-slate-100 border-slate-200 rounded-lg" />
           </Field>
 
           <Field>
             <FieldLabel className="text-sm font-medium text-slate-700">E-mail</FieldLabel>
-            <Input
-              value={form.email}
-              onChange={set("email")}
-              type="email"
-              className="h-10 bg-slate-100 border-slate-200 rounded-lg"
-            />
+            <Input value={form.email} onChange={set("email")} type="email" className="h-10 bg-slate-100 border-slate-200 rounded-lg" />
           </Field>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
-          {/* Left: Limpar */}
           <button
-            onClick={handleClear}
+            onClick={() => setForm(emptyForm)}
             className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
           >
-            <BroomIcon />
+            {/* Borracha */}
+            <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 17h14M6.5 14.5 3.5 11.5a1 1 0 0 1 0-1.414l7-7a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-4.5 4.5H6.5Z" />
+              <path d="m9 5 5 5" />
+            </svg>
             LIMPAR
           </button>
-
-          {/* Right: action buttons */}
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              className="h-9 px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold tracking-wide rounded-lg"
-              onClick={() => handleSave(false)}
+              disabled={saving}
+              variant="outline"
+              className="h-9 px-4 text-xs font-bold tracking-wide rounded-lg border-slate-300 text-slate-600 hover:bg-slate-50"
+              onClick={onClose}
             >
-              SALVAR E CONTINUAR
+              CANCELAR
             </Button>
             <Button
               size="sm"
+              disabled={saving}
               className="h-9 px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold tracking-wide rounded-lg"
               onClick={() => handleSave(true)}
             >
-              SALVAR E FECHAR
+              {editingUser ? "ALTERAR" : "SALVAR"}
             </Button>
           </div>
         </div>
-
       </div>
     </div>
   );
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
+const PAGE_SIZE_DEFAULT = 15;
+
 export default function UsersPage() {
-  const [users, setUsers] = useState(MOCK_USERS);
+  const [users, setUsers] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // Filter state
   const [filterNome, setFilterNome] = useState("");
-  const [filterCargo, setFilterCargo] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
 
-  // Modals
+  const [sortCol, setSortCol] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
+
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
+
   const [formModal, setFormModal] = useState({ open: false, user: null });
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, bulk: false });
   const [feedback, setFeedback] = useState({ open: false, title: "", description: "", variant: "success" });
 
   const showFeedback = (title, description, variant = "success") =>
     setFeedback({ open: true, title, description, variant });
 
-  // ── Filtering ──
+  const loadUsers = useCallback(() => {
+    setLoading(true);
+    api.get("/api/usuarios-destino")
+      .then(setUsers)
+      .catch(() => showFeedback("Erro", "Não foi possível carregar os usuários.", "error"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+    api.get("/api/setores").then(setSetores).catch(() => {});
+  }, [loadUsers]);
+
+  // ── Filtro ──
   const filtered = users.filter((u) => {
-    const nameMatch = u.nome.toLowerCase().includes(filterNome.toLowerCase());
-    const cargoMatch = !filterCargo || u.cargo === filterCargo;
-    const setorMatch = !filterSetor || u.setor === filterSetor;
-    return nameMatch && cargoMatch && setorMatch;
+    const nomeMatch = u.nome.toLowerCase().includes(filterNome.toLowerCase()) ||
+      u.email.toLowerCase().includes(filterNome.toLowerCase());
+    const setorMatch = !filterSetor || String(u.idSetor) === filterSetor;
+    return nomeMatch && setorMatch;
   });
 
-  const clearFilters = () => { setFilterNome(""); setFilterCargo(""); setFilterSetor(""); };
+  // ── Ordenação ──
+  const SORT_KEYS = {
+    Matrícula: "matricula",
+    Nome: "nome",
+    Setor: "nomeSetor",
+    "E-mail": "email",
+    Pontuação: "pontuacao",
+  };
 
-  const hasActiveFilters = filterNome || filterCargo || filterSetor;
+  const sorted = sortCol
+    ? [...filtered].sort((a, b) => {
+        const key = SORT_KEYS[sortCol];
+        const va = a[key] ?? "";
+        const vb = b[key] ?? "";
+        const cmp = typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), "pt-BR");
+        return sortDir === "asc" ? cmp : -cmp;
+      })
+    : filtered;
 
-  // ── Selection ──
+  const handleSort = (col) => {
+    if (!SORT_KEYS[col]) return;
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("asc"); }
+    setPaginaAtual(1);
+  };
+
+  // ── Paginação ──
+  const total = sorted.length;
+  const totalPaginas = Math.max(1, Math.ceil(total / pageSize));
+  const inicio = (paginaAtual - 1) * pageSize;
+  const fim = inicio + pageSize;
+  const pagina = sorted.slice(inicio, fim);
+
+  const clearFilters = () => { setFilterNome(""); setFilterSetor(""); setPaginaAtual(1); };
+  const hasActiveFilters = filterNome || filterSetor;
+
+  // ── Seleção ──
   const toggleSelect = (id) =>
     setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
   const toggleAll = () =>
-    setSelected(selected.length === filtered.length ? [] : filtered.map((u) => u.id));
+    setSelected(selected.length === pagina.length ? [] : pagina.map((u) => u.idUsuarioDestino));
 
   // ── CRUD ──
-  const handleSave = (form, andClose) => {
-    if (formModal.user) {
-      setUsers((us) => us.map((u) => u.id === formModal.user.id ? { ...u, ...form } : u));
-      showFeedback("Usuário atualizado", "As alterações foram salvas com sucesso.");
-    } else {
-      setUsers((us) => [...us, { ...form, id: Date.now() }]);
-      showFeedback("Usuário adicionado", "O novo usuário foi cadastrado com sucesso.");
+  const handleSave = async (form, andClose) => {
+    try {
+      if (formModal.user) {
+        const updated = await api.put(`/api/usuarios-destino/${formModal.user.idUsuarioDestino}`, form);
+        setUsers((us) => us.map((u) => u.idUsuarioDestino === updated.idUsuarioDestino ? updated : u));
+        showFeedback("Usuário atualizado", "As alterações foram salvas com sucesso.");
+      } else {
+        const created = await api.post("/api/usuarios-destino", form);
+        setUsers((us) => [...us, created]);
+        showFeedback("Usuário cadastrado", "O novo usuário foi adicionado com sucesso.");
+      }
+      if (andClose) setFormModal({ open: false, user: null });
+    } catch (err) {
+      showFeedback("Erro", err.message || "Não foi possível salvar o usuário.", "error");
+      throw err;
     }
-    if (andClose) setFormModal({ open: false, user: null });
   };
 
-  const confirmDelete = () => {
-    setUsers((us) => us.filter((u) => u.id !== deleteModal.id));
-    setSelected((s) => s.filter((x) => x !== deleteModal.id));
-    setDeleteModal({ open: false, id: null });
-    showFeedback("Usuário removido", "O usuário foi excluído com sucesso.");
+  const confirmDelete = async () => {
+    const { id, bulk } = deleteModal;
+    setDeleteModal({ open: false, id: null, bulk: false });
+    try {
+      if (bulk) {
+        await Promise.all(selected.map((sid) => api.delete(`/api/usuarios-destino/${sid}`)));
+        setUsers((us) => us.filter((u) => !selected.includes(u.idUsuarioDestino)));
+        setSelected([]);
+        showFeedback("Usuários removidos", `${selected.length} usuário(s) excluído(s) com sucesso.`);
+      } else {
+        await api.delete(`/api/usuarios-destino/${id}`);
+        setUsers((us) => us.filter((u) => u.idUsuarioDestino !== id));
+        setSelected((s) => s.filter((x) => x !== id));
+        showFeedback("Usuário removido", "O usuário foi excluído com sucesso.");
+      }
+    } catch (err) {
+      showFeedback("Erro", err.message || "Não foi possível remover o usuário.", "error");
+    }
   };
+
+  const COLUNAS = ["Matrícula", "Nome", "Setor", "E-mail", "Pontuação", "Ações"];
 
   return (
     <div className="mx-auto w-full max-w-6xl pb-10">
-      {/* Feedback modal */}
-      <Modal
-        open={feedback.open}
-        onClose={() => setFeedback((f) => ({ ...f, open: false }))}
-        title={feedback.title}
-        description={feedback.description}
-        variant={feedback.variant}
-      />
-
-      {/* Delete confirmation */}
+      <Modal open={feedback.open} onClose={() => setFeedback((f) => ({ ...f, open: false }))} title={feedback.title} description={feedback.description} variant={feedback.variant} />
       <Modal
         open={deleteModal.open}
-        onClose={() => setDeleteModal({ open: false, id: null })}
-        title="Remover usuário"
-        description="Tem certeza que deseja remover este usuário? Essa ação não pode ser desfeita."
-        variant="warning"
-        confirm
-        confirmLabel="Sim, remover"
-        onConfirm={confirmDelete}
+        onClose={() => setDeleteModal({ open: false, id: null, bulk: false })}
+        title={deleteModal.bulk ? "Remover usuários selecionados?" : "Remover usuário?"}
+        description={deleteModal.bulk ? `Tem certeza que deseja remover ${selected.length} usuário(s)? Essa ação não pode ser desfeita.` : "Tem certeza que deseja remover este usuário? Essa ação não pode ser desfeita."}
+        variant="warning" confirm confirmLabel="Sim, remover" onConfirm={confirmDelete}
       />
-
-      {/* User form modal */}
       <UserFormModal
         open={formModal.open}
         onClose={() => setFormModal({ open: false, user: null })}
         onSave={handleSave}
         editingUser={formModal.user}
+        setores={setores}
       />
 
-      {/* ── Page Header ── */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Lista de usuários cadastrados</h1>
-          <p className="mt-1 text-sm text-slate-600">Adicione, edite e exclua usuários cadastrados no sistema.</p>
+        <div className="flex items-center gap-3">
+          <div className="user-badge flex items-center justify-center size-12 rounded-xl bg-teal-800 shrink-0 cursor-default">
+            <UserIcon className="user-icon size-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Usuários destino</h1>
+            <p className="mt-1 text-sm text-slate-600">Gerencie os colaboradores alvos das campanhas de phishing.</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white"
-            onClick={() => setFormModal({ open: true, user: null })}
-          >
+          <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
             <PlusIcon className="w-4 h-4 mr-1.5" />
             Adicionar
           </Button>
           <Button
-            size="sm"
-            variant="outline"
-            className={`h-9 px-4 border transition-colors ${
-              filterOpen || hasActiveFilters
-                ? "border-teal-500 text-teal-700 bg-teal-50 hover:bg-teal-100"
-                : "border-slate-300 text-slate-700 hover:bg-slate-50"
-            }`}
+            size="sm" variant="outline"
+            className={`h-9 px-4 border transition-colors ${filterOpen || hasActiveFilters ? "border-teal-500 text-teal-700 bg-teal-50 hover:bg-teal-100" : "border-slate-300 text-slate-700 hover:bg-slate-50"}`}
             onClick={() => setFilterOpen((v) => !v)}
           >
             <FunnelIcon className="w-4 h-4 mr-1.5" />
-            Filtrar Usuários
+            Filtrar usuários
             {hasActiveFilters && (
               <span className="ml-2 w-5 h-5 rounded-full bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center">
-                {[filterNome, filterCargo, filterSetor].filter(Boolean).length}
+                {[filterNome, filterSetor].filter(Boolean).length}
               </span>
             )}
           </Button>
         </div>
       </div>
 
-      {/* ── Filter Panel ── */}
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          filterOpen ? "max-h-40 opacity-100 mb-4" : "max-h-0 opacity-0"
-        }`}
-      >
+      {/* Filter Panel */}
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filterOpen ? "max-h-40 opacity-100 mb-4" : "max-h-0 opacity-0"}`}>
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
           <div className="flex items-end gap-4">
             <Field className="flex-1">
-              <FieldLabel>Nome</FieldLabel>
-              <Input
-                value={filterNome}
-                onChange={(e) => setFilterNome(e.target.value)}
-                placeholder="Buscar por nome..."
-                className="h-9"
-              />
-            </Field>
-            <Field className="w-52">
-              <FieldLabel>Cargo</FieldLabel>
-              <Select value={filterCargo} onValueChange={setFilterCargo}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CARGOS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <FieldLabel>Nome ou e-mail</FieldLabel>
+              <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9" />
             </Field>
             <Field className="w-52">
               <FieldLabel>Setor</FieldLabel>
-              <Select value={filterSetor} onValueChange={setFilterSetor}>
+              <Select value={filterSetor} onValueChange={(v) => { setFilterSetor(v); setPaginaAtual(1); }}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Todos" />
+                  <SelectValue placeholder="Todos">
+                    {filterSetor ? (setores.find((s) => String(s.idSetor) === filterSetor)?.nomeSetor ?? "Todos") : "Todos"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {SETORES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {setores.map((s) => (
+                    <SelectItem key={s.idSetor} value={String(s.idSetor)}>{s.nomeSetor}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
-            <div className="flex gap-2 pb-0.5">
-              <Button
-                size="sm"
-                className="h-9 w-9 p-0 bg-teal-600 hover:bg-teal-700 text-white"
-                title="Pesquisar"
-              >
-                <MagnifyingGlassIcon className="w-4 h-4" />
-              </Button>
-              {hasActiveFilters && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 px-3 text-slate-500 border-slate-300 hover:bg-slate-50 text-xs"
-                  onClick={clearFilters}
-                >
+            {hasActiveFilters && (
+              <div className="pb-0.5">
+                <Button size="sm" variant="outline" className="h-9 px-3 text-slate-500 border-slate-300 hover:bg-slate-50 text-xs" onClick={clearFilters}>
                   Limpar
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-3 w-10">
-                <Checkbox
-                  checked={filtered.length > 0 && selected.length === filtered.length}
-                  onChange={toggleAll}
-                />
-              </th>
-              {["Nome", "Cargo", "Setor", "E-mail", "Ações"].map((h) => (
-                <th
-                  key={h}
-                  className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 ${
-                    h === "Ações" ? "text-right" : ""
-                  }`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-slate-400 text-sm">
-                  Nenhum usuário encontrado.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((user) => {
-                const isSelected = selected.includes(user.id);
-                return (
-                  <tr
-                    key={user.id}
-                    className={`transition-colors ${
-                      isSelected ? "bg-teal-50/60" : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <td className="px-4 py-3">
-                      <Checkbox checked={isSelected} onChange={() => toggleSelect(user.id)} />
-                    </td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{user.nome}</td>
-                    <td className="px-4 py-3 text-slate-600">{user.cargo}</td>
-                    <td className="px-4 py-3 text-slate-500">{user.setor}</td>
-                    <td className="px-4 py-3 text-slate-500">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setFormModal({ open: true, user })}
-                          className="p-1.5 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-                          title="Editar"
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteModal({ open: true, id: user.id })}
-                          className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          title="Remover"
-                        >
-                          <XCircleIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+        {loading ? (
+          <div className="flex items-center justify-center py-20 text-slate-400 text-sm gap-3">
+            <svg className="animate-spin size-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Carregando usuários...
+          </div>
+        ) : (
+          <>
+            <PaginationBar inicio={inicio} fim={fim} total={total} paginaAtual={paginaAtual} totalPaginas={totalPaginas} pageSize={pageSize} setPage={setPaginaAtual} setPageSize={setPageSize} />
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 w-10">
+                    <Checkbox checked={pagina.length > 0 && selected.length === pagina.length} onChange={toggleAll} />
+                  </th>
+                  {COLUNAS.map((col) => (
+                    <th
+                      key={col}
+                      onClick={() => handleSort(col)}
+                      className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 ${SORT_KEYS[col] ? "cursor-pointer hover:text-slate-800 select-none" : ""} ${col === "Ações" || col === "Pontuação" ? "text-right" : ""}`}
+                    >
+                      {col}
+                      {SORT_KEYS[col] && <SortIcon col={col} sortCol={sortCol} sortDir={sortDir} />}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagina.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-slate-400 text-sm">Nenhum usuário encontrado.</td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                ) : (
+                  pagina.map((user) => {
+                    const isSelected = selected.includes(user.idUsuarioDestino);
+                    return (
+                      <tr key={user.idUsuarioDestino} className={`transition-colors ${isSelected ? "bg-teal-50/60" : "hover:bg-slate-50"}`}>
+                        <td className="px-4 py-3">
+                          <Checkbox checked={isSelected} onChange={() => toggleSelect(user.idUsuarioDestino)} />
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 text-xs font-mono">{user.matricula}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800">{user.nome}</td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 border border-slate-200">{user.nomeSetor}</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">{user.email}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="inline-flex min-w-9 items-center justify-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 border border-teal-200">
+                            {user.pontuacao ?? 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => setFormModal({ open: true, user })} className="p-1.5 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors" title="Editar">
+                              <PencilIcon className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setDeleteModal({ open: true, id: user.idUsuarioDestino, bulk: false })} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remover">
+                              <XCircleIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+            <PaginationBar inicio={inicio} fim={fim} total={total} paginaAtual={paginaAtual} totalPaginas={totalPaginas} pageSize={pageSize} setPage={setPaginaAtual} setPageSize={setPageSize} borderTop />
+          </>
+        )}
 
-        {/* Table footer */}
         <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50">
           <span className="text-xs text-slate-400">
-            {selected.length > 0
-              ? `${selected.length} de ${filtered.length} selecionado(s)`
-              : `${filtered.length} usuário(s) encontrado(s)`}
+            {selected.length > 0 ? `${selected.length} selecionado(s)` : `${total} usuário(s) encontrado(s)`}
           </span>
           {selected.length > 0 && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
-              onClick={() => {
-                setUsers((us) => us.filter((u) => !selected.includes(u.id)));
-                setSelected([]);
-                showFeedback("Usuários removidos", `${selected.length} usuário(s) excluído(s) com sucesso.`);
-              }}
-            >
+            <Button size="sm" variant="outline" className="h-7 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteModal({ open: true, id: null, bulk: true })}>
               Remover selecionados ({selected.length})
             </Button>
           )}
@@ -488,4 +489,3 @@ export default function UsersPage() {
     </div>
   );
 }
-

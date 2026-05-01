@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
 import { api } from "@/lib/api";
+import { PaginationBar } from "@/components/ui/PaginationBar";
 
 // ─── Ícones inline ────────────────────────────────────────────────────────────
 const IconSend = () => (
@@ -54,6 +55,19 @@ const IconEye = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.573-3.007-9.964-7.178Z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+  </svg>
+);
+const IconHook = ({ className = "size-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.91" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="3.41" r="1.91" />
+    <path d="M12,5.32v.21a8.5,8.5,0,0,0,3.49,6.7,5.73,5.73,0,1,1-9.22,4.54" />
+    <polyline points="9.14 16.77 6.27 13.91 6.27 16.77" />
+  </svg>
+);
+const IconArchive = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+    <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375Z" />
+    <path fillRule="evenodd" d="m3.087 9 .54 9.176A3 3 0 0 0 6.62 21h10.757a3 3 0 0 0 2.995-2.824L20.913 9H3.087Zm6.163 3.75A.75.75 0 0 1 10 12h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
   </svg>
 );
 
@@ -113,13 +127,50 @@ function FilterChip({ label, active, onClick }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // VIEW 1 — Lista de campanhas
 // ═══════════════════════════════════════════════════════════════════════════════
-function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
+const STATUSES = ["Pendente", "Enviando", "Concluída", "Erro"];
+
+function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar }) {
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [mostrarArquivados, setMostrarArquivados] = useState(false);
+  const [filtroAberto, setFiltroAberto] = useState(false);
+
+  const limparFiltros = () => { setDataInicio(""); setDataFim(""); setFiltroStatus("todos"); };
+
+  const campanhasFiltradas = campanhas.filter((c) => {
+    const arquivada = archivedIds.has(c.idCampanha);
+    if (mostrarArquivados ? !arquivada : arquivada) return false;
+    if (!mostrarArquivados && filtroStatus !== "todos" && c.statusEnvio !== filtroStatus) return false;
+    if (!dataInicio && !dataFim) return true;
+    const criacao = new Date(c.dataCriacao);
+    if (dataInicio) {
+      const ini = new Date(dataInicio);
+      ini.setHours(0, 0, 0, 0);
+      if (criacao < ini) return false;
+    }
+    if (dataFim) {
+      const fim = new Date(dataFim);
+      fim.setHours(23, 59, 59, 999);
+      if (criacao > fim) return false;
+    }
+    return true;
+  });
+
+  const filtroAtivo = dataInicio || dataFim || filtroStatus !== "todos";
+  const totalVisiveis = campanhas.filter((c) => mostrarArquivados ? archivedIds.has(c.idCampanha) : !archivedIds.has(c.idCampanha)).length;
+
   return (
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
-          <p className="mt-1 text-sm text-slate-600">Gerencie e monitore as campanhas de simulação de phishing.</p>
+        <div className="flex items-center gap-3">
+          <div className="hook-badge flex items-center justify-center size-12 rounded-xl bg-orange-500 shrink-0 cursor-default">
+            <IconHook className="hook-icon size-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
+            <p className="mt-1 text-sm text-slate-600">Gerencie e monitore as campanhas de simulação de phishing.</p>
+          </div>
         </div>
         <Button onClick={onNova} className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-4">
           <span className="mr-2"><IconPlus /></span> Nova Campanha
@@ -127,12 +178,71 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
       </header>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        {campanhas.length === 0 ? (
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setFiltroAberto((v) => !v)}
+              className={`h-9 px-4 gap-1.5 border transition-colors ${filtroAberto || filtroAtivo ? "border-teal-500 bg-teal-50 text-teal-700 hover:bg-teal-100" : "border-slate-300 text-slate-700 hover:bg-slate-50"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
+                <path fillRule="evenodd" d="M3.792 2.938A49.069 49.069 0 0 1 12 2.25c2.797 0 5.54.236 8.209.688a1.857 1.857 0 0 1 1.541 1.836v1.044a3 3 0 0 1-.879 2.121l-6.182 6.182a1.5 1.5 0 0 0-.439 1.061v2.927a3 3 0 0 1-1.658 2.684l-1.757.878A.75.75 0 0 1 9.75 21v-5.818a1.5 1.5 0 0 0-.44-1.06L3.13 7.938a3 3 0 0 1-.879-2.121V4.774c0-.897.64-1.683 1.542-1.836Z" clipRule="evenodd" />
+              </svg>
+              Filtrar campanhas
+            </Button>
+            {filtroAtivo && (
+              <Button type="button" variant="outline" size="sm" onClick={limparFiltros} className="h-9 text-slate-500">
+                Limpar
+              </Button>
+            )}
+          </div>
+
+          <div className="ml-auto flex items-center gap-3">
+            <Button
+              type="button" variant="outline" size="sm"
+              onClick={() => { setMostrarArquivados((v) => !v); limparFiltros(); }}
+              className={`h-9 gap-1.5 ${mostrarArquivados ? "border-slate-400 bg-slate-100 text-slate-700" : "text-slate-600"}`}
+            >
+              <IconArchive /> {mostrarArquivados ? "Ver ativas" : "Arquivadas"}
+            </Button>
+            <span className="text-xs text-slate-500">{campanhasFiltradas.length} de {totalVisiveis}</span>
+          </div>
+        </div>
+
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filtroAberto ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
+          <div className="flex flex-wrap items-end gap-3 gap-y-2 border-b border-slate-100 px-4 py-3">
+            <div className="flex flex-col gap-1 shrink-0">
+              <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
+              <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
+              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
+            </div>
+            {!mostrarArquivados && (
+              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                <SelectTrigger className="h-9 w-40 text-sm shrink-0">
+                  <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos status</SelectItem>
+                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>
+
+        {campanhasFiltradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="size-12 opacity-40">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
             </svg>
-            <p className="text-sm">Nenhuma campanha criada ainda.</p>
+            <p className="text-sm">
+              {mostrarArquivados ? "Nenhuma campanha arquivada." : filtroAtivo ? "Nenhuma campanha no período/status selecionado." : "Nenhuma campanha criada ainda."}
+            </p>
           </div>
         ) : (
           <table className="w-full text-left text-sm">
@@ -146,34 +256,33 @@ function CampaignList({ campanhas, onNova, onMonitorar, onDeletar }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {campanhas.map((c) => (
-                <tr key={c.idCampanha} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-900">{c.nomeCampanha}</td>
-                  <td className="px-6 py-4 text-slate-600">{c.nomeModelo}</td>
-                  <td className="px-6 py-4"><StatusBadge status={c.statusEnvio} /></td>
-                  <td className="px-6 py-4 text-slate-500 text-xs">
-                    {new Date(c.dataCriacao).toLocaleDateString("pt-BR")}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline" size="sm"
-                        onClick={() => onMonitorar(c)}
-                        className="text-teal-700 border-teal-200 hover:bg-teal-50"
-                      >
-                        <span className="mr-1"><IconChart /></span> Monitorar
-                      </Button>
-                      <Button
-                        variant="outline" size="sm"
-                        onClick={() => onDeletar(c.idCampanha)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <IconTrash />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {campanhasFiltradas.map((c) => {
+                const arquivada = archivedIds.has(c.idCampanha);
+                return (
+                  <tr key={c.idCampanha} className={`transition-colors ${arquivada ? "opacity-60 bg-slate-50" : "hover:bg-slate-50"}`}>
+                    <td className="px-6 py-4 font-medium text-slate-900">{c.nomeCampanha}</td>
+                    <td className="px-6 py-4 text-slate-600">{c.nomeModelo}</td>
+                    <td className="px-6 py-4"><StatusBadge status={c.statusEnvio} /></td>
+                    <td className="px-6 py-4 text-slate-500 text-xs">{new Date(c.dataCriacao).toLocaleDateString("pt-BR")}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        {!arquivada && (
+                          <Button variant="outline" size="sm" onClick={() => onMonitorar(c)} className="text-teal-700 border-teal-200 hover:bg-teal-50">
+                            <span className="mr-1"><IconChart /></span> Monitorar
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline" size="sm"
+                          onClick={() => onArquivar(c.idCampanha)}
+                          className={arquivada ? "text-slate-600 border-slate-200 hover:bg-slate-100 gap-1.5" : "text-orange-600 border-orange-200 hover:bg-orange-50 gap-1.5"}
+                        >
+                          <IconArchive /> {arquivada ? "Desarquivar" : "Arquivar"}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -400,10 +509,18 @@ const FILTROS = [
   { label: "Sem interação", key: "semInteracao" },
 ];
 
+const PAGE_SIZE = 10;
+
+<PaginationBar />
+
 function MonitoringView({ campanha, onBack }) {
   const [disparos, setDisparos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivo, setFiltroAtivo] = useState("todos");
+  const [setorFiltro, setSetorFiltro] = useState("todos");
+  const [pesquisa, setPesquisa] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
   const fetchDisparos = useCallback(async (filtro) => {
     setLoading(true);
@@ -446,12 +563,37 @@ function MonitoringView({ campanha, onBack }) {
 
   const handleFiltro = (key) => {
     setFiltroAtivo(key);
+    setPage(1);
+    setPesquisa("");
+    setSetorFiltro("todos");
     if (key === "todos") {
       fetchDisparos("todos");
     } else {
       fetchDisparos(key);
     }
   };
+
+  useEffect(() => { setPage(1); }, [pesquisa, setorFiltro]);
+
+  const setoresUnicos = [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort();
+
+  const disparosFiltrados = disparos
+    .filter((d) => setorFiltro === "todos" || d.setor === setorFiltro)
+    .filter((d) => {
+      if (!pesquisa.trim()) return true;
+      const q = pesquisa.toLowerCase();
+      return (
+        d.nomeDestinatario.toLowerCase().includes(q) ||
+        d.emailDestinatario.toLowerCase().includes(q) ||
+        d.setor.toLowerCase().includes(q)
+      );
+    });
+
+  const totalPaginas = Math.max(1, Math.ceil(disparosFiltrados.length / pageSize));
+  const paginaAtual = Math.min(page, totalPaginas);
+  const inicio = (paginaAtual - 1) * pageSize;
+  const fim = inicio + pageSize;
+  const disparosPagina = disparosFiltrados.slice(inicio, fim);
 
   return (
     <div className="grid gap-4">
@@ -488,6 +630,34 @@ function MonitoringView({ campanha, onBack }) {
           {FILTROS.map((f) => (
             <FilterChip key={f.key} label={f.label} active={filtroAtivo === f.key} onClick={() => handleFiltro(f.key)} />
           ))}
+          {setoresUnicos.length > 0 && (
+            <div className="ml-auto">
+              <Select value={setorFiltro} onValueChange={setSetorFiltro}>
+                <SelectTrigger className="h-8 w-44 text-xs">
+                  <SelectValue>{setorFiltro === "todos" ? "Todos setores" : setorFiltro}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos setores</SelectItem>
+                  {setoresUnicos.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        {/* Busca de texto */}
+        <div className="border-b border-slate-100 px-4 py-3">
+          <div className="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <Input
+              placeholder="Buscar por nome, e-mail ou departamento..."
+              value={pesquisa}
+              onChange={(e) => setPesquisa(e.target.value)}
+              className="h-9 pl-9"
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -498,50 +668,72 @@ function MonitoringView({ campanha, onBack }) {
             </svg>
             Carregando disparos...
           </div>
-        ) : disparos.length === 0 ? (
+        ) : disparosFiltrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
-            <p className="text-sm">Nenhum registro encontrado para este filtro.</p>
+            <p className="text-sm">
+              {pesquisa ? "Nenhum resultado para a busca." : "Nenhum registro encontrado para este filtro."}
+            </p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
-              <tr>
-                <th className="px-6 py-4">Destinatário</th>
-                <th className="px-6 py-4">Setor</th>
-                <th className="px-6 py-4 text-center">Link</th>
-                <th className="px-6 py-4 text-center">Anexo</th>
-                <th className="px-6 py-4 text-center">Reportou</th>
-                <th className="px-6 py-4 text-slate-400 text-right">Envio</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {disparos.map((d) => (
-                <tr key={d.idDisparo} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-3">
-                    <p className="font-medium text-slate-900">{d.nomeDestinatario}</p>
-                    <p className="text-xs text-slate-400">{d.emailDestinatario}</p>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 border border-slate-200">
-                      {d.setor}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    {d.clicouLink ? <IconCheck className="size-5 text-red-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    {d.abriuAnexo ? <IconCheck className="size-5 text-orange-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
-                  </td>
-                  <td className="px-6 py-3 text-center">
-                    {d.reportouPhishing ? <IconCheck className="size-5 text-teal-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
-                  </td>
-                  <td className="px-6 py-3 text-right text-xs text-slate-400">
-                    {new Date(d.dataEnvio).toLocaleDateString("pt-BR")}
-                  </td>
+          <>
+            <PaginationBar
+              inicio={inicio} fim={fim} total={disparosFiltrados.length}
+              paginaAtual={paginaAtual} totalPaginas={totalPaginas}
+              pageSize={pageSize} setPage={setPage} setPageSize={setPageSize}
+            />
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+                <tr>
+                  <th className="px-6 py-4">Destinatário</th>
+                  <th className="px-6 py-4">Setor</th>
+                  <th className="px-6 py-4 text-center">Pontuação</th>
+                  <th className="px-6 py-4 text-center">Link</th>
+                  <th className="px-6 py-4 text-center">Anexo</th>
+                  <th className="px-6 py-4 text-center">Reportou</th>
+                  <th className="px-6 py-4 text-slate-400 text-right">Envio</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {disparosPagina.map((d) => (
+                  <tr key={d.idDisparo} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-3">
+                      <p className="font-medium text-slate-900">{d.nomeDestinatario}</p>
+                      <p className="text-xs text-slate-400">{d.emailDestinatario}</p>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 border border-slate-200">
+                        {d.setor}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      <span className="inline-flex min-w-9 items-center justify-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 border border-teal-200">
+                        {d.pontuacao ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {d.clicouLink ? <IconCheck className="size-5 text-red-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {d.abriuAnexo ? <IconCheck className="size-5 text-orange-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {d.reportouPhishing ? <IconCheck className="size-5 text-teal-500 mx-auto" /> : <IconX className="size-5 text-slate-200 mx-auto" />}
+                    </td>
+                    <td className="px-6 py-3 text-right text-xs text-slate-400">
+                      {new Date(d.dataEnvio).toLocaleDateString("pt-BR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <PaginationBar
+              inicio={inicio} fim={fim} total={disparosFiltrados.length}
+              paginaAtual={paginaAtual} totalPaginas={totalPaginas}
+              pageSize={pageSize} setPage={setPage} setPageSize={setPageSize}
+              borderTop
+            />
+          </>
         )}
       </Card>
     </div>
@@ -551,11 +743,18 @@ function MonitoringView({ campanha, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROOT — Orquestra as três views
 // ═══════════════════════════════════════════════════════════════════════════════
+const ARCHIVE_KEY = "nemo_archived_campaigns";
+
 export default function CampaignsPage() {
   const [view, setView] = useState("list"); // "list" | "form" | "monitoring"
   const [campanhas, setCampanhas] = useState([]);
   const [campanhaAtiva, setCampanhaAtiva] = useState(null);
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
+  const [confirmArchive, setConfirmArchive] = useState({ open: false, id: null, arquivada: false });
+  const [archivedIds, setArchivedIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(ARCHIVE_KEY) ?? "[]")); }
+    catch { return new Set(); }
+  });
 
   const showModal = (title, description, variant = "error") =>
     setModal({ open: true, title, description, variant });
@@ -566,14 +765,20 @@ export default function CampaignsPage() {
 
   useEffect(() => { loadCampanhas(); }, [loadCampanhas]);
 
-  const handleDeletar = async (id) => {
-    if (!window.confirm("Deletar esta campanha? Esta ação não pode ser desfeita.")) return;
-    try {
-      await api.delete(`/api/campanhas/${id}`);
-      loadCampanhas();
-    } catch {
-      showModal("Erro", "Não foi possível deletar a campanha.", "error");
-    }
+  const handleArquivar = (id) => {
+    setConfirmArchive({ open: true, id, arquivada: archivedIds.has(id) });
+  };
+
+  const confirmarArquivar = () => {
+    const { id } = confirmArchive;
+    setConfirmArchive({ open: false, id: null, arquivada: false });
+    if (id == null) return;
+    setArchivedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      localStorage.setItem(ARCHIVE_KEY, JSON.stringify([...next]));
+      return next;
+    });
   };
 
   const handleMonitorar = (campanha) => {
@@ -584,13 +789,24 @@ export default function CampaignsPage() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-4">
       <Modal open={modal.open} onClose={() => setModal((m) => ({ ...m, open: false }))} title={modal.title} description={modal.description} variant={modal.variant} />
+      <Modal
+        open={confirmArchive.open}
+        onClose={() => setConfirmArchive({ open: false, id: null, arquivada: false })}
+        title={confirmArchive.arquivada ? "Desarquivar campanha?" : "Arquivar campanha?"}
+        description={confirmArchive.arquivada ? "A campanha voltará para a lista ativa." : "A campanha será movida para o arquivo. Você pode reativá-la depois."}
+        variant="warning"
+        confirm
+        confirmLabel={confirmArchive.arquivada ? "Desarquivar" : "Arquivar"}
+        onConfirm={confirmarArquivar}
+      />
 
       {view === "list" && (
         <CampaignList
           campanhas={campanhas}
+          archivedIds={archivedIds}
           onNova={() => setView("form")}
           onMonitorar={handleMonitorar}
-          onDeletar={handleDeletar}
+          onArquivar={handleArquivar}
         />
       )}
 

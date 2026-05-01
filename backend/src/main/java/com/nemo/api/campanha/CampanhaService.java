@@ -93,6 +93,7 @@ public class CampanhaService {
                 d.getUsuarioDestino().getNome(),
                 d.getUsuarioDestino().getEmail(),
                 d.getUsuarioDestino().getSetor().getNomeSetor(),
+                d.getUsuarioDestino().getPontuacao(),
                 d.getClicouLink(),
                 d.getAbriuAnexo(),
                 d.getReportouPhishing(),
