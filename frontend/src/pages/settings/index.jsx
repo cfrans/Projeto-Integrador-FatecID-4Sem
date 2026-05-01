@@ -164,7 +164,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="min-h-screen bg-slate-100 p-8">
       <LoadingOverlay visible={loading} />
 
       <div className="max-w-4xl mx-auto">
@@ -185,20 +185,9 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <Card className="mb-8 p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Perfil do Usuário</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Foto */}
-            <div className="flex flex-col items-center">
-              <div className="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-4 border-slate-300 mb-4">
-                {fotoPreview ? (
-                  <img src={fotoPreview} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-slate-400">Foto</span>
-                )}
-              </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Coluna 1: Foto */}
+            <Card className="p-6 flex flex-col items-center rounded-xl border border-slate-200 bg-white shadow-sm">
               <input
                 id="foto-input"
                 type="file"
@@ -207,115 +196,131 @@ export default function SettingsPage() {
                 className="hidden"
               />
 
-              <label htmlFor="foto-input">
-                <Button variant="outline" className="cursor-pointer">
+              <label htmlFor="foto-input" className="w-full">
+                <Button className="cursor-pointer w-full mb-4">
                   Alterar Foto
                 </Button>
               </label>
 
+              <div className="border-t border-slate-200 pt-4 w-full flex justify-center">
+                <div className="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-4 border-slate-300 mb-4">
+                  {fotoPreview ? (
+                    <img src={fotoPreview} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-slate-400">Foto</span>
+                  )}
+                </div>
+              </div>
+
               <p className="text-xs text-slate-500 mt-2">JPG, PNG até 5MB</p>
-            </div>
+            </Card>
 
-            {/* Infos */}
-            <div className="grid gap-6">
-              <div>
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-  Nome
-</Label>
-                <Input
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  disabled={!editMode}
-                  className={!editMode ? 'bg-slate-100' : ''}
-                />
-              </div>
-
-              <div>
-               <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-  Email
-</Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={!editMode}
-                  className={!editMode ? 'bg-slate-100' : ''}
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-  Tipo de acesso
-</Label>
-                <Input
-                  value={usuarioInfo?.tipoAcesso || user?.role || ''}
-                  disabled
-                  className="bg-slate-100"
-                />
-              </div>
-
-              {/* Botões principais */}
-              <div className="flex gap-2 flex-wrap">
-                {!editMode ? (
-                  <Button onClick={() => setEditMode(true)}>
-                    Editar Perfil
-                  </Button>
-                ) : (
-                  <>
-                    <Button onClick={handleSalvarPerfil}>Salvar</Button>
-                    <Button variant="outline" onClick={handleCancelarEdicao}>
-                      Cancelar
+            {/* Coluna 2: Informações e Editar Perfil */}
+            <Card className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="grid gap-6">
+                {/* Botão editar perfil no topo */}
+                <div>
+                  {!editMode ? (
+                    <Button onClick={() => setEditMode(true)} className="w-full">
+                      Editar Perfil
                     </Button>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button onClick={handleSalvarPerfil} className="flex-1">
+                        Salvar
+                      </Button>
+                      <Button variant="outline" onClick={handleCancelarEdicao} className="flex-1">
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
+                </div>
 
-              {/* Botão trocar senha separado e verde */}
-              <div>
-                <Button onClick={() => setMostrarTrocarSenha(!mostrarTrocarSenha)}>
-                  Trocar senha
+                <div className="border-t border-slate-200 pt-4">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Nome
+                  </Label>
+                  <Input
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    disabled={!editMode}
+                    className={!editMode ? 'bg-slate-100' : ''}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Email
+                  </Label>
+                  <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={!editMode}
+                    className={!editMode ? 'bg-slate-100' : ''}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Tipo de acesso
+                  </Label>
+                  <Input
+                    value={usuarioInfo?.tipoAcesso || user?.role || ''}
+                    disabled
+                    className="bg-slate-100"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* Coluna 3: Trocar Senha */}
+            <Card className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="grid gap-4">
+                <Button className="w-full" type="button">
+                  Trocar Senha
                 </Button>
-              </div>
 
-              {/* Form senha */}
-              {mostrarTrocarSenha && (
-                <form onSubmit={handleTrocarSenha} className="grid gap-4 mt-2 border-t pt-4">
-                  <Input
-                    type="password"
-                    placeholder="Senha atual"
-                    value={senhaAtual}
-                    onChange={(e) => setSenhaAtual(e.target.value)}
-                    required
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Nova senha"
-                    value={novaSenha}
-                    onChange={(e) => setNovaSenha(e.target.value)}
-                    required
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Confirmar nova senha"
-                    value={confirmarSenha}
-                    onChange={(e) => setConfirmarSenha(e.target.value)}
-                    required
-                  />
-
-                  <div className="flex gap-2">
-                    <Button type="submit">Salvar senha</Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setMostrarTrocarSenha(false)}
-                    >
-                      Cancelar
-                    </Button>
+                <form onSubmit={handleTrocarSenha} className="grid gap-4 border-t pt-4">
+                  <div>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Senha atual
+                    </Label>
+                    <Input
+                      type="password"
+                      placeholder="Senha atual"
+                      value={senhaAtual}
+                      onChange={(e) => setSenhaAtual(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Nova senha
+                    </Label>
+                    <Input
+                      type="password"
+                      placeholder="Nova senha"
+                      value={novaSenha}
+                      onChange={(e) => setNovaSenha(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Confirmar nova senha
+                    </Label>
+                    <Input
+                      type="password"
+                      placeholder="Confirmar nova senha"
+                      value={confirmarSenha}
+                      onChange={(e) => setConfirmarSenha(e.target.value)}
+                      required
+                    />
                   </div>
                 </form>
-              )}
-            </div>
+              </div>
+            </Card>
           </div>
-        </Card>
       </div>
     </div>
   )
