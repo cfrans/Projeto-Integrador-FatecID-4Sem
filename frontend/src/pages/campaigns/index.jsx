@@ -162,8 +162,8 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center size-12 rounded-xl bg-orange-500 shrink-0">
-            <IconHook className="size-6 text-white" />
+          <div className="hook-badge flex items-center justify-center size-12 rounded-xl bg-orange-500 shrink-0 cursor-default">
+            <IconHook className="hook-icon size-6 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Campanhas</h1>
@@ -186,22 +186,21 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
               <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
               <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
             </Field>
-            <Button type="button" variant="outline" size="sm" onClick={limparFiltros} disabled={!filtroAtivo} className="h-9 self-end">
+            <Button type="button" variant="outline" size="sm" onClick={limparFiltros} disabled={!filtroAtivo} className="h-9">
               Limpar
             </Button>
+            {!mostrarArquivados && (
+              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                <SelectTrigger className="h-9 w-36 text-sm">
+                  <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos status</SelectItem>
+                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
           </div>
-
-          {!mostrarArquivados && (
-            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-              <SelectTrigger className="h-9 w-36 text-sm ml-2">
-                <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos status</SelectItem>
-                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
 
           <div className="ml-auto flex items-center gap-3">
             <Button
