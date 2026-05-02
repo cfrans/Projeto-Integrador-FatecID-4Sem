@@ -1,5 +1,7 @@
 package com.nemo.api.tracking;
 
+import com.nemo.api.pontuacao.PontuacaoService;
+import com.nemo.api.pontuacao.TipoEvento;
 import com.nemo.api.repository.DisparoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class TrackingController {
 
     private final DisparoRepository disparoRepository;
+    private final PontuacaoService pontuacaoService;
 
     // ─── Rastrear clique no link ───────────────────────────────────────────────
     @GetMapping("/confirmar/{token}")
@@ -20,6 +23,7 @@ public class TrackingController {
         disparo.ifPresent(d -> {
             d.setClicouLink(true);
             disparoRepository.save(d);
+            pontuacaoService.aplicarEventoDisparo(d, TipoEvento.CLIQUE_LINK);
         });
 
         // Redireciona para o domínio falso configurado no Modelo
@@ -38,6 +42,7 @@ public class TrackingController {
         disparo.ifPresent(d -> {
             d.setAbriuAnexo(true);
             disparoRepository.save(d);
+            pontuacaoService.aplicarEventoDisparo(d, TipoEvento.ABRIU_ANEXO);
         });
 
         String nomeArquivo = disparo

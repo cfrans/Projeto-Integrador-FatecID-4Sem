@@ -182,3 +182,15 @@
 .user-badge:hover .user-icon {
   animation: userSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+@keyframes envelopeSend {
+  0%   { transform: rotate(0deg)    translateY(0)    scale(1);    }
+  25%  { transform: rotate(-14deg)  translateY(-5px) scale(1.06); }
+  55%  { transform: rotate(8deg)    translateY(-8px) scale(1.08); }
+  80%  { transform: rotate(-3deg)   translateY(-2px) scale(1.02); }
+  100% { transform: rotate(0deg)    translateY(0)    scale(1);    }
+}
+
+.envelope-badge:hover .envelope-icon {
+  animation: envelopeSend 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}

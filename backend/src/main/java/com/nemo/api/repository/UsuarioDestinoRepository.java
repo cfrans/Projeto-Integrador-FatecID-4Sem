@@ -7,4 +7,6 @@ import java.util.List;
 public interface UsuarioDestinoRepository extends JpaRepository<UsuarioDestino, Integer> {
     List<UsuarioDestino> findBySetor_IdSetorIn(List<Integer> idSetores);
     java.util.Optional<UsuarioDestino> findByEmail(String email);
+    boolean existsByMatricula(Integer matricula);
+    boolean existsByEmail(String email);
 }

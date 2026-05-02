@@ -43,6 +43,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - ⚙️ Geração de tokens únicos via Worker em C (multithread, key stretching, DJB2, detecção automática de CPUs)
 - 🔎 Rastreamento de cliques (`/confirmar/{token}`) e abertura de anexo (`/doc/{token}`) com geração de arquivo HTML falso on-the-fly
 - 📊 Endpoint de monitoramento `GET /api/campanhas/{id}/disparos` com filtros via query params (`clicouLink`, `abriuAnexo`, `reportouPhishing`)
+- 🎯 Lógica de pontuação comportamental — saldo com piso/teto (0–1000, baseline 500), idempotente por disparo, com tabela de eventos `pontuacao_evento` (auditável, alimenta evolução histórica). Aplicação automática nos hooks `/confirmar/{token}` (−20) e `/doc/{token}` (−30)
 - 👤 Endpoints de gerenciamento de perfil: `GET/PUT /api/auth/me` (nome, e-mail), `PUT /api/auth/me/foto` (upload de imagem), `PUT /api/auth/trocar-senha`, `GET /api/auth/usuarios`, `PUT /api/auth/usuarios/{id}/role` (alterar papel Admin ↔ Colaborador)
 - 🧱 Migrations Flyway com schema completo + seeds de tipos de acesso, modelos e setores
 - 🛡️ Spring Security configurado (CORS, sessão stateless, BCrypt)
@@ -56,7 +57,8 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 📈 Dashboard de gráficos (`/graphics`) — gráfico de barras (interações por setor), pizza (distribuição por setor), linha (evolução mensal) e tabela de últimas campanhas; filtros de período implementados; **dados ainda mockados** (aguardando endpoint consolidado no backend)
 - ⚙️ Tela de Configurações (`/settings`) — edição de perfil (nome, e-mail), upload de foto, troca de senha
 - 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
-- 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.)
+- 👥 Tela de Usuários Destino (`/users`) — CRUD completo com paginação, ordenação por coluna, filtros por nome/e-mail e setor, seleção em lote, exclusão múltipla e importação em massa via CSV (com modal de resultado mostrando criados/ignorados/erros)
+- 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.) + `FilterBar` reutilizável (toggle button + painel colapsável com suporte a `rightSlot`), usado nas telas de Campanhas, Modelos e Usuários
 - 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
 
 **Qualidade / infraestrutura**
@@ -70,8 +72,8 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 **Crítico (bloqueia o MVP)**
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
-- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna e filtros por nome/e-mail e setor.
-- [ ] **Lógica de pontuação** comportamental — service que aplica penalidade por clique/abertura de anexo e recompensa por reporte, gravando em `pontuacao` ou campo equivalente em `usuario_destino`.
+- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna, filtros por nome/e-mail e setor, e **importação em massa via CSV** (`POST /api/usuarios-destino/importar`) com detecção automática de separador, parsing quote-aware, BOM stripping e relatório por linha de erros/ignorados/criados.
+- [x] **Lógica de pontuação** comportamental — `PontuacaoService` aplica penalidade por clique (−20) e abertura de anexo (−30) com idempotência por disparo, clamp em 0–1000 e histórico em `pontuacao_evento`. Falta integrar com o reporte (depende do SMTP-to-Webhook) e com a conclusão de treinamentos (depende do módulo de treinamentos).
 
 **Funcionalidade**
 - [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
@@ -190,6 +192,8 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 | `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
 | `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
 | `V5__insert_users_base.sql` | Insere 100 usuários alvo de teste (`usuario_destino`) |
+| `V6__add_foto_to_usuario_sistema.sql` | Adiciona coluna `foto` (LONGBLOB) em `usuario_sistema` |
+| `V7__create_pontuacao_evento.sql` | Cria tabela `pontuacao_evento` (histórico de eventos de pontuação) e altera baseline de `usuario_destino.pontuacao` para 500 |
 
 > ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V5__descricao.sql`, `V6__descricao.sql`, e assim por diante.
 
@@ -274,14 +278,33 @@ O backend lerá o HTML do Modelo, substituirá `{{LINK_AQUI}}` pela URL contendo
 | **Abertura do anexo** | Vítima acessa `/doc/{token}` → o backend gera on-the-fly um arquivo `.html` com nome configurável pelo admin (ex: `relatorio.pdf.html`) contendo apenas um script de redirecionamento para a API. O arquivo não é um PDF/DOCX real, evitando bloqueios por antivírus e filtros de spam, mas registra a interação. | `disparos.abriu_anexo = TRUE` |
 | **Reporte do e-mail** *(planejado)* | Vítima encaminha o e-mail para a *abuse inbox* → SMTP-to-Webhook extrai o token. | `disparos.reportou_phishing = TRUE` |
 
-### Gamificação *(planejado)*
+### Gamificação
 
-O portal do Usuário Destino funcionará sob um sistema de pontuação comportamental:
+O portal do Usuário Destino opera sob um sistema de pontuação comportamental com **saldo limitado** (0–1000) e **baseline neutro** (500). O objetivo é educar, não competir: quem errou pode se redimir via treinamentos, e novos colaboradores entram em pé de igualdade com veteranos.
 
-- **Penalidade:** clique em link malicioso ou abertura de anexo suspeito subtrai pontos.
-- **Neutralidade:** ignorar o e-mail não altera o saldo.
-- **Recompensa:** identificar e reportar o e-mail para a *abuse inbox* soma pontos.
-- **Treinamentos:** módulos de vídeo e quiz somam pontos quando concluídos. A tabela `treinamento_concluido` impede ganho duplicado pelo mesmo curso.
+#### Eventos e deltas
+
+| Evento | Delta | Status | Fonte |
+|--------|-------|--------|-------|
+| Clicou no link malicioso | **−20** | ✅ implementado | hook em `/confirmar/{token}` |
+| Abriu o anexo simulado | **−30** | ✅ implementado | hook em `/doc/{token}` |
+| Reportou o e-mail à *abuse inbox* | **+30** | 🚧 service pronto, aguarda webhook SMTP | SMTP-to-Webhook |
+| Concluiu um treinamento | **+50** | 🚧 service pronto, aguarda módulo de treinamentos | quiz |
+| Ignorou o e-mail | 0 | — | — |
+
+Faixas de risco para gestão:
+
+- **0–300** → crítico (treinamento obrigatório)
+- **300–700** → atenção
+- **700–1000** → ok
+
+#### Implementação
+
+- **Saldo atual** fica denormalizado em `usuario_destino.pontuacao` (leitura rápida).
+- **Histórico completo** em `pontuacao_evento` (`id_usuario_destino`, `id_disparo` *nullable*, `id_campanha` *nullable*, `tipo_evento`, `delta`, `saldo_apos`, `referencia_externa`, `criado_em`) — alimenta o gráfico de evolução do portal e provê auditabilidade.
+- **Idempotência** garantida por índice único `(id_disparo, tipo_evento)` em `pontuacao_evento`: cliques repetidos no mesmo link só contam uma vez. Para treinamentos, a checagem é feita por `(usuario_destino, codigo_curso)` — somando o controle existente da tabela `treinamento_concluido`.
+- **Clamp** aplicado antes da gravação: o delta efetivo armazenado no histórico reflete o impacto real após o limite (ex: usuário com saldo 10 ao clicar registra `delta = -10` e `saldo_apos = 0`, não `delta = -20`).
+- **Transacional**: `PontuacaoService.aplicarEventoDisparo()` roda sob `@Transactional`, garantindo que o evento e a atualização do saldo sejam atômicos.
 
 ---
 
@@ -304,7 +327,7 @@ nemo/
 │       │   └── repository/               # Spring Data repositories
 │       └── resources/
 │           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V5)
+│           └── db/migration/             # Migrations Flyway (V1..V7)
 └── frontend/
     └── src/
         ├── components/                   # UI base, navbar, branding, routing guards
@@ -317,7 +340,7 @@ nemo/
         │   ├── models/                   # ✅ CRUD de modelos
         │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
         │   ├── settings/                 # ✅ Perfil, senha e foto (gerenciamento de usuários pendente)
-        │   ├── users/                    # 🚧 mock (sem backend)
+        │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
         │   ├── admin/                    # 🚧 placeholder
         │   └── home/                     # 🚧 placeholder (portal do colaborador)
         └── routes/index.jsx              # Definição de rotas
