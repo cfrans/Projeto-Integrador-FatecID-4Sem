@@ -359,11 +359,11 @@ export default function UsersPage() {
         activeCount={[filterNome, filterSetor].filter(Boolean).length}
         onClear={clearFilters}
       >
-        <Field className="flex-1 min-w-40">
+        <Field className="w-auto flex-1 min-w-40">
           <FieldLabel className="text-xs text-slate-500">Nome ou e-mail</FieldLabel>
-          <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9" />
+          <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9 w-full" />
         </Field>
-        <Field className="w-52 shrink-0">
+        <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Setor</FieldLabel>
           <Select value={filterSetor} onValueChange={(v) => { setFilterSetor(v); setPaginaAtual(1); }}>
             <SelectTrigger className="h-9">

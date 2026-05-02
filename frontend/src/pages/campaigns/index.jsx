@@ -185,17 +185,26 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
         isActive={filtroAtivo}
         activeCount={[dataInicio, dataFim, filtroStatus !== "todos" ? filtroStatus : ""].filter(Boolean).length}
         onClear={limparFiltros}
+        rightSlot={
+          <Button
+            type="button" variant="outline" size="sm"
+            onClick={() => { setMostrarArquivados((v) => !v); limparFiltros(); }}
+            className={`h-9 gap-1.5 ${mostrarArquivados ? "border-slate-400 bg-slate-100 text-slate-700" : "border-slate-300 text-slate-600 hover:bg-slate-50"}`}
+          >
+            <IconArchive /> {mostrarArquivados ? "Ver ativas" : "Arquivadas"}
+          </Button>
+        }
       >
-        <Field className="shrink-0">
+        <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
           <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
         </Field>
-        <Field className="shrink-0">
+        <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
           <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
         </Field>
         {!mostrarArquivados && (
-          <Field className="shrink-0">
+          <Field className="w-auto shrink-0">
             <FieldLabel className="text-xs text-slate-500">Status</FieldLabel>
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
               <SelectTrigger className="h-9 w-40 text-sm">
@@ -211,19 +220,6 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
       </FilterBar>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center border-b border-slate-100 px-4 py-3">
-          <div className="ml-auto flex items-center gap-3">
-            <Button
-              type="button" variant="outline" size="sm"
-              onClick={() => { setMostrarArquivados((v) => !v); limparFiltros(); }}
-              className={`h-9 gap-1.5 ${mostrarArquivados ? "border-slate-400 bg-slate-100 text-slate-700" : "text-slate-600"}`}
-            >
-              <IconArchive /> {mostrarArquivados ? "Ver ativas" : "Arquivadas"}
-            </Button>
-            <span className="text-xs text-slate-500">{campanhasFiltradas.length} de {totalVisiveis}</span>
-          </div>
-        </div>
-
         {campanhasFiltradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="size-12 opacity-40">
@@ -275,6 +271,9 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
             </tbody>
           </table>
         )}
+        <div className="flex items-center justify-end px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
+          <span className="text-xs text-slate-400">{campanhasFiltradas.length} de {totalVisiveis}</span>
+        </div>
       </Card>
     </div>
   );

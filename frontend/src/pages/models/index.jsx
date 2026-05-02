@@ -197,19 +197,19 @@ export default function ModelsPage() {
         activeCount={activeCount}
         onClear={clearFilters}
       >
-        <Field className="flex-1 min-w-40">
+        <Field className="w-auto flex-1 min-w-40">
           <FieldLabel className="text-xs text-slate-500">Buscar por nome</FieldLabel>
           <Input
             value={filterNome}
             onChange={(e) => setFilterNome(e.target.value)}
             placeholder="Nome do modelo..."
-            className="h-9"
+            className="h-9 w-full"
           />
         </Field>
-        <Field className="w-52 shrink-0">
+        <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Domínio alvo</FieldLabel>
           <Select value={filterDominio} onValueChange={setFilterDominio}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger className="h-9 w-52 text-sm">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
@@ -220,7 +220,7 @@ export default function ModelsPage() {
             </SelectContent>
           </Select>
         </Field>
-        <Field className="shrink-0">
+        <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
           <Input
             type="date"
@@ -230,7 +230,7 @@ export default function ModelsPage() {
             className="h-9 w-40"
           />
         </Field>
-        <Field className="shrink-0">
+        <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
           <Input
             type="date"
@@ -243,12 +243,6 @@ export default function ModelsPage() {
       </FilterBar>
 
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
-          <span className="text-xs text-slate-400">
-            {filteredModels.length} de {models.length} modelo(s)
-          </span>
-        </div>
-
         {filteredModels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
             <EnvelopeIcon className="size-10 opacity-30" />
@@ -291,6 +285,9 @@ export default function ModelsPage() {
             </tbody>
           </table>
         )}
+        <div className="flex items-center justify-end px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
+          <span className="text-xs text-slate-400">{filteredModels.length} de {models.length} modelo(s)</span>
+        </div>
       </Card>
     </div>
   );
