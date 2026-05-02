@@ -7,6 +7,9 @@ import {
   ArrowUpTrayIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/solid";
+import peixeHappy from "@/assets/peixe-icons/peixe-icon-happy.png";
+import peixeDuvidoso from "@/assets/peixe-icons/peixe-icon-duvidoso.png";
+import peixeSurpreso from "@/assets/peixe-icons/peixe-icon-surpreso.png";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
@@ -195,6 +198,16 @@ function ImportModal({ open, onClose, onImported }) {
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const fishImage = errorMsg
+    ? peixeSurpreso
+    : result
+      ? result.criados === 0
+        ? peixeSurpreso
+        : result.erros?.length > 0
+          ? peixeDuvidoso
+          : peixeHappy
+      : null;
+
   useEffect(() => {
     if (open) {
       setFile(null);
@@ -246,33 +259,44 @@ function ImportModal({ open, onClose, onImported }) {
         </div>
 
         <div className="px-5 py-5 grid gap-4 max-h-[70vh] overflow-y-auto">
-          {result ? (
+          {result || errorMsg ? (
             <div className="grid gap-3">
-              <div className="rounded-lg bg-teal-50 border border-teal-200 p-4 text-center">
-                <p className="text-sm text-teal-700">
-                  <span className="text-2xl font-bold block">{result.criados}</span>
-                  usuário(s) importado(s) com sucesso
-                </p>
+              <div className="flex flex-col items-center gap-1 pt-2 pb-1">
+                <img src={fishImage} alt="" className="h-24 object-contain drop-shadow" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-center">
-                  <p className="text-xs text-slate-500">Total no arquivo</p>
-                  <p className="text-lg font-bold text-slate-700">{result.total}</p>
+              {errorMsg ? (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
+                  <p className="text-sm font-semibold text-red-700">{errorMsg}</p>
                 </div>
-                <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-center">
-                  <p className="text-xs text-yellow-700">Ignorados (duplicados)</p>
-                  <p className="text-lg font-bold text-yellow-800">{result.ignorados}</p>
-                </div>
-              </div>
-              {result.erros?.length > 0 && (
-                <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-                  <p className="text-xs font-semibold text-red-700 mb-2">{result.erros.length} erro(s):</p>
-                  <ul className="text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
-                    {result.erros.map((e, i) => (
-                      <li key={i} className="font-mono">• {e}</li>
-                    ))}
-                  </ul>
-                </div>
+              ) : (
+                <>
+                  <div className="rounded-lg bg-teal-50 border border-teal-200 p-4 text-center">
+                    <p className="text-sm text-teal-700">
+                      <span className="text-2xl font-bold block">{result.criados}</span>
+                      usuário(s) importado(s) com sucesso
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-center">
+                      <p className="text-xs text-slate-500">Total no arquivo</p>
+                      <p className="text-lg font-bold text-slate-700">{result.total}</p>
+                    </div>
+                    <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-center">
+                      <p className="text-xs text-yellow-700">Ignorados (duplicados)</p>
+                      <p className="text-lg font-bold text-yellow-800">{result.ignorados}</p>
+                    </div>
+                  </div>
+                  {result.erros?.length > 0 && (
+                    <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                      <p className="text-xs font-semibold text-red-700 mb-2">{result.erros.length} erro(s):</p>
+                      <ul className="text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
+                        {result.erros.map((e, i) => (
+                          <li key={i} className="font-mono">• {e}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
@@ -316,7 +340,7 @@ function ImportModal({ open, onClose, onImported }) {
         </div>
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100">
-          {result ? (
+          {result || errorMsg ? (
             <Button
               size="sm"
               className="h-9 px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold tracking-wide rounded-lg"
@@ -524,10 +548,10 @@ export default function UsersPage() {
           <Button
             size="sm"
             variant="outline"
-            className="h-9 px-4 border-teal-300 text-teal-700 hover:bg-teal-50"
+            className="h-9 px-4 gap-1.5 border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
             onClick={() => setImportModalOpen(true)}
           >
-            <ArrowUpTrayIcon className="w-4 h-4 mr-1.5" />
+            <ArrowUpTrayIcon className="w-4 h-4" />
             Importar
           </Button>
         </div>
