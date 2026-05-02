@@ -363,7 +363,7 @@ export default function UsersPage() {
           <FieldLabel className="text-xs text-slate-500">Nome ou e-mail</FieldLabel>
           <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9 w-full" />
         </Field>
-        <Field className="w-auto shrink-0">
+        <Field className="w-auto shrink-0 min-w-60">
           <FieldLabel className="text-xs text-slate-500">Setor</FieldLabel>
           <Select value={filterSetor} onValueChange={(v) => { setFilterSetor(v); setPaginaAtual(1); }}>
             <SelectTrigger className="h-9">
