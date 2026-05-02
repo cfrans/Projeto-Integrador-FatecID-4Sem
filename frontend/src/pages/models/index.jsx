@@ -206,10 +206,10 @@ export default function ModelsPage() {
             className="h-9 w-full"
           />
         </Field>
-        <Field className="w-auto shrink-0">
+        <Field className="w-64 shrink-0">
           <FieldLabel className="text-xs text-slate-500">Domínio alvo</FieldLabel>
           <Select value={filterDominio} onValueChange={setFilterDominio}>
-            <SelectTrigger className="h-9 w-52 text-sm">
+            <SelectTrigger className="h-9 w-full text-sm">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
