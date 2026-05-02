@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
+import { FilterBar } from "@/components/ui/FilterBar";
 import { api } from "@/lib/api";
 import { PaginationBar } from "@/components/ui/PaginationBar";
 
@@ -177,28 +178,40 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
         </Button>
       </header>
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setFiltroAberto((v) => !v)}
-              className={`h-9 px-4 gap-1.5 border transition-colors ${filtroAberto || filtroAtivo ? "border-teal-500 bg-teal-50 text-teal-700 hover:bg-teal-100" : "border-slate-300 text-slate-700 hover:bg-slate-50"}`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4">
-                <path fillRule="evenodd" d="M3.792 2.938A49.069 49.069 0 0 1 12 2.25c2.797 0 5.54.236 8.209.688a1.857 1.857 0 0 1 1.541 1.836v1.044a3 3 0 0 1-.879 2.121l-6.182 6.182a1.5 1.5 0 0 0-.439 1.061v2.927a3 3 0 0 1-1.658 2.684l-1.757.878A.75.75 0 0 1 9.75 21v-5.818a1.5 1.5 0 0 0-.44-1.06L3.13 7.938a3 3 0 0 1-.879-2.121V4.774c0-.897.64-1.683 1.542-1.836Z" clipRule="evenodd" />
-              </svg>
-              Filtrar campanhas
-            </Button>
-            {filtroAtivo && (
-              <Button type="button" variant="outline" size="sm" onClick={limparFiltros} className="h-9 text-slate-500">
-                Limpar
-              </Button>
-            )}
-          </div>
+      <FilterBar
+        label="Filtrar campanhas"
+        isOpen={filtroAberto}
+        onToggle={() => setFiltroAberto((v) => !v)}
+        isActive={filtroAtivo}
+        activeCount={[dataInicio, dataFim, filtroStatus !== "todos" ? filtroStatus : ""].filter(Boolean).length}
+        onClear={limparFiltros}
+      >
+        <Field className="shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
+          <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
+        </Field>
+        <Field className="shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
+          <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
+        </Field>
+        {!mostrarArquivados && (
+          <Field className="shrink-0">
+            <FieldLabel className="text-xs text-slate-500">Status</FieldLabel>
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="h-9 w-40 text-sm">
+                <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos status</SelectItem>
+                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
+      </FilterBar>
 
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="flex items-center border-b border-slate-100 px-4 py-3">
           <div className="ml-auto flex items-center gap-3">
             <Button
               type="button" variant="outline" size="sm"
@@ -208,30 +221,6 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
               <IconArchive /> {mostrarArquivados ? "Ver ativas" : "Arquivadas"}
             </Button>
             <span className="text-xs text-slate-500">{campanhasFiltradas.length} de {totalVisiveis}</span>
-          </div>
-        </div>
-
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filtroAberto ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
-          <div className="flex flex-wrap items-end gap-3 gap-y-2 border-b border-slate-100 px-4 py-3">
-            <div className="flex flex-col gap-1 shrink-0">
-              <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
-              <Input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} max={dataFim || undefined} className="h-9 w-40" />
-            </div>
-            <div className="flex flex-col gap-1 shrink-0">
-              <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
-              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} min={dataInicio || undefined} className="h-9 w-40" />
-            </div>
-            {!mostrarArquivados && (
-              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger className="h-9 w-40 text-sm shrink-0">
-                  <SelectValue>{filtroStatus === "todos" ? "Todos status" : filtroStatus}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos status</SelectItem>
-                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
           </div>
         </div>
 

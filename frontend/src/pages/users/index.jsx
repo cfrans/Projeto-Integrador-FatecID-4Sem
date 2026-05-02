@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   PlusIcon,
-  FunnelIcon,
   PencilIcon,
   XCircleIcon,
   UserIcon,
 } from "@heroicons/react/24/solid";
+import { FilterBar } from "@/components/ui/FilterBar";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
@@ -345,63 +345,43 @@ export default function UsersPage() {
             <p className="mt-1 text-sm text-slate-600">Gerencie os colaboradores alvos das campanhas de phishing.</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
-            <PlusIcon className="w-4 h-4 mr-1.5" />
-            Adicionar
-          </Button>
-          <Button
-            size="sm" variant="outline"
-            className={`h-9 px-4 border transition-colors ${filterOpen || hasActiveFilters ? "border-teal-500 text-teal-700 bg-teal-50 hover:bg-teal-100" : "border-slate-300 text-slate-700 hover:bg-slate-50"}`}
-            onClick={() => setFilterOpen((v) => !v)}
-          >
-            <FunnelIcon className="w-4 h-4 mr-1.5" />
-            Filtrar usuários
-            {hasActiveFilters && (
-              <span className="ml-2 w-5 h-5 rounded-full bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center">
-                {[filterNome, filterSetor].filter(Boolean).length}
-              </span>
-            )}
-          </Button>
-        </div>
+        <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
+          <PlusIcon className="w-4 h-4 mr-1.5" />
+          Adicionar
+        </Button>
       </div>
 
-      {/* Filter Panel */}
-      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${filterOpen ? "max-h-40 opacity-100 mb-4" : "max-h-0 opacity-0"}`}>
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-          <div className="flex items-end gap-4">
-            <Field className="flex-1">
-              <FieldLabel>Nome ou e-mail</FieldLabel>
-              <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9" />
-            </Field>
-            <Field className="w-52">
-              <FieldLabel>Setor</FieldLabel>
-              <Select value={filterSetor} onValueChange={(v) => { setFilterSetor(v); setPaginaAtual(1); }}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Todos">
-                    {filterSetor ? (setores.find((s) => String(s.idSetor) === filterSetor)?.nomeSetor ?? "Todos") : "Todos"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {setores.map((s) => (
-                    <SelectItem key={s.idSetor} value={String(s.idSetor)}>{s.nomeSetor}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            {hasActiveFilters && (
-              <div className="pb-0.5">
-                <Button size="sm" variant="outline" className="h-9 px-3 text-slate-500 border-slate-300 hover:bg-slate-50 text-xs" onClick={clearFilters}>
-                  Limpar
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <FilterBar
+        label="Filtrar usuários"
+        isOpen={filterOpen}
+        onToggle={() => setFilterOpen((v) => !v)}
+        isActive={hasActiveFilters}
+        activeCount={[filterNome, filterSetor].filter(Boolean).length}
+        onClear={clearFilters}
+      >
+        <Field className="flex-1 min-w-40">
+          <FieldLabel className="text-xs text-slate-500">Nome ou e-mail</FieldLabel>
+          <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9" />
+        </Field>
+        <Field className="w-52 shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Setor</FieldLabel>
+          <Select value={filterSetor} onValueChange={(v) => { setFilterSetor(v); setPaginaAtual(1); }}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Todos">
+                {filterSetor ? (setores.find((s) => String(s.idSetor) === filterSetor)?.nomeSetor ?? "Todos") : "Todos"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {setores.map((s) => (
+                <SelectItem key={s.idSetor} value={String(s.idSetor)}>{s.nomeSetor}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </FilterBar>
 
       {/* Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20 text-slate-400 text-sm gap-3">
             <svg className="animate-spin size-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

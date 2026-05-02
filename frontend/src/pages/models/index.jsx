@@ -8,8 +8,10 @@ import {
   PencilIcon,
   PlusIcon,
   ArrowLeftIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/solid";
 import Modal from "@/components/ui/Modal";
+import { FilterBar } from "@/components/ui/FilterBar";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,10 +43,51 @@ export default function ModelsPage() {
   const [fakeSender, setFakeSender] = useState("");
   const [defaultSubject, setDefaultSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
-  const [modal, setModal] = useState({ open: false, title: '', description: '', variant: 'error' });
+  const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
-  const showModal = (title, description, variant = 'error') =>
+  // ── Filter state ──────────────────────────────────────────────────────────
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterNome, setFilterNome] = useState("");
+  const [filterDominio, setFilterDominio] = useState("");
+  const [filterDataInicio, setFilterDataInicio] = useState("");
+  const [filterDataFim, setFilterDataFim] = useState("");
+
+  const filterActive = !!(filterNome || filterDominio || filterDataInicio || filterDataFim);
+  const activeCount = [filterNome, filterDominio, filterDataInicio, filterDataFim].filter(Boolean).length;
+  const clearFilters = () => {
+    setFilterNome(""); setFilterDominio(""); setFilterDataInicio(""); setFilterDataFim("");
+  };
+
+  const uniqueDomains = useMemo(
+    () => [...new Set(models.map((m) => m.dominioAlvo))].sort(),
+    [models]
+  );
+
+  const filteredModels = useMemo(() => {
+    return models.filter((m) => {
+      if (filterNome && !m.nomeModelo.toLowerCase().includes(filterNome.toLowerCase())) return false;
+      if (filterDominio && m.dominioAlvo !== filterDominio) return false;
+      if (m.data) {
+        const d = new Date(m.data);
+        if (filterDataInicio) {
+          const ini = new Date(filterDataInicio);
+          ini.setHours(0, 0, 0, 0);
+          if (d < ini) return false;
+        }
+        if (filterDataFim) {
+          const fim = new Date(filterDataFim);
+          fim.setHours(23, 59, 59, 999);
+          if (d > fim) return false;
+        }
+      }
+      return true;
+    });
+  }, [models, filterNome, filterDominio, filterDataInicio, filterDataFim]);
+
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const showModal = (title, description, variant = "error") =>
     setModal({ open: true, title, description, variant });
 
   useEffect(() => {
@@ -73,15 +116,15 @@ export default function ModelsPage() {
 
   const handleSave = async () => {
     if (!modelName || !targetDomain || !fakeSender || !defaultSubject) {
-      showModal('Campos obrigatórios', 'Preencha todos os campos antes de salvar o modelo.', 'warning');
+      showModal("Campos obrigatórios", "Preencha todos os campos antes de salvar o modelo.", "warning");
       return;
     }
     if (!SENDER_REGEX.test(fakeSender)) {
-      showModal('Remetente inválido', 'O remetente deve estar no formato: Nome <email@dominio.com>', 'warning');
+      showModal("Remetente inválido", "O remetente deve estar no formato: Nome <email@dominio.com>", "warning");
       return;
     }
     if (!htmlContent.includes("{{LINK_AQUI}}")) {
-      showModal('Tag obrigatória ausente', 'Insira a tag {{LINK_AQUI}} no corpo do e-mail. Sem ela o alvo não terá onde clicar.', 'warning');
+      showModal("Tag obrigatória ausente", "Insira a tag {{LINK_AQUI}} no corpo do e-mail. Sem ela o alvo não terá onde clicar.", "warning");
       return;
     }
 
@@ -102,15 +145,13 @@ export default function ModelsPage() {
         setModels((prev) => [...prev, created]);
       }
       setIsFormOpen(false);
-      showModal('Modelo salvo!', editingId ? 'O modelo foi atualizado com sucesso.' : 'Novo modelo criado com sucesso.', 'success');
+      showModal("Modelo salvo!", editingId ? "O modelo foi atualizado com sucesso." : "Novo modelo criado com sucesso.", "success");
     } catch {
-      showModal('Erro ao salvar', 'Ocorreu um erro ao salvar o modelo. Tente novamente.', 'error');
+      showModal("Erro ao salvar", "Ocorreu um erro ao salvar o modelo. Tente novamente.", "error");
     }
   };
 
-  const handleDelete = (id) => {
-    setDeleteModal({ open: true, id });
-  };
+  const handleDelete = (id) => setDeleteModal({ open: true, id });
 
   const confirmDelete = async () => {
     const id = deleteModal.id;
@@ -118,9 +159,9 @@ export default function ModelsPage() {
     try {
       await api.delete(`/api/modelos/${id}`);
       setModels((prev) => prev.filter((m) => m.idModelo !== id));
-      showModal('Modelo excluído', 'O modelo foi removido com sucesso.', 'success');
+      showModal("Modelo excluído", "O modelo foi removido com sucesso.", "success");
     } catch {
-      showModal('Erro ao excluir', 'Não foi possível excluir o modelo. Tente novamente.', 'error');
+      showModal("Erro ao excluir", "Não foi possível excluir o modelo. Tente novamente.", "error");
     }
   };
 
@@ -134,43 +175,122 @@ export default function ModelsPage() {
   const renderTable = () => (
     <div className="grid gap-4">
       <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Gerenciar Modelos</h1>
-          <p className="mt-1 text-sm text-slate-600">Lista de e-mails de phishing configurados no sistema.</p>
+        <div className="flex items-center gap-3">
+          <div className="envelope-badge flex items-center justify-center size-12 rounded-xl bg-violet-600 shrink-0 cursor-default">
+            <EnvelopeIcon className="envelope-icon size-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Modelos</h1>
+            <p className="mt-1 text-sm text-slate-600">Lista de e-mails de phishing configurados no sistema.</p>
+          </div>
         </div>
         <Button onClick={openCreateMode} className="bg-teal-600 hover:bg-teal-700 text-white h-10 px-4">
           <PlusIcon className="size-5 mr-2" /> Novo Modelo
         </Button>
       </header>
 
+      <FilterBar
+        label="Filtrar modelos"
+        isOpen={filterOpen}
+        onToggle={() => setFilterOpen((v) => !v)}
+        isActive={filterActive}
+        activeCount={activeCount}
+        onClear={clearFilters}
+      >
+        <Field className="flex-1 min-w-40">
+          <FieldLabel className="text-xs text-slate-500">Buscar por nome</FieldLabel>
+          <Input
+            value={filterNome}
+            onChange={(e) => setFilterNome(e.target.value)}
+            placeholder="Nome do modelo..."
+            className="h-9"
+          />
+        </Field>
+        <Field className="w-52 shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Domínio alvo</FieldLabel>
+          <Select value={filterDominio} onValueChange={setFilterDominio}>
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos</SelectItem>
+              {uniqueDomains.map((d) => (
+                <SelectItem key={d} value={d}>{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field className="shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
+          <Input
+            type="date"
+            value={filterDataInicio}
+            onChange={(e) => setFilterDataInicio(e.target.value)}
+            max={filterDataFim || undefined}
+            className="h-9 w-40"
+          />
+        </Field>
+        <Field className="shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Data final</FieldLabel>
+          <Input
+            type="date"
+            value={filterDataFim}
+            onChange={(e) => setFilterDataFim(e.target.value)}
+            min={filterDataInicio || undefined}
+            className="h-9 w-40"
+          />
+        </Field>
+      </FilterBar>
+
       <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
-            <tr>
-              <th className="px-6 py-4">Nome do Modelo</th>
-              <th className="px-6 py-4">Domínio Alvo</th>
-              <th className="px-6 py-4">Remetente</th>
-              <th className="px-6 py-4 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {models.map((model) => (
-              <tr key={model.idModelo} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-900">{model.nomeModelo}</td>
-                <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
-                <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
-                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                    <PencilIcon className="size-4 mr-1" /> Editar
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50">
-                    <TrashIcon className="size-4" />
-                  </Button>
-                </td>
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
+          <span className="text-xs text-slate-400">
+            {filteredModels.length} de {models.length} modelo(s)
+          </span>
+        </div>
+
+        {filteredModels.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+            <EnvelopeIcon className="size-10 opacity-30" />
+            <p className="text-sm">
+              {filterActive ? "Nenhum modelo encontrado para os filtros aplicados." : "Nenhum modelo criado ainda."}
+            </p>
+          </div>
+        ) : (
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+              <tr>
+                <th className="px-6 py-4">Nome do Modelo</th>
+                <th className="px-6 py-4">Domínio Alvo</th>
+                <th className="px-6 py-4">Remetente</th>
+                <th className="px-6 py-4">Criado em</th>
+                <th className="px-6 py-4 text-right">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredModels.map((model) => (
+                <tr key={model.idModelo} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-900">{model.nomeModelo}</td>
+                  <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
+                  <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
+                  <td className="px-6 py-4 text-slate-400 text-xs">
+                    {model.data ? new Date(model.data).toLocaleDateString("pt-BR") : "—"}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                        <PencilIcon className="size-4 mr-1" /> Editar
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50">
+                        <TrashIcon className="size-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </Card>
     </div>
   );
@@ -233,7 +353,7 @@ export default function ModelsPage() {
             </div>
             <Field>
               <div className="border border-slate-300 rounded-md overflow-hidden bg-white">
-                <JoditEditor value={htmlContent} config={editorConfig} tabIndex={1} onBlur={(newContent) => setHtmlContent(newContent)} onChange={() => { }} />
+                <JoditEditor value={htmlContent} config={editorConfig} tabIndex={1} onBlur={(newContent) => setHtmlContent(newContent)} onChange={() => {}} />
               </div>
             </Field>
           </section>
