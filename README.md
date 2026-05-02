@@ -57,7 +57,8 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 📈 Dashboard de gráficos (`/graphics`) — gráfico de barras (interações por setor), pizza (distribuição por setor), linha (evolução mensal) e tabela de últimas campanhas; filtros de período implementados; **dados ainda mockados** (aguardando endpoint consolidado no backend)
 - ⚙️ Tela de Configurações (`/settings`) — edição de perfil (nome, e-mail), upload de foto, troca de senha
 - 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
-- 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.)
+- 👥 Tela de Usuários Destino (`/users`) — CRUD completo com paginação, ordenação por coluna, filtros por nome/e-mail e setor, seleção em lote, exclusão múltipla e importação em massa via CSV (com modal de resultado mostrando criados/ignorados/erros)
+- 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.) + `FilterBar` reutilizável (toggle button + painel colapsável com suporte a `rightSlot`), usado nas telas de Campanhas, Modelos e Usuários
 - 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
 
 **Qualidade / infraestrutura**
@@ -71,7 +72,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 **Crítico (bloqueia o MVP)**
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
-- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna e filtros por nome/e-mail e setor.
+- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna, filtros por nome/e-mail e setor, e **importação em massa via CSV** (`POST /api/usuarios-destino/importar`) com detecção automática de separador, parsing quote-aware, BOM stripping e relatório por linha de erros/ignorados/criados.
 - [x] **Lógica de pontuação** comportamental — `PontuacaoService` aplica penalidade por clique (−20) e abertura de anexo (−30) com idempotência por disparo, clamp em 0–1000 e histórico em `pontuacao_evento`. Falta integrar com o reporte (depende do SMTP-to-Webhook) e com a conclusão de treinamentos (depende do módulo de treinamentos).
 
 **Funcionalidade**
@@ -339,7 +340,7 @@ nemo/
         │   ├── models/                   # ✅ CRUD de modelos
         │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
         │   ├── settings/                 # ✅ Perfil, senha e foto (gerenciamento de usuários pendente)
-        │   ├── users/                    # 🚧 mock (sem backend)
+        │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
         │   ├── admin/                    # 🚧 placeholder
         │   └── home/                     # 🚧 placeholder (portal do colaborador)
         └── routes/index.jsx              # Definição de rotas

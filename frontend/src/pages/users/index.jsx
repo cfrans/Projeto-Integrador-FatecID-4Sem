@@ -262,7 +262,7 @@ function ImportModal({ open, onClose, onImported }) {
           {result || errorMsg ? (
             <div className="grid gap-3">
               <div className="flex flex-col items-center gap-1 pt-2 pb-1">
-                <img src={fishImage} alt="" className="h-24 object-contain drop-shadow" />
+                <img src={fishImage} alt="" className="h-18 w-auto" />
               </div>
               {errorMsg ? (
                 <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
