@@ -4,6 +4,8 @@ import {
   PencilIcon,
   XCircleIcon,
   UserIcon,
+  ArrowUpTrayIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/solid";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
@@ -186,6 +188,169 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores }) {
   );
 }
 
+// ── Import Modal ──────────────────────────────────────────────────────────────
+function ImportModal({ open, onClose, onImported }) {
+  const [file, setFile] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [result, setResult] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setFile(null);
+      setImporting(false);
+      setResult(null);
+      setErrorMsg("");
+    }
+  }, [open]);
+
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
+    if (f && !f.name.toLowerCase().endsWith(".csv")) {
+      setErrorMsg("O arquivo deve ter extensão .csv");
+      setFile(null);
+      return;
+    }
+    setErrorMsg("");
+    setFile(f || null);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+    setImporting(true);
+    setErrorMsg("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.post("/api/usuarios-destino/importar", formData);
+      setResult(res);
+      onImported?.();
+    } catch (err) {
+      setErrorMsg(err?.message || "Erro ao importar arquivo.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  return (
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transition-all duration-200 ${open ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <div className="flex items-center gap-2">
+            <ArrowUpTrayIcon className="w-5 h-5 text-teal-600" />
+            <h2 className="text-lg font-semibold text-slate-800">Importar Usuários</h2>
+          </div>
+          <button onClick={onClose} className="rounded-full p-1 hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700">
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-5 py-5 grid gap-4 max-h-[70vh] overflow-y-auto">
+          {result ? (
+            <div className="grid gap-3">
+              <div className="rounded-lg bg-teal-50 border border-teal-200 p-4 text-center">
+                <p className="text-sm text-teal-700">
+                  <span className="text-2xl font-bold block">{result.criados}</span>
+                  usuário(s) importado(s) com sucesso
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-center">
+                  <p className="text-xs text-slate-500">Total no arquivo</p>
+                  <p className="text-lg font-bold text-slate-700">{result.total}</p>
+                </div>
+                <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-center">
+                  <p className="text-xs text-yellow-700">Ignorados (duplicados)</p>
+                  <p className="text-lg font-bold text-yellow-800">{result.ignorados}</p>
+                </div>
+              </div>
+              {result.erros?.length > 0 && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                  <p className="text-xs font-semibold text-red-700 mb-2">{result.erros.length} erro(s):</p>
+                  <ul className="text-xs text-red-700 space-y-1 max-h-32 overflow-y-auto">
+                    {result.erros.map((e, i) => (
+                      <li key={i} className="font-mono">• {e}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-4 text-sm text-blue-900 leading-relaxed">
+                <p className="mb-2">
+                  <strong>Formato esperado:</strong> arquivo <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">.csv</code> em UTF-8, com separador <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">,</code> ou <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">;</code>
+                </p>
+                <p className="mb-2">
+                  <strong>Colunas obrigatórias</strong> (cabeçalho na primeira linha):
+                </p>
+                <ul className="ml-4 list-disc text-xs space-y-0.5">
+                  <li><code className="font-bold">matricula</code> — número inteiro único</li>
+                  <li><code className="font-bold">nome</code> — nome completo</li>
+                  <li><code className="font-bold">email</code> — e-mail único</li>
+                  <li><code className="font-bold">setor</code> — nome do setor (deve existir no sistema)</li>
+                </ul>
+                <p className="mt-2 text-xs">A senha inicial é a própria matrícula. Linhas com matrícula ou e-mail já cadastrados são ignoradas.</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-700 overflow-x-auto">
+                <p className="text-slate-400 mb-1">Exemplo:</p>
+                <pre>matricula,nome,email,setor{"\n"}12345,João Silva,joao@empresa.com,TI{"\n"}67890,Maria Souza,maria@empresa.com,RH</pre>
+              </div>
+
+              <label className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 hover:border-teal-500 bg-slate-50 hover:bg-teal-50 cursor-pointer p-6 transition-colors">
+                <DocumentTextIcon className="w-8 h-8 text-slate-400" />
+                {file ? (
+                  <span className="text-sm font-medium text-teal-700">{file.name}</span>
+                ) : (
+                  <span className="text-sm text-slate-500">Clique para selecionar um arquivo .csv</span>
+                )}
+                <input type="file" accept=".csv,text/csv" onChange={handleFile} className="hidden" />
+              </label>
+
+              {errorMsg && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">{errorMsg}</p>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100">
+          {result ? (
+            <Button
+              size="sm"
+              className="h-9 px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold tracking-wide rounded-lg"
+              onClick={onClose}
+            >
+              CONCLUIR
+            </Button>
+          ) : (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={importing}
+                className="h-9 px-4 text-xs font-bold tracking-wide rounded-lg border-slate-300 text-slate-600 hover:bg-slate-50"
+                onClick={onClose}
+              >
+                CANCELAR
+              </Button>
+              <Button
+                size="sm"
+                disabled={!file || importing}
+                className="h-9 px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold tracking-wide rounded-lg disabled:opacity-50"
+                onClick={handleSubmit}
+              >
+                {importing ? "IMPORTANDO..." : "ENVIAR"}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE_DEFAULT = 15;
 
@@ -206,6 +371,7 @@ export default function UsersPage() {
   const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
 
   const [formModal, setFormModal] = useState({ open: false, user: null });
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, bulk: false });
   const [feedback, setFeedback] = useState({ open: false, title: "", description: "", variant: "success" });
 
@@ -333,6 +499,11 @@ export default function UsersPage() {
         editingUser={formModal.user}
         setores={setores}
       />
+      <ImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImported={loadUsers}
+      />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -345,10 +516,21 @@ export default function UsersPage() {
             <p className="mt-1 text-sm text-slate-600">Gerencie os colaboradores alvos das campanhas de phishing.</p>
           </div>
         </div>
-        <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
-          <PlusIcon className="w-4 h-4 mr-1.5" />
-          Adicionar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
+            <PlusIcon className="w-4 h-4 mr-1.5" />
+            Adicionar
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9 px-4 border-teal-300 text-teal-700 hover:bg-teal-50"
+            onClick={() => setImportModalOpen(true)}
+          >
+            <ArrowUpTrayIcon className="w-4 h-4 mr-1.5" />
+            Importar
+          </Button>
+        </div>
       </div>
 
       <FilterBar
