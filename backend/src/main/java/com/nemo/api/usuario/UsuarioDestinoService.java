@@ -211,7 +211,9 @@ public class UsuarioDestinoService {
                 u.getEmail(),
                 u.getPontuacao(),
                 u.getSetor().getIdSetor(),
-                u.getSetor().getNomeSetor()
+                u.getSetor().getNomeSetor(),
+                u.getPrimeiroAcesso(),
+                u.getUltimoLogin()
         );
     }
 }

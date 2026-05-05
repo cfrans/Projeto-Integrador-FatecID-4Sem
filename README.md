@@ -55,7 +55,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 - 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit) e validação client-side da tag `{{LINK_AQUI}}`
 - 🔬 Tela de monitoramento de campanha (`/campaigns/{id}`) — cards de resumo, tabela paginada com busca por texto, filtros por chip (clicou, abriu anexo, reportou) e por setor, coluna de pontuação
 - 📈 Dashboard de gráficos (`/graphics`) — gráfico de barras (interações por setor), pizza (distribuição por setor), linha (evolução mensal) e tabela de últimas campanhas; filtros de período implementados; **dados ainda mockados** (aguardando endpoint consolidado no backend)
-- ⚙️ Tela de Configurações (`/settings`) — edição de perfil (nome, e-mail), upload de foto, troca de senha
+- ⚙️ Tela de Configurações (`/settings`) — edição de perfil (nome, e-mail), upload de foto, troca de senha e gerenciamento de papéis (Admin/Colaborador) com busca unificada entre `usuario_sistema` e `usuario_destino`.
 - 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
 - 👥 Tela de Usuários Destino (`/users`) — CRUD completo com paginação, ordenação por coluna, filtros por nome/e-mail e setor, seleção em lote, exclusão múltipla e importação em massa via CSV (com modal de resultado mostrando criados/ignorados/erros)
 - 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.) + `FilterBar` reutilizável (toggle button + painel colapsável com suporte a `rightSlot`), usado nas telas de Campanhas, Modelos e Usuários
@@ -70,6 +70,7 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 #### Backend
 
 **Crítico (bloqueia o MVP)**
+- [ ] **Lógica de Último Login** — A coluna `ultimo_login` foi adicionada ao banco e à UI de Configurações, mas falta interceptar o sucesso do login no `AuthService` para atualizar a data no banco (recomendável salvar no fuso horário UTC/GMT-0 para consistência, e tratar o fuso GMT-3 localmente no frontend).
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
 - [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna, filtros por nome/e-mail e setor, e **importação em massa via CSV** (`POST /api/usuarios-destino/importar`) com detecção automática de separador, parsing quote-aware, BOM stripping e relatório por linha de erros/ignorados/criados.
@@ -260,7 +261,7 @@ Na tela `/create`, o admin une um Modelo a um conjunto de Setores alvo (selecion
 
 #### 3. Geração de tokens (Worker em C)
 Para rastrear cliques sem expor dados pessoais na URL (conformidade LGPD — trafegar `?email=vitima@empresa.com` em texto puro caracterizaria vazamento de PII), o sistema gera **tokens únicos opacos**:
-- O Spring escreve um CSV temporário com os alvos e dispara o programa em C via `ProcessBuilder`.
+- O Spring escreve um CSV temporário com os alvos (excluindo automaticamente qualquer usuário que tenha sido promovido a **Admin**) e dispara o programa em C via `ProcessBuilder`.
 - O worker usa **múltiplas threads** para processar os alvos em paralelo, aplicando key stretching sobre `matrícula + email + departamento + ID_da_Campanha + chave_secreta`.
 - O algoritmo de hash utilizado é o **DJB2 modificado**. Os dados são manipulados em memória utilizando uma **Lista Encadeada Simples com alocação dinâmica**, evitando desperdício de memória em lotes de tamanho imprevisível.
 - A quantidade de threads é determinada em tempo de execução consultando o sistema operacional (`GetSystemInfo` no Windows ou `sysconf(_SC_NPROCESSORS_ONLN)` no Linux). O worker subtrai de 1 a 2 threads do total detectado para não saturar o servidor durante o disparo.

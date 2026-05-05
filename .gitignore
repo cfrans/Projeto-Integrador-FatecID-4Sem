@@ -33,6 +33,7 @@ backend/target/
 *.sln
 *.sw?
 
-# Claude Code
+# Claude Code e Gemini
 .claude/
 CLAUDE.md
+GEMINI.md

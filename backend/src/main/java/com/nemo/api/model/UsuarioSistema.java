@@ -17,6 +17,7 @@ public class UsuarioSistema {
     private String email;
     private String senhaHash;
     private Boolean primeiroAcesso;
+    private java.time.LocalDateTime ultimoLogin;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")

@@ -57,10 +57,15 @@ public class CampanhaService {
 
         Campanha campanhasSalva = campanhaRepository.save(campanha);
 
-        // Busca os usuários dos setores selecionados e gera os tokens
+        // Busca os usuários dos setores selecionados e gera os tokens (FILTRANDO ADMINS)
         List<UsuarioDestino> alvos = request.idSetores().isEmpty()
                 ? usuarioDestinoRepository.findAll()
                 : usuarioDestinoRepository.findBySetor_IdSetorIn(request.idSetores());
+
+        // Remove da lista os usuários que têm tipo de acesso 1 (Admin)
+        alvos = alvos.stream()
+                .filter(a -> a.getTipoAcesso().getIdTipoAcesso() != 1)
+                .toList();
 
         try {
             processarGeracaoDeTokens(campanhasSalva.getIdCampanha(), alvos);

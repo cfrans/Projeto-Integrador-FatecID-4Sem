@@ -55,7 +55,7 @@ public class AuthController {
     }
 
     @PutMapping("/usuarios/{id}/role")
-    public ResponseEntity<Void> alterarRole(@PathVariable Integer id,
+    public ResponseEntity<Void> alterarRole(@PathVariable String id,
                                             @RequestBody AlterarRoleRequest request,
                                             @RequestHeader("Authorization") String authHeader) {
         authService.alterarRole(id, request.idTipoAcesso(), authHeader.replace("Bearer ", ""));

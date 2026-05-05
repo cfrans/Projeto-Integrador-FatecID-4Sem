@@ -1,5 +1,7 @@
 package com.nemo.api.usuario;
 
+import java.time.LocalDateTime;
+
 public record UsuarioDestinoDTO(
         Integer idUsuarioDestino,
         Integer matricula,
@@ -7,5 +9,7 @@ public record UsuarioDestinoDTO(
         String email,
         Integer pontuacao,
         Integer idSetor,
-        String nomeSetor
+        String nomeSetor,
+        Boolean primeiroAcesso,
+        LocalDateTime ultimoLogin
 ) {}
