@@ -81,9 +81,6 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 #### Frontend
 
-**Crítico (bloqueia o MVP)**
-- [ ] **Gerenciamento de usuários do sistema na tela de Configurações** — promover/rebaixar entre Admin ↔ Colaborador (o backend já expõe `GET /api/auth/usuarios` e `PUT /api/auth/usuarios/{id}/role`; falta a UI).
-
 **Funcionalidade — Painel Admin**
 - [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
 
@@ -170,7 +167,15 @@ cd backend
 
 A API ficará disponível em `http://localhost:8080`.
 
-#### 4. O que o Flyway faz automaticamente
+#### 4. Documentação da API (Swagger)
+
+Com o backend rodando, você pode acessar a documentação interativa da API (OpenAPI 3) através do Swagger UI:
+
+🔗 **[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)**
+
+Nesta interface, é possível visualizar todos os endpoints, esquemas de dados e realizar testes de requisições diretamente pelo navegador.
+
+#### 5. O que o Flyway faz automaticamente
 
 Na primeira execução, o Flyway aplica as migrations em ordem:
 
