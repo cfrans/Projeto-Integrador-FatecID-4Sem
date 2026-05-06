@@ -1,106 +1,144 @@
-const SERVICES = [
+const SECTIONS = [
   {
-    title: "Criação de Campanhas",
-    description:
-      "Desenvolva simulações realistas e personalizadas utilizando uma biblioteca de modelos atualizados. Defina setores específicos da organização, escolha o tipo de isca (e-mail, link ou anexo) e configure o cronograma de envio de forma rápida e intuitiva para testar a resiliência da sua equipe em diferentes cenários.",
+    title: "Simulação Realista",
+    icon: (
+      <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    description: "Dispare campanhas de phishing controladas utilizando modelos altamente personalizáveis. Teste a resiliência da sua equipe com cenários de e-mail, links suspeitos e anexos simulados.",
   },
   {
-    title: "Análise de Interações",
-    description:
-      "Monitore o engajamento dos colaboradores com as campanhas disparadas. Obtenha métricas detalhadas sobre cliques em links suspeitos, abertura de e-mails e fornecimento de dados sensíveis. Esses indicadores são fundamentais para entender o comportamento de risco e medir a vulnerabilidade técnica e humana.",
+    title: "Métricas de Vulnerabilidade",
+    icon: (
+      <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+    description: "Acompanhe em tempo real quem clicou nos links, quem abriu anexos e quem reportou a ameaça. Identifique setores críticos e padrões de comportamento de risco.",
   },
   {
-    title: "Conscientização",
-    description:
-      "Transforme falhas em oportunidades de aprendizado. Após a simulação, disponibilize trilhas educativas e pílulas de conhecimento que reforçam as boas práticas de segurança digital. O foco é capacitar o usuário para identificar tentativas reais de phishing, fortalecendo a cultura de proteção de dados na empresa.",
+    title: "Cultura de Prevenção",
+    icon: (
+      <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    ),
+    description: "Transforme falhas em aprendizado imediato. O sistema oferece feedbacks educativos e trilhas de conhecimento para capacitar os colaboradores contra ataques reais.",
   },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-12 px-4 py-8">
+    <div className="mx-auto w-full max-w-6xl space-y-12 pb-10">
       {/* Cabeçalho principal */}
-      <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 border-b border-slate-200 pb-8">
-        <div className="flex-1">
-          
-          
+      <header className="flex items-center gap-3 mb-6">
+        <div className="about-badge flex items-center justify-center size-12 rounded-xl bg-cyan-700 shrink-0 cursor-default shadow-sm overflow-hidden">
+          <FishIcon className="about-icon size-8 text-white" />
+        </div>
+        <div>
           <h1 className="text-2xl font-bold text-slate-900">Sobre o Projeto</h1>
-          <p className="mt-0.5 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-600">
             Plataforma de simulação de phishing para análise e reforço da segurança digital.
           </p>
         </div>
-        <div className="opacity-60 hover:opacity-100 transition-opacity">
-          <FishIcon />
-        </div>
       </header>
 
-      {/* Cards de serviços */}
-      <section className="grid gap-8 md:grid-cols-3">
-        {SERVICES.map((item) => (
+      {/* Cards de serviços principais */}
+      <section className="grid gap-6 md:grid-cols-3">
+        {SECTIONS.map((item) => (
           <article
             key={item.title}
-            className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
           >
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-3">
+            <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-slate-50 text-cyan-600 transition-colors group-hover:bg-cyan-50">
+              {item.icon}
+            </div>
+            <h3 className="text-lg font-bold text-slate-800">
               {item.title}
             </h3>
-            <p className="mt-4 text-sm leading-relaxed text-slate-600 flex-grow text-justify">
+            <p className="mt-3 text-sm leading-relaxed text-slate-600 flex-grow text-justify">
               {item.description}
             </p>
-            <div className="mt-6 pt-3 text-xs text-slate-400 border-t border-slate-100">
-              🔒 Módulo de Segurança Ativo
-            </div>
           </article>
         ))}
       </section>
 
-      {/* Seção extra para preencher espaço e dar mais contexto */}
-      <section className="mt-12 rounded-2xl bg-gradient-to-r from-slate-50 to-slate-100 p-8 border border-slate-200">
-        <div className="grid gap-8 md:grid-cols-2">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-3">
-              <div className="scale-75 origin-left">
-                <FishIcon />
-              </div>
-              Tecnologia de captura
+      {/* Seção de Gamificação e Tracking */}
+      <section className="mt-12 overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
+        <div className="grid md:grid-cols-2">
+          <div className="p-8 md:p-12 space-y-6">
+            <h2 className="text-2xl font-bold flex items-center gap-3 text-cyan-400">
+              <span className="flex size-8 items-center justify-center rounded-full bg-cyan-900/50 text-sm">🎮</span>
+              Gamificação Comportamental
             </h2>
-            <ul className="mt-4 space-y-2 text-slate-600 text-justify list-inside">
-              <li className="text-justify">✓ Métricas de captura para identificar padrões de phishing</li>
-              <li className="text-justify">✓ Ações de prevenção e controle de phishing</li>
-              <li className="text-justify">✓ Monitoramento e análise de desempenho</li>
-            </ul>
+            <p className="text-slate-300 leading-relaxed text-justify">
+              O Nemo utiliza um sistema de pontuação dinâmica (0 a 1000 pontos) para engajar os colaboradores. 
+              Ao reportar ameaças ou concluir treinamentos, o usuário ganha pontos e melhora sua reputação digital. 
+              Interações de risco, como cliques em links suspeitos, geram alertas e convites para reforço educativo.
+            </p>
+            <div className="flex gap-4 pt-2">
+              <div className="flex-1 rounded-xl bg-slate-800/50 p-4 border border-slate-700">
+                <div className="text-xs text-slate-400 uppercase font-bold mb-1">Início Neutro</div>
+                <div className="text-xl font-bold text-white">500 pts</div>
+              </div>
+              <div className="flex-1 rounded-xl bg-slate-800/50 p-4 border border-slate-700">
+                <div className="text-xs text-slate-400 uppercase font-bold mb-1">Meta Segura</div>
+                <div className="text-xl font-bold text-cyan-400">700+ pts</div>
+              </div>
+            </div>
           </div>
           
-          <div>
-            <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-3">
-              <div className="scale-75 origin-left">
-                <FishIcon />
-              </div>
-              Mecanismo de Captura
+          <div className="bg-slate-800/30 p-8 md:p-12 space-y-6 border-l border-slate-700/50">
+            <h2 className="text-2xl font-bold flex items-center gap-3 text-cyan-400">
+              <span className="flex size-8 items-center justify-center rounded-full bg-cyan-900/50 text-sm">🛡️</span>
+              Tecnologia de Rastreamento
             </h2>
-            <p className="mt-4 text-slate-600 text-justify">
-              O sistema registra automaticamente cliques em links suspeitos e abertura de anexos configuráveis. Esses dados são armazenados e permitem analisar a vulnerabilidade individual e coletiva dos usuários diante de simulações realistas de phishing.
+            <p className="text-slate-300 leading-relaxed text-justify">
+              Nossa engine utiliza tokens únicos e opacos para monitorar interações sem expor dados sensíveis (PII), 
+              garantindo conformidade com a LGPD. O rastreamento inclui:
             </p>
+            <ul className="space-y-3">
+              {[
+                "Acesso a links maliciosos simulados",
+                "Abertura de documentos e anexos falsos",
+                "Reporte proativo de phishing (Abuse Inbox)",
+                "Conclusão de quizzes e pílulas de conhecimento"
+              ].map((text, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
+                  <span className="text-cyan-500 text-lg">✓</span> {text}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
       {/* Rodapé informativo */}
-      <footer className="text-center text-sm text-slate-400 pt-6 border-t border-slate-200 text-justify">
-        Simulação controlada de phishing para análise e conscientização — Versão 1.0
+      <footer className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 pt-8 border-t border-slate-200">
+        <div>Nemo Phishing Awareness — Versão 1.0</div>
+        <div className="flex items-center gap-6">
+          <span className="flex items-center gap-1">🔒 SSL Ativo</span>
+          <span className="flex items-center gap-1">🛡️ LGPD Compliant</span>
+          <span className="flex items-center gap-1">🚀 v0.0.1-alpha</span>
+        </div>
       </footer>
     </div>
   );
 }
 
-function FishIcon() {
+function FishIcon({ className }) {
   return (
-    <svg width="60" height="50" viewBox="0 0 120 90" fill="none" aria-hidden="true">
-      <ellipse cx="55" cy="50" rx="32" ry="22" fill="#c4d8d2" />
-      <path d="M87 50C100 36 108 26 104 14C96 30 90 38 87 50Z" fill="#b2cbc4" />
-      <path d="M87 50C100 64 108 74 104 86C96 70 90 62 87 50Z" fill="#b2cbc4" />
-      <ellipse cx="43" cy="44" rx="5" ry="5" fill="#7eaaa0" />
-      <circle cx="44" cy="43" r="2" fill="white" opacity="0.5" />
+    <svg 
+      viewBox="0 0 54 30" 
+      fill="none" 
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M14 15C14 7 2 1 2 1C7 8 7 22 2 29C2 29 14 23 14 15Z" fill="currentColor" fillOpacity="0.4" />
+      <ellipse cx="30" cy="15" rx="18" ry="10" fill="currentColor" fillOpacity="0.8" />
+      <circle cx="43" cy="11" r="3.2" fill="currentColor" />
+      <circle cx="44" cy="10" r="1.2" fill="white" fillOpacity="0.6" />
     </svg>
   );
 }

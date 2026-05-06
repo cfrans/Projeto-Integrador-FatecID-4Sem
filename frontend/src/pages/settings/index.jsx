@@ -93,13 +93,16 @@ export default function SettingsPage() {
   const paginados = usuariosFiltrados.slice((paginaAtual - 1) * pageSize, paginaAtual * pageSize)
 
   function solicitarAlteracaoRole(u, novoIdTipoAcesso) {
-    const tipo = tiposAcesso.find(t => String(t.idTipoAcesso) === String(novoIdTipoAcesso))
-    if (!tipo) return
+    const tipoAtual = tiposAcesso.find(t => t.tipoAcesso === u.tipoAcesso)
+    if (tipoAtual && String(tipoAtual.idTipoAcesso) === String(novoIdTipoAcesso)) return
+
+    const tipoNovo = tiposAcesso.find(t => String(t.idTipoAcesso) === String(novoIdTipoAcesso))
+    if (!tipoNovo) return
 
     setConfirmacaoRole({
       usuario: u,
       novoIdTipoAcesso: novoIdTipoAcesso,
-      nomeRole: tipo.tipoAcesso
+      nomeRole: tipoNovo.tipoAcesso
     })
   }
 

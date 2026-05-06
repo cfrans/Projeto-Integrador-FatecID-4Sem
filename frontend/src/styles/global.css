@@ -204,3 +204,14 @@
 .settings-badge:hover .settings-icon {
   animation: cogRotate 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+@keyframes fishSwim {
+  0%   { transform: translateX(0); }
+  45%  { transform: translateX(45px); }
+  46%  { transform: translateX(-45px); }
+  100% { transform: translateX(0); }
+}
+
+.about-badge:hover .about-icon {
+  animation: fishSwim 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
