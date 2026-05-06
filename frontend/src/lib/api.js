@@ -47,7 +47,16 @@ async function request(path, { method = "GET", body, auth = true, headers = {} }
   const data = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    const message = (data && typeof data === "object" && data.erro) || `Erro HTTP ${res.status}`;
+    let message = (data && typeof data === "object" && data.erro) || `Erro HTTP ${res.status}`;
+    
+    // Tratamento para Token Expirado ou Inválido (Erro 500 do JWT gerado pelo Spring sem filtro)
+    if (res.status === 500 && typeof data === "object" && typeof data.message === "string" && data.message.includes("JWT expired")) {
+      message = "Sua sessão expirou. Por favor, faça login novamente.";
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      window.location.href = "/";
+    }
+
     throw new ApiError(message, res.status, data);
   }
 

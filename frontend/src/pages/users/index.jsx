@@ -504,7 +504,7 @@ export default function UsersPage() {
     }
   };
 
-  const COLUNAS = ["Matrícula", "Nome", "Setor", "E-mail", "Pontuação", "Ações"];
+  const COLUNAS = ["Matrícula", "Nome", "Setor", "E-mail", "Pontuação", "Último Login", "Ações"];
 
   return (
     <div className="mx-auto w-full max-w-6xl pb-10">
@@ -620,7 +620,7 @@ export default function UsersPage() {
               <tbody className="divide-y divide-slate-100">
                 {pagina.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-slate-400 text-sm">Nenhum usuário encontrado.</td>
+                    <td colSpan={8} className="px-4 py-10 text-center text-slate-400 text-sm">Nenhum usuário encontrado.</td>
                   </tr>
                 ) : (
                   pagina.map((user) => {
@@ -640,6 +640,13 @@ export default function UsersPage() {
                           <span className="inline-flex min-w-9 items-center justify-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 border border-teal-200">
                             {user.pontuacao ?? 0}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {user.primeiroAcesso || !user.ultimoLogin ? (
+                            <span className="text-slate-400 italic">Nunca acessou</span>
+                          ) : (
+                            new Date(user.ultimoLogin).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-2">

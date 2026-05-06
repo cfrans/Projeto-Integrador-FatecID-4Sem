@@ -17,59 +17,48 @@
 </div>
 
 ## 📖 Descrição
-Este projeto consiste no desenvolvimento de um sistema de **simulação de ataques de phishing**, com o objetivo de avaliar o comportamento de usuários diante de e-mails suspeitos e promover a **conscientização sobre segurança da informação** por meio de conteúdos educativos.
+O **Nemo** é uma plataforma de **conscientização e simulação de phishing** projetada para fortalecer a cultura de segurança digital em organizações. Ao combinar simulações de ataques realistas com mecanismos de gamificação e trilhas educativas, o sistema transforma a vulnerabilidade humana em uma linha de defesa ativa.
 
-O sistema enviará **e-mails simulados 📧** contendo links ou anexos configuráveis para usuários previamente cadastrados. A partir das interações realizadas (cliques em links ou abertura de anexos), serão coletados dados que permitirão analisar a **vulnerabilidade dos usuários** a esse tipo de ataque.
+O sistema opera através do envio de **iscas simuladas 📧** (links, e-mails e anexos). Cada interação é monitorada via tokens opacos, garantindo a privacidade dos dados (**LGPD**) enquanto fornece métricas precisas sobre o comportamento de risco da equipe.
 
-Além disso, o sistema disponibilizará **conteúdos educativos 📚** voltados ao ensino da importância de evitar **riscos cibernéticos 💻⚠️**.
+Complementando a simulação, o Nemo oferece **conteúdos educativos 📚** direcionados, focados em ensinar o reconhecimento de vetores de ataque e a adoção de boas práticas cibernéticas.
 
 ---
 
 ## 🎯 Objetivo
-Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **registrar o comportamento dos usuários** diante dessas mensagens.
+Reduzir a superfície de ataque humano nas organizações através de um ciclo contínuo de **simulação, monitoramento e educação**, utilizando dados reais para direcionar o treinamento onde ele é mais necessário.
 
 ---
 
 ## 📊 Status atual
 
-> ⚠️ **Em desenvolvimento ativo (alpha).** O esqueleto da plataforma está pronto e várias telas já operam ponta-a-ponta com o backend, mas o disparo real de e-mails e o portal do colaborador ainda não foram implementados.
+> ⚠️ **Em desenvolvimento ativo (v0.0.1-alpha).** A infraestrutura core (API, Worker de Tokens, Gestão de Campanhas e Monitoramento) já é funcional. O foco atual está na implementação do disparo real via SMTP e na expansão do Portal do Colaborador.
 
 ### ✅ Implementado
 
-**Backend (Spring Boot)**
-- 🔐 Login com JWT e troca obrigatória de senha no primeiro acesso
-- 📝 CRUD de Modelos de e-mail (com domínio alvo, remetente falso, HTML)
-- 🎯 Criação de Campanhas vinculando Modelo + Setores alvo
-- ⚙️ Geração de tokens únicos via Worker em C (multithread, key stretching, DJB2, detecção automática de CPUs)
-- 🔎 Rastreamento de cliques (`/confirmar/{token}`) e abertura de anexo (`/doc/{token}`) com geração de arquivo HTML falso on-the-fly
-- 📊 Endpoint de monitoramento `GET /api/campanhas/{id}/disparos` com filtros via query params (`clicouLink`, `abriuAnexo`, `reportouPhishing`)
-- 🎯 Lógica de pontuação comportamental — saldo com piso/teto (0–1000, baseline 500), idempotente por disparo, com tabela de eventos `pontuacao_evento` (auditável, alimenta evolução histórica). Aplicação automática nos hooks `/confirmar/{token}` (−20) e `/doc/{token}` (−30)
-- 👤 Endpoints de gerenciamento de perfil: `GET/PUT /api/auth/me` (nome, e-mail), `PUT /api/auth/me/foto` (upload de imagem), `PUT /api/auth/trocar-senha`, `GET /api/auth/usuarios`, `PUT /api/auth/usuarios/{id}/role` (alterar papel Admin ↔ Colaborador)
-- 🧱 Migrations Flyway com schema completo + seeds de tipos de acesso, modelos e setores
-- 🛡️ Spring Security configurado (CORS, sessão stateless, BCrypt)
+**Core & Backend (Spring Boot 3.4)**
+- 🔐 **Segurança:** Autenticação JWT, troca obrigatória de senha e criptografia BCrypt.
+- 📨 **Campanhas:** CRUD completo de Modelos (WYSIWYG Jodit) e gestão de Campanhas vinculadas a setores.
+- ⚡ **Performance:** Geração de tokens ultrarrápida via Worker em C (multithread, algoritmos de hash DJB2).
+- 🔎 **Tracking:** Rastreamento de cliques e abertura de anexos com geração de arquivos "isca" *on-the-fly*.
+- 📊 **Gestão de Dados:** Migrations via Flyway, repositórios auditáveis e lógica de pontuação idempotente.
 
-**Frontend (React + Vite)**
-- 🎨 Tela de login com fundo animado e fluxo de "manter sessão"
-- 🔁 Tela de troca de senha obrigatória (primeiro acesso)
-- 📨 Tela de criação de Campanhas com preview do anexo simulado e seleção de departamentos via *chips*
-- 📋 Tela de gestão de Modelos com editor WYSIWYG (Jodit) e validação client-side da tag `{{LINK_AQUI}}`
-- 🔬 Tela de monitoramento de campanha (`/campaigns/{id}`) — cards de resumo, tabela paginada com busca por texto, filtros por chip (clicou, abriu anexo, reportou) e por setor, coluna de pontuação
-- 📈 Dashboard de gráficos (`/graphics`) — gráfico de barras (interações por setor), pizza (distribuição por setor), linha (evolução mensal) e tabela de últimas campanhas; filtros de período implementados; **dados ainda mockados** (aguardando endpoint consolidado no backend)
-- ⚙️ Tela de Configurações (`/settings`) — edição de perfil (nome, e-mail), upload de foto, troca de senha
-- 🧭 Roteamento protegido por papel (`PrivateRoute` + `AdminRoute`)
-- 👥 Tela de Usuários Destino (`/users`) — CRUD completo com paginação, ordenação por coluna, filtros por nome/e-mail e setor, seleção em lote, exclusão múltipla e importação em massa via CSV (com modal de resultado mostrando criados/ignorados/erros)
-- 💅 Componentes de UI base (Button, Input, Modal, Select, Field, etc.) + `FilterBar` reutilizável (toggle button + painel colapsável com suporte a `rightSlot`), usado nas telas de Campanhas, Modelos e Usuários
-- 🔌 API client centralizado (`src/lib/api.js`) — base URL via `VITE_API_URL`, JWT injetado automaticamente
+**Interface & Experiência (React + Tailwind)**
+- 🎨 **UI Moderna:** Dashboards interativos, fundo animado com peixes (identidade visual Nemo) e design responsivo.
+- 📋 **Monitoramento:** Tela de acompanhamento de campanhas com filtros avançados e métricas por setor.
+- 👥 **Gestão de Alvos:** Importação massiva de usuários via CSV com relatório de processamento detalhado.
+- ⚙️ **Perfil:** Gerenciamento de fotos de perfil, troca de senha e controle de papéis (Admin/Colaborador).
 
-**Qualidade / infraestrutura**
-- 🧹 `GlobalExceptionHandler` com handlers específicos (401 só para credenciais, 404 para "não encontrado", 400 para validação, 500 para o resto)
-- 📂 CSVs do worker C escritos em diretório dedicado (`backend/tmp/tokens`, configurável via `NEMO_CSV_DIR`)
+**Gamificação & Rastreamento**
+- 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
+- 🛡️ **Conformidade:** Rastreamento via tokens únicos que mascaram Identidade (PII), respeitando a privacidade dos colaboradores.
 
 ### 🚧 Em construção / falta fazer
 
 #### Backend
 
 **Crítico (bloqueia o MVP)**
+- [ ] **Lógica de Último Login** — A coluna `ultimo_login` foi adicionada ao banco e à UI de Configurações, mas falta interceptar o sucesso do login no `AuthService` para atualizar a data no banco (recomendável salvar no fuso horário UTC/GMT-0 para consistência, e tratar o fuso GMT-3 localmente no frontend).
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
 - [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna, filtros por nome/e-mail e setor, e **importação em massa via CSV** (`POST /api/usuarios-destino/importar`) com detecção automática de separador, parsing quote-aware, BOM stripping e relatório por linha de erros/ignorados/criados.
@@ -91,9 +80,6 @@ Desenvolver um sistema capaz de **enviar campanhas simuladas de phishing** e **r
 ---
 
 #### Frontend
-
-**Crítico (bloqueia o MVP)**
-- [ ] **Gerenciamento de usuários do sistema na tela de Configurações** — promover/rebaixar entre Admin ↔ Colaborador (o backend já expõe `GET /api/auth/usuarios` e `PUT /api/auth/usuarios/{id}/role`; falta a UI).
 
 **Funcionalidade — Painel Admin**
 - [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
@@ -181,7 +167,15 @@ cd backend
 
 A API ficará disponível em `http://localhost:8080`.
 
-#### 4. O que o Flyway faz automaticamente
+#### 4. Documentação da API (Swagger)
+
+Com o backend rodando, você pode acessar a documentação interativa da API (OpenAPI 3) através do Swagger UI:
+
+🔗 **[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)**
+
+Nesta interface, é possível visualizar todos os endpoints, esquemas de dados e realizar testes de requisições diretamente pelo navegador.
+
+#### 5. O que o Flyway faz automaticamente
 
 Na primeira execução, o Flyway aplica as migrations em ordem:
 
@@ -260,7 +254,7 @@ Na tela `/create`, o admin une um Modelo a um conjunto de Setores alvo (selecion
 
 #### 3. Geração de tokens (Worker em C)
 Para rastrear cliques sem expor dados pessoais na URL (conformidade LGPD — trafegar `?email=vitima@empresa.com` em texto puro caracterizaria vazamento de PII), o sistema gera **tokens únicos opacos**:
-- O Spring escreve um CSV temporário com os alvos e dispara o programa em C via `ProcessBuilder`.
+- O Spring escreve um CSV temporário com os alvos (excluindo automaticamente qualquer usuário que tenha sido promovido a **Admin**) e dispara o programa em C via `ProcessBuilder`.
 - O worker usa **múltiplas threads** para processar os alvos em paralelo, aplicando key stretching sobre `matrícula + email + departamento + ID_da_Campanha + chave_secreta`.
 - O algoritmo de hash utilizado é o **DJB2 modificado**. Os dados são manipulados em memória utilizando uma **Lista Encadeada Simples com alocação dinâmica**, evitando desperdício de memória em lotes de tamanho imprevisível.
 - A quantidade de threads é determinada em tempo de execução consultando o sistema operacional (`GetSystemInfo` no Windows ou `sysconf(_SC_NPROCESSORS_ONLN)` no Linux). O worker subtrai de 1 a 2 threads do total detectado para não saturar o servidor durante o disparo.

@@ -1,9 +1,13 @@
 package com.nemo.api.auth;
 
+import java.time.LocalDateTime;
+
 public record UsuarioDTO(
-        Integer id,
+        String id,
         String nome,
         String email,
         String tipoAcesso,
-        byte[] foto
+        byte[] foto,
+        Boolean primeiroAcesso,
+        LocalDateTime ultimoLogin
 ) { }

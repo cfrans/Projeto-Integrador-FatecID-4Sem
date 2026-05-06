@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 const ICON_CLASS = "size-4";
 
 const NAVBAR_CONTAINER_CLASS =
-  "relative z-20 flex w-full items-center justify-between gap-4 bg-transparent px-6 py-3";
+  "relative z-20 flex w-full items-center justify-between gap-4 bg-transparent px-4 py-6";
 const NAVIGATION_MENU_CLASS = "min-w-0 flex-none justify-center";
 const NAVIGATION_MENU_LIST_CLASS =
   "relative max-w-full flex-nowrap gap-1 overflow-x-auto rounded-full border border-slate-300 bg-slate-100 px-5 py-1 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -69,7 +69,7 @@ export default function AppNavbar({ activePage, onNavigate }) {
   const location = useLocation();
   const { logout } = useAuth();
   const isSettingsRoute = location.pathname === "/settings";
-  const isHomeRoute = location.pathname === "/home";
+  const isHomeRoute = location.pathname === "/admin";
 
   const currentPage = useMemo(() => {
     if (activePage) return activePage;
@@ -115,11 +115,11 @@ export default function AppNavbar({ activePage, onNavigate }) {
 
       {/* Logo — esquerda */}
       <div
-        className="shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+        className="shrink-0 cursor-pointer transition-opacity hover:opacity-80 flex items-center"
         onClick={() => navigate("/admin")}
         title="Ir para o Início"
       >
-        <LogoHorizontal className="h-20 -ml-3 mt-7 w-auto" variant="dark" />
+        <LogoHorizontal className="h-14.5 -ml-3 w-auto" variant="dark" />
       </div>
 
       {/* Nav + ações — direita */}

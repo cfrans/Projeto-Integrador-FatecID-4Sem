@@ -89,15 +89,20 @@ export default function Graphics() {
   const [periodo, setPeriodo] = useState("30 dias");
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
 
       {/* Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Gráficos</h1>
-          <p className="text-sm text-muted-foreground">
-            Análise das campanhas
-          </p>
+      <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="graphics-badge flex items-center justify-center size-12 rounded-xl bg-indigo-700 shrink-0 cursor-default shadow-sm overflow-hidden">
+            <ChartBadgeIcon className="size-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Gráficos</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Análise detalhada das campanhas e métricas de desempenho.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -223,5 +228,38 @@ export default function Graphics() {
       </Card>
 
     </div>
+  );
+}
+
+function ChartBadgeIcon({ className }) {
+  return (
+    <svg 
+      viewBox="0 0 24 24" 
+      fill="currentColor" 
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect x="3" y="14" width="4" height="6" rx="1" className="animate-chart-wave-1" />
+      <rect x="10" y="8" width="4" height="12" rx="1" className="animate-chart-wave-2" />
+      <rect x="17" y="11" width="4" height="9" rx="1" className="animate-chart-wave-3" />
+      <style>{`
+        .animate-chart-wave-1, .animate-chart-wave-2, .animate-chart-wave-3 {
+          transform-origin: bottom;
+          transform-box: fill-box;
+          transform: scaleY(1.1);
+          opacity: 0.9;
+        }
+        
+        .graphics-badge:hover .animate-chart-wave-1 { animation: chart-wave-down 0.6s ease-in-out forwards; }
+        .graphics-badge:hover .animate-chart-wave-2 { animation: chart-wave-down 0.6s ease-in-out 0.1s forwards; }
+        .graphics-badge:hover .animate-chart-wave-3 { animation: chart-wave-down 0.6s ease-in-out 0.2s forwards; }
+
+        @keyframes chart-wave-down {
+          0% { transform: scaleY(1.1); opacity: 0.9; }
+          50% { transform: scaleY(0.6); opacity: 0.6; }
+          100% { transform: scaleY(1.1); opacity: 0.9; }
+        }
+      `}</style>
+    </svg>
   );
 }

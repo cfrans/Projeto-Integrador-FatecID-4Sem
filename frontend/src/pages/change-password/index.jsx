@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
+import Modal from '@/components/ui/modal'
 import { api, ApiError } from '@/lib/api'
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate()
   const [erro, setErro] = useState('')
+  const [sucesso, setSucesso] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -27,12 +29,10 @@ export default function ChangePasswordPage() {
         senhaAtual: formData.get('senhaAtual'),
         novaSenha,
       })
+      setSucesso(true)
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : 'Erro ao trocar senha.')
-      return
     }
-
-    navigate('/admin')
   }
 
   return (
@@ -67,6 +67,14 @@ export default function ChangePasswordPage() {
           </form>
         </div>
       </section>
+
+      <Modal
+        open={sucesso}
+        onClose={() => navigate('/admin')}
+        title="Senha alterada!"
+        description="Sua senha foi atualizada com sucesso. Você será redirecionado para o painel agora."
+        variant="success"
+      />
     </AnimatedBackground>
   )
 }

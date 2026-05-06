@@ -19,6 +19,7 @@ public class UsuarioDestino {
     private String senhaHash;
     private Integer pontuacao;
     private Boolean primeiroAcesso;
+    private java.time.LocalDateTime ultimoLogin;
 
     @ManyToOne
     @JoinColumn(name = "id_setor")
