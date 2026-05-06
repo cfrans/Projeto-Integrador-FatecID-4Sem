@@ -1,7 +1,7 @@
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="frontend/src/assets/logo-horizontal-dark.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="frontend/src/assets/logo-horizontal-light.png" />
+    <source media="(prefers-color-scheme: light)" srcset="frontend/src/assets/logo-horizontal-white.svg" />
     <img alt="Nemo - Sistema de Conscientização e Simulação de Phishing" src="frontend/src/assets/logo-light.png" height="145">
   </picture>
   <br><br>
