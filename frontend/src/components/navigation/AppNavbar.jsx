@@ -69,7 +69,7 @@ export default function AppNavbar({ activePage, onNavigate }) {
   const location = useLocation();
   const { logout } = useAuth();
   const isSettingsRoute = location.pathname === "/settings";
-  const isHomeRoute = location.pathname === "/home";
+  const isHomeRoute = location.pathname === "/admin";
 
   const currentPage = useMemo(() => {
     if (activePage) return activePage;
