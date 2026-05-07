@@ -33,6 +33,9 @@ public class CampanhaService {
     @Value("${nemo.csv-dir}")
     private String csvDir;
 
+    @Value("${nemo.email.enabled}")
+    private boolean emailEnabled;
+
     public List<CampanhaDTO> listar() {
         return campanhaRepository.findAll().stream().map(this::toDTO).toList();
     }
@@ -177,6 +180,16 @@ public class CampanhaService {
                 disparo.setUsuarioDestino(alvo);
                 disparo.setCampanha(campanhaRepository.findById(idCampanha).orElseThrow());
                 disparoRepository.save(disparo);
+
+                // Lógica de Simulação/Disparo Real
+                if (alvo.getIsReal() && emailEnabled) {
+                    // TODO: Implementar EmailService.enviar(disparo) futuramente
+                    System.out.println("[SMTP] Agendado envio real para: " + alvo.getEmail());
+                } else if (alvo.getIsReal() && !emailEnabled) {
+                    System.out.println("[SIMULAÇÃO] Modo Offline: E-mail seria enviado para " + alvo.getEmail());
+                } else {
+                    System.out.println("[MOCK] Usuário de volume: Disparo registrado apenas para estatísticas (" + alvo.getEmail() + ")");
+                }
             });
         }
 

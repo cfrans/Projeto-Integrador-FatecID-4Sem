@@ -58,10 +58,11 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 #### Backend
 
 **Crítico (bloqueia o MVP)**
-- [ ] **Lógica de Último Login** — A coluna `ultimo_login` foi adicionada ao banco e à UI de Configurações, mas falta interceptar o sucesso do login no `AuthService` para atualizar a data no banco (recomendável salvar no fuso horário UTC/GMT-0 para consistência, e tratar o fuso GMT-3 localmente no frontend).
+- [x] **Lógica de Último Login** — A data de acesso é registrada automaticamente no `AuthService` durante o login e exibida na tela de Configurações para auditoria (fuso horário local tratado via `LocalDateTime`).
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
 - [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna, filtros por nome/e-mail e setor, e **importação em massa via CSV** (`POST /api/usuarios-destino/importar`) com detecção automática de separador, parsing quote-aware, BOM stripping e relatório por linha de erros/ignorados/criados.
+- [x] **Modo de Apresentação & Simulação** — Diferenciação entre usuários "Mock" (volume) e "Reais" (testes) via coluna `is_real`. Adicionado "interruptor" `nemo.email.enabled` para simulação offline de disparos.
 - [x] **Lógica de pontuação** comportamental — `PontuacaoService` aplica penalidade por clique (−20) e abertura de anexo (−30) com idempotência por disparo, clamp em 0–1000 e histórico em `pontuacao_evento`. Falta integrar com o reporte (depende do SMTP-to-Webhook) e com a conclusão de treinamentos (depende do módulo de treinamentos).
 
 **Funcionalidade**
@@ -82,7 +83,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 #### Frontend
 
 **Crítico (bloqueia o MVP)**
-- [ ] **Gerenciamento de usuários do sistema na tela de Configurações** — promover/rebaixar entre Admin ↔ Colaborador (o backend já expõe `GET /api/auth/usuarios` e `PUT /api/auth/usuarios/{id}/role`; falta a UI).
+- [x] **Gerenciamento de usuários do sistema na tela de Configurações** — promover/rebaixar entre Admin ↔ Colaborador (o backend já expõe `GET /api/auth/usuarios` e `PUT /api/auth/usuarios/{id}/role`; UI integrada em `/settings`).
 
 **Funcionalidade — Painel Admin**
 - [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
@@ -183,6 +184,8 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 | `V5__insert_users_base.sql` | Insere 100 usuários alvo de teste (`usuario_destino`) |
 | `V6__add_foto_to_usuario_sistema.sql` | Adiciona coluna `foto` (LONGBLOB) em `usuario_sistema` |
 | `V7__create_pontuacao_evento.sql` | Cria tabela `pontuacao_evento` (histórico de eventos de pontuação) e altera baseline de `usuario_destino.pontuacao` para 500 |
+| `V8__add_ultimo_login_to_usuarios.sql` | Adiciona coluna `ultimo_login` em ambos os tipos de usuários |
+| `V9__add_is_real_to_usuario_destino.sql` | Adiciona flag `is_real` para diferenciar usuários mock de reais na apresentação |
 
 > ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V5__descricao.sql`, `V6__descricao.sql`, e assim por diante.
 
@@ -316,7 +319,7 @@ nemo/
 │       │   └── repository/               # Spring Data repositories
 │       └── resources/
 │           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V7)
+│           └── db/migration/             # Migrations Flyway (V1..V9)
 └── frontend/
     └── src/
         ├── components/                   # UI base, navbar, branding, routing guards

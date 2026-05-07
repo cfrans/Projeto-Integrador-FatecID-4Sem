@@ -7,6 +7,7 @@ public record UsuarioDestinoDTO(
         Integer matricula,
         String nome,
         String email,
+        String tipoAcesso,
         Integer pontuacao,
         Integer idSetor,
         String nomeSetor,

@@ -41,7 +41,7 @@ const FISH_SHAPES = {
 
 function lerp(a, b, t) { return a + (b - a) * t }
 
-export default function AnimatedBackground({ children }) {
+export default function AnimatedBackground({ children, interactive = true }) {
   const sceneRef = useRef(null)
   const orb1Ref = useRef(null)
   const orb2Ref = useRef(null)
@@ -52,17 +52,33 @@ export default function AnimatedBackground({ children }) {
 
   /* ─── Parallax dos orbs ─── */
   const animateOrbs = useCallback(() => {
+    if (!interactive) return;
+
     const m = mouseRef.current
     const c = currentRef.current
-    c.x = lerp(c.x, m.x, 0.04)
-    c.y = lerp(c.y, m.y, 0.04)
-    const dx = (c.x - 0.5) * 60
-    const dy = (c.y - 0.5) * 40
-    if (orb1Ref.current) orb1Ref.current.style.transform = `translate(${dx * 0.8}px, ${dy * 0.8}px)`
-    if (orb2Ref.current) orb2Ref.current.style.transform = `translate(${-dx * 0.6}px, ${-dy * 0.6}px)`
-    if (orb3Ref.current) orb3Ref.current.style.transform = `translate(${dx * 1.2}px, ${dy * 1.0}px)`
-    rafRef.current = requestAnimationFrame(animateOrbs)
-  }, [])
+    
+    // Calcula a diferença para saber se precisamos continuar animando
+    const diffX = Math.abs(c.x - m.x)
+    const diffY = Math.abs(c.y - m.y)
+
+    // Se estiver muito perto do alvo, não gasta CPU calculando e não pede novo frame
+    if (diffX > 0.001 || diffY > 0.001) {
+      c.x = lerp(c.x, m.x, 0.04)
+      c.y = lerp(c.y, m.y, 0.04)
+      
+      const dx = (c.x - 0.5) * 60
+      const dy = (c.y - 0.5) * 40
+      
+      // Usa translate3d para forçar aceleração de hardware (GPU)
+      if (orb1Ref.current) orb1Ref.current.style.transform = `translate3d(${dx * 0.8}px, ${dy * 0.8}px, 0)`
+      if (orb2Ref.current) orb2Ref.current.style.transform = `translate3d(${-dx * 0.6}px, ${-dy * 0.6}px, 0)`
+      if (orb3Ref.current) orb3Ref.current.style.transform = `translate3d(${dx * 1.2}px, ${dy * 1.0}px, 0)`
+      
+      rafRef.current = requestAnimationFrame(animateOrbs)
+    } else {
+      rafRef.current = null; // Pausa o loop
+    }
+  }, [interactive])
 
   /* ─── Spawn bolha ─── */
   const spawnBubble = useCallback(() => {
@@ -71,6 +87,7 @@ export default function AnimatedBackground({ children }) {
     const b = document.createElement('div')
     const sz = 4 + Math.random() * 10
     const dur = 6 + Math.random() * 8
+    // will-change avisa a GPU para otimizar essas propriedades
     b.style.cssText = `
       position:absolute;border-radius:50%;pointer-events:none;
       width:${sz}px;height:${sz}px;
@@ -79,6 +96,7 @@ export default function AnimatedBackground({ children }) {
       border:1px solid rgba(13,148,136,0.18);
       animation:bgBubbleRise ${dur}s linear forwards;
       z-index:1;
+      will-change: transform, opacity;
     `
     scene.appendChild(b)
     setTimeout(() => b.remove(), (dur + 1) * 1000)
@@ -97,8 +115,6 @@ export default function AnimatedBackground({ children }) {
     const shapes = rtl ? FISH_SHAPES.rtl : FISH_SHAPES.ltr
     const shape = shapes[Math.floor(Math.random() * shapes.length)]
     el.innerHTML = shape
-    // LTR: entra pela esquerda, vai pra direita — sem scaleX no container
-    // RTL: entra pela direita, vai pra esquerda — scaleX já está no SVG
     el.style.cssText = `
       position:absolute;pointer-events:none;opacity:0;
       top:${top}%;
@@ -107,6 +123,7 @@ export default function AnimatedBackground({ children }) {
       transform-origin:center center;
       animation:${rtl ? 'bgFishRtl' : 'bgFishLtr'} ${dur}s ${delay}s linear forwards;
       z-index:2;
+      will-change: translate, opacity;
     `
     scene.appendChild(el)
     setTimeout(() => el.remove(), (dur + delay + 1) * 1000)
@@ -116,35 +133,48 @@ export default function AnimatedBackground({ children }) {
     const scene = sceneRef.current
     if (!scene) return
 
-    /* mouse */
+    /* mouse - Throttled para economizar CPU */
+    let lastTime = 0;
     const onMove = (e) => {
+      if (!interactive) return;
+      
+      const now = performance.now();
+      if (now - lastTime < 33) return; // Limita a ~30 atualizações de mouse por segundo
+      lastTime = now;
+      
       const r = scene.getBoundingClientRect()
       mouseRef.current = {
         x: (e.clientX - r.left) / r.width,
         y: (e.clientY - r.top) / r.height,
       }
+      
+      // Reinicia a animação se estava parada
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(animateOrbs);
+      }
     }
-    window.addEventListener('mousemove', onMove)
+    
+    if (interactive) {
+      window.addEventListener('mousemove', onMove, { passive: true })
+      rafRef.current = requestAnimationFrame(animateOrbs)
+    }
 
-    /* start orb animation */
-    rafRef.current = requestAnimationFrame(animateOrbs)
-
-    /* bolhas */
+    /* bolhas - Continuam mesmo sem ser interativo */
     for (let i = 0; i < 4; i++) setTimeout(spawnBubble, i * 400)
     const bubbleInterval = setInterval(spawnBubble, 1400)
 
-    /* peixinhos */
+    /* peixinhos - Continuam mesmo sem ser interativo */
     spawnFish()
     setTimeout(spawnFish, 7000)
     const fishInterval = setInterval(() => spawnFish(), 14000)
 
     return () => {
       window.removeEventListener('mousemove', onMove)
-      cancelAnimationFrame(rafRef.current)
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
       clearInterval(bubbleInterval)
       clearInterval(fishInterval)
     }
-  }, [animateOrbs, spawnBubble, spawnFish])
+  }, [animateOrbs, spawnBubble, spawnFish, interactive])
 
   return (
     <div
@@ -181,7 +211,7 @@ export default function AnimatedBackground({ children }) {
         }
       `}</style>
 
-      {/* Orbs de gradiente */}
+      {/* Orbs de gradiente - Otimizados para GPU */}
       <div ref={orb1Ref} style={orbStyle('55%', '55%', '-10%', '-5%', 'rgba(13,148,136,0.22)')} />
       <div ref={orb2Ref} style={orbStyle('50%', '50%', null, null, 'rgba(30,64,175,0.25)', true)} />
       <div ref={orb3Ref} style={orbStyle('30%', '30%', '40%', '40%', 'rgba(13,148,136,0.08)')} />
@@ -201,7 +231,7 @@ function orbStyle(w, h, top, left, color, isBottom = false) {
     borderRadius: '50%',
     background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
     pointerEvents: 'none',
-    transition: 'transform 0.08s ease-out',
+    willChange: 'transform',
     ...(top ? { top } : {}),
     ...(left ? { left } : {}),
     ...(isBottom ? { bottom: '-10%', right: '-5%' } : {}),

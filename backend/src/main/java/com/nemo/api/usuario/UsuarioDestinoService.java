@@ -35,7 +35,8 @@ public class UsuarioDestinoService {
         var setor = setorRepository.findById(request.idSetor())
                 .orElseThrow(() -> new ResourceNotFoundException("Setor não encontrado"));
 
-        var tipoAcesso = tipoAcessoRepository.findById(2)
+        Integer idTipoAcesso = request.idTipoAcesso() != null ? request.idTipoAcesso() : 2; // Default 2 (Colaborador)
+        var tipoAcesso = tipoAcessoRepository.findById(idTipoAcesso)
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de acesso não encontrado"));
 
         var usuario = new UsuarioDestino();
@@ -62,6 +63,12 @@ public class UsuarioDestinoService {
         usuario.setNome(request.nome());
         usuario.setEmail(request.email());
         usuario.setSetor(setor);
+
+        if (request.idTipoAcesso() != null) {
+            var tipoAcesso = tipoAcessoRepository.findById(request.idTipoAcesso())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tipo de acesso não encontrado"));
+            usuario.setTipoAcesso(tipoAcesso);
+        }
 
         return toDTO(repository.save(usuario));
     }
@@ -209,6 +216,7 @@ public class UsuarioDestinoService {
                 u.getMatricula(),
                 u.getNome(),
                 u.getEmail(),
+                u.getTipoAcesso().getTipoAcesso(),
                 u.getPontuacao(),
                 u.getSetor().getIdSetor(),
                 u.getSetor().getNomeSetor(),

@@ -41,6 +41,10 @@ public class AuthService {
 
         String token = jwtService.generate(usuario.getEmail(), claims);
 
+        // Registrar último login
+        usuario.setUltimoLogin(java.time.LocalDateTime.now());
+        repository.save(usuario);
+
         return new LoginResponse(
                 token,
                 usuario.getNome(),

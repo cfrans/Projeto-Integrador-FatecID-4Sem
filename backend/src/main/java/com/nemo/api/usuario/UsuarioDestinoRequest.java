@@ -4,5 +4,6 @@ public record UsuarioDestinoRequest(
         Integer matricula,
         String nome,
         String email,
-        Integer idSetor
+        Integer idSetor,
+        Integer idTipoAcesso
 ) {}
