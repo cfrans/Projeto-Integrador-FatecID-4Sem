@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PaginationBar } from '@/components/ui/PaginationBar'
 import { FilterBar } from '@/components/ui/FilterBar'
 import Modal from '@/components/ui/modal'
-import { CogIcon } from '@heroicons/react/24/solid'
+import { CogIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/solid'
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -39,6 +39,11 @@ export default function SettingsPage() {
   const [filtroRole, setFiltroRole] = useState('')
 
   const [confirmacaoRole, setConfirmacaoRole] = useState(null)
+
+  const [pergunta1, setPergunta1] = useState('')
+  const [resposta1, setResposta1] = useState('')
+  const [pergunta2, setPergunta2] = useState('')
+  const [resposta2, setResposta2] = useState('')
 
   useEffect(() => {
     carregarUsuario()
@@ -268,261 +273,130 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Coluna 1: Foto */}
-            <Card className="p-6 flex flex-col items-center rounded-xl border border-slate-200 bg-white shadow-sm">
-              <input
-                id="foto-input"
-                type="file"
-                accept="image/*"
-                onChange={handleAtualizarFoto}
-                className="hidden"
-              />
-
-              <label htmlFor="foto-input" className="w-full">
-                <Button className="cursor-pointer w-full mb-4">
-                  Alterar Foto
-                </Button>
-              </label>
-
-              <div className="border-t border-slate-200 pt-4 w-full flex justify-center">
-                <div className="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-4 border-slate-300 mb-4">
-                  {fotoPreview ? (
-                    <img src={fotoPreview} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-slate-400">Foto</span>
-                  )}
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-500 mt-2">JPG, PNG até 5MB</p>
-            </Card>
-
-            {/* Coluna 2: Informações e Editar Perfil */}
-            <Card className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="grid grid-cols-1 gap-6">
+            <Card className="p-6 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="grid gap-6">
-                {/* Botão editar perfil no topo */}
                 <div>
-                  {!editMode ? (
-                    <Button onClick={() => setEditMode(true)} className="w-full">
-                      Editar Perfil
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button onClick={handleSalvarPerfil} className="flex-1">
-                        Salvar
-                      </Button>
-                      <Button variant="outline" onClick={handleCancelarEdicao} className="flex-1">
-                        Cancelar
-                      </Button>
+                  <p className="text-sm text-slate-700 mb-4">
+                    Selecione duas perguntas de segurança a seguir. Elas ajudarão a verificar sua identidade caso você esqueça sua senha.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-4">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Pergunta de Segurança 1
+                    </Label>
+                    <Select value={pergunta1} onValueChange={setPergunta1}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione uma pergunta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Em que cidade você conheceu seu primeiro cônjuge/parceiro?">Em que cidade você conheceu seu primeiro cônjuge/parceiro?</SelectItem>
+                        <SelectItem value="Qual é o nome do meio da sua mãe?">Qual é o nome do meio da sua mãe?</SelectItem>
+                        <SelectItem value="Qual é o nome da primeira escola que frequentou?">Qual é o nome da primeira escola que frequentou?</SelectItem>
+                        <SelectItem value="Qual foi seu apelido na infância?">Qual foi seu apelido na infância?</SelectItem>
+                        <SelectItem value="Em que país você nasceu?">Em que país você nasceu?</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Resposta 1
+                    </Label>
+                    <Input
+                      value={resposta1}
+                      onChange={(e) => setResposta1(e.target.value)}
+                      placeholder="Digite sua resposta"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-4">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Pergunta de Segurança 2
+                    </Label>
+                    <Select value={pergunta2} onValueChange={setPergunta2}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione uma pergunta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Qual é o nome do seu primeiro animal de estimação?">Qual é o nome do seu primeiro animal de estimação?</SelectItem>
+                        <SelectItem value="Qual é o nome do seu tio favorito?">Qual é o nome do seu tio favorito?</SelectItem>
+                        <SelectItem value="Qual é o nome do seu primo mais velho?">Qual é o nome do seu primo mais velho?</SelectItem>
+                        <SelectItem value="Qual é o nome do seu filho mais novo?">Qual é o nome do seu filho mais novo?</SelectItem>
+                        <SelectItem value="Onde você passou sua lua-de-mel?">Onde você passou sua lua-de-mel?</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Resposta 2
+                    </Label>
+                    <Input
+                      value={resposta2}
+                      onChange={(e) => setResposta2(e.target.value)}
+                      placeholder="Digite sua resposta"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-200 grid gap-4">
+                  <p className="text-sm text-slate-700">Se desejar, troque sua senha aqui.</p>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Senha atual
+                      </Label>
+                      <Input
+                        type="password"
+                        placeholder=""
+                        value={senhaAtual}
+                        onChange={(e) => setSenhaAtual(e.target.value)}
+                        required
+                      />
                     </div>
-                  )}
-                </div>
-
-                <div className="border-t border-slate-200 pt-4">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Nome
-                  </Label>
-                  <Input
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    disabled={!editMode}
-                    className={!editMode ? 'bg-slate-100' : ''}
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Email
-                  </Label>
-                  <Input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={!editMode}
-                    className={!editMode ? 'bg-slate-100' : ''}
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Tipo de acesso
-                  </Label>
-                  <Input
-                    value={usuarioInfo?.tipoAcesso || user?.role || ''}
-                    disabled
-                    className="bg-slate-100"
-                  />
-                </div>
-              </div>
-            </Card>
-
-            {/* Coluna 3: Trocar Senha */}
-            <Card className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="grid gap-4">
-                <Button className="w-full" type="button">
-                  Trocar Senha
-                </Button>
-
-                <form onSubmit={handleTrocarSenha} className="grid gap-4 border-t pt-4">
-                  <div>
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Senha atual
-                    </Label>
-                    <Input
-                      type="password"
-                      placeholder="Senha atual"
-                      value={senhaAtual}
-                      onChange={(e) => setSenhaAtual(e.target.value)}
-                      required
-                    />
+                    <div className="grid gap-4">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Nova senha
+                      </Label>
+                      <Input
+                        type="password"
+                        placeholder=""
+                        value={novaSenha}
+                        onChange={(e) => setNovaSenha(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-4">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Confirmar nova senha
+                      </Label>
+                      <Input
+                        type="password"
+                        placeholder=""
+                        value={confirmarSenha}
+                        onChange={(e) => setConfirmarSenha(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Nova senha
-                    </Label>
-                    <Input
-                      type="password"
-                      placeholder="Nova senha"
-                      value={novaSenha}
-                      onChange={(e) => setNovaSenha(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Confirmar nova senha
-                    </Label>
-                    <Input
-                      type="password"
-                      placeholder="Confirmar nova senha"
-                      value={confirmarSenha}
-                      onChange={(e) => setConfirmarSenha(e.target.value)}
-                      required
-                    />
-                  </div>
-                </form>
+                </div>
               </div>
             </Card>
           </div>
 
-          {user?.role === 'Admin' && (
-            <div className="mt-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Gerenciamento de Usuários do Sistema</h2>
-              <Card className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-                <div className="mb-6">
-                  <FilterBar
-                    label="Filtrar"
-                    isOpen={mostrarFiltros}
-                    onToggle={() => setMostrarFiltros(!mostrarFiltros)}
-                    isActive={(!!filtroRole && filtroRole !== 'todos') || searchUsuario.length > 0}
-                    activeCount={((filtroRole && filtroRole !== 'todos') ? 1 : 0) + (searchUsuario.length > 0 ? 1 : 0)}
-                    onClear={() => { setFiltroRole('todos'); setSearchUsuario(''); setMostrarFiltros(false); setPaginaAtual(1); }}
-                  >
-                    <div className="flex flex-col sm:flex-row gap-4 w-full items-end">
-                      <div className="flex-1 w-full">
-                        <Label className="text-xs text-slate-500 mb-1.5 block font-semibold">Pesquisar</Label>
-                        <Input
-                          placeholder="Nome ou e-mail..."
-                          value={searchUsuario}
-                          onChange={(e) => setSearchUsuario(e.target.value)}
-                        />
-                      </div>
-                      <div className="w-full sm:w-64">
-                        <Label className="text-xs text-slate-500 mb-1.5 block font-semibold">Tipo de Acesso</Label>
-                        <Select value={filtroRole || 'todos'} onValueChange={(val) => { setFiltroRole(val); setPaginaAtual(1); }}>
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Todos os papéis">
-                              {filtroRole === 'todos' || !filtroRole ? 'Todos os papéis' : filtroRole}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="todos">Todos os papéis</SelectItem>
-                            {tiposAcesso.map(t => (
-                              <SelectItem key={t.idTipoAcesso} value={t.tipoAcesso}>
-                                {t.tipoAcesso}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </FilterBar>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left text-slate-600">
-                    <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-4 py-3">Nome</th>
-                        <th className="px-4 py-3">E-mail</th>
-                        <th className="px-4 py-3">Acesso</th>
-                        <th className="px-4 py-3">Último Login</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginados.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="px-4 py-8 text-center text-slate-500">
-                            Nenhum usuário encontrado.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginados.map((u) => {
-                          const tipoAtual = tiposAcesso.find(t => t.tipoAcesso === u.tipoAcesso)
-                          const idTipoAtual = tipoAtual ? String(tipoAtual.idTipoAcesso) : ""
-
-                          return (
-                            <tr key={u.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
-                              <td className="px-4 py-3 font-medium text-slate-900">{u.nome}</td>
-                              <td className="px-4 py-3">{u.email}</td>
-                              <td className="px-4 py-3">
-                                <Select
-                                  value={idTipoAtual}
-                                  onValueChange={(val) => solicitarAlteracaoRole(u, val)}
-                                >
-                                  <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Selecione...">
-                                      {tipoAtual ? tipoAtual.tipoAcesso : "Selecione..."}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {tiposAcesso.map(t => (
-                                      <SelectItem key={t.idTipoAcesso} value={String(t.idTipoAcesso)}>
-                                        {t.tipoAcesso}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </td>
-                              <td className="px-4 py-3">
-                                {u.primeiroAcesso || !u.ultimoLogin ? (
-                                  <span className="text-slate-400 italic">Nunca acessou</span>
-                                ) : (
-                                  new Date(u.ultimoLogin).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
-                                )}
-                              </td>
-                            </tr>
-                          )
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                <PaginationBar
-                  inicio={(paginaAtual - 1) * pageSize}
-                  fim={paginaAtual * pageSize}
-                  total={totalUsuarios}
-                  paginaAtual={paginaAtual}
-                  totalPaginas={totalPaginas}
-                  pageSize={pageSize}
-                  setPage={setPaginaAtual}
-                  setPageSize={setPageSize}
-                  borderTop
-                />
-              </Card>
-            </div>
-          )}
+          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6">
+            <Button type="button" variant="secondary" size="sm" onClick={handleCancelarEdicao} className="h-10 px-4">
+              <XMarkIcon className="size-4 mr-2" /> Cancelar
+            </Button>
+            <Button type="button" size="sm" onClick={handleSalvarPerfil} className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white">
+              <CheckIcon className="size-4 mr-2" /> Salvar Alterações
+            </Button>
+          </div>
 
         <Modal
         open={!!confirmacaoRole}
