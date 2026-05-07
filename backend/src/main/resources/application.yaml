@@ -26,3 +26,5 @@ server:
 
 nemo:
   csv-dir: ${NEMO_CSV_DIR:${user.dir}/tmp/tokens}
+  email:
+    enabled: ${EMAIL_ENABLED:true}

@@ -50,7 +50,6 @@ function IconSortNone() {
   );
 }
 
-<PaginationBar />
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function Checkbox({ checked, onChange }) {
@@ -73,36 +72,40 @@ function SortIcon({ col, sortCol, sortDir }) {
 }
 
 // ── Add/Edit Modal Form ───────────────────────────────────────────────────────
-function UserFormModal({ open, onClose, onSave, editingUser, setores }) {
-  const emptyForm = { matricula: "", nome: "", email: "", idSetor: "" };
+function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcesso }) {
+  const emptyForm = { matricula: "", nome: "", email: "", idSetor: "", idTipoAcesso: "2" };
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (editingUser) {
+      const tipo = tiposAcesso.find(t => t.tipoAcesso === editingUser.tipoAcesso);
       setForm({
         matricula: String(editingUser.matricula),
         nome: editingUser.nome,
         email: editingUser.email,
         idSetor: String(editingUser.idSetor),
+        idTipoAcesso: tipo ? String(tipo.idTipoAcesso) : "2",
       });
     } else {
       setForm(emptyForm);
     }
-  }, [open]);
+  }, [open, editingUser, tiposAcesso]);
 
   const set = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: typeof e === "string" ? e : e.target.value }));
 
-  const handleSave = async (andClose) => {
-    if (!form.matricula || !form.nome || !form.email || !form.idSetor) return;
-    setSaving(true);
-    try {
-      await onSave({ ...form, matricula: Number(form.matricula), idSetor: Number(form.idSetor) }, andClose);
-      if (!andClose) setForm(emptyForm);
-    } finally {
-      setSaving(false);
-    }
+  const handleSubmit = () => {
+    if (!form.matricula || !form.nome || !form.email || !form.idSetor || !form.idTipoAcesso) return;
+    
+    const formData = {
+      ...form,
+      matricula: Number(form.matricula),
+      idSetor: Number(form.idSetor),
+      idTipoAcesso: Number(form.idTipoAcesso)
+    };
+
+    onSave(formData);
   };
 
   return (
@@ -152,6 +155,22 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores }) {
             <FieldLabel className="text-sm font-medium text-slate-700">E-mail</FieldLabel>
             <Input value={form.email} onChange={set("email")} type="email" className="h-10 bg-slate-100 border-slate-200 rounded-lg" />
           </Field>
+
+          <Field>
+            <FieldLabel className="text-sm font-medium text-slate-700">Papel / Tipo de Usuário</FieldLabel>
+            <Select value={form.idTipoAcesso} onValueChange={(v) => setForm((f) => ({ ...f, idTipoAcesso: v }))}>
+              <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-lg">
+                <SelectValue placeholder="Selecione">
+                  {form.idTipoAcesso ? (tiposAcesso.find((t) => String(t.idTipoAcesso) === String(form.idTipoAcesso))?.tipoAcesso ?? "Selecione") : "Selecione"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {tiposAcesso.map((t) => (
+                  <SelectItem key={t.idTipoAcesso} value={String(t.idTipoAcesso)}>{t.tipoAcesso}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
 
         <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
@@ -180,7 +199,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores }) {
               size="sm"
               disabled={saving}
               className="h-9 px-4 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold tracking-wide rounded-lg"
-              onClick={() => handleSave(true)}
+              onClick={handleSubmit}
             >
               {editingUser ? "ALTERAR" : "SALVAR"}
             </Button>
@@ -381,12 +400,14 @@ const PAGE_SIZE_DEFAULT = 15;
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [setores, setSetores] = useState([]);
+  const [tiposAcesso, setTiposAcesso] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const [filterNome, setFilterNome] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
+  const [filterRole, setFilterRole] = useState("");
 
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
@@ -397,6 +418,7 @@ export default function UsersPage() {
   const [formModal, setFormModal] = useState({ open: false, user: null });
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, bulk: false });
+  const [confirmSave, setConfirmSave] = useState({ open: false, formData: null, isRoleChange: false, roleName: "" });
   const [feedback, setFeedback] = useState({ open: false, title: "", description: "", variant: "success" });
 
   const showFeedback = (title, description, variant = "success") =>
@@ -413,6 +435,7 @@ export default function UsersPage() {
   useEffect(() => {
     loadUsers();
     api.get("/api/setores").then(setSetores).catch(() => {});
+    api.get("/api/auth/tipos-acesso").then(setTiposAcesso).catch(() => {});
   }, [loadUsers]);
 
   // ── Filtro ──
@@ -420,7 +443,8 @@ export default function UsersPage() {
     const nomeMatch = u.nome.toLowerCase().includes(filterNome.toLowerCase()) ||
       u.email.toLowerCase().includes(filterNome.toLowerCase());
     const setorMatch = !filterSetor || String(u.idSetor) === filterSetor;
-    return nomeMatch && setorMatch;
+    const roleMatch = !filterRole || filterRole === "todos" || u.tipoAcesso === filterRole;
+    return nomeMatch && setorMatch && roleMatch;
   });
 
   // ── Ordenação ──
@@ -456,8 +480,8 @@ export default function UsersPage() {
   const fim = inicio + pageSize;
   const pagina = sorted.slice(inicio, fim);
 
-  const clearFilters = () => { setFilterNome(""); setFilterSetor(""); setPaginaAtual(1); };
-  const hasActiveFilters = filterNome || filterSetor;
+  const clearFilters = () => { setFilterNome(""); setFilterSetor(""); setFilterRole(""); setPaginaAtual(1); };
+  const hasActiveFilters = filterNome || filterSetor || (filterRole && filterRole !== "todos");
 
   // ── Seleção ──
   const toggleSelect = (id) =>
@@ -466,21 +490,57 @@ export default function UsersPage() {
     setSelected(selected.length === pagina.length ? [] : pagina.map((u) => u.idUsuarioDestino));
 
   // ── CRUD ──
-  const handleSave = async (form, andClose) => {
+  const handleSave = async (formData) => {
+    if (formModal.user) {
+      // Editando: checar o que mudou
+      const tipoOriginal = tiposAcesso.find(t => t.tipoAcesso === formModal.user.tipoAcesso);
+      const idTipoOriginal = tipoOriginal ? Number(tipoOriginal.idTipoAcesso) : 2;
+      
+      const roleChanged = formData.idTipoAcesso !== idTipoOriginal;
+      const otherChanged = formData.matricula !== formModal.user.matricula ||
+                           formData.nome !== formModal.user.nome ||
+                           formData.email !== formModal.user.email ||
+                           formData.idSetor !== formModal.user.idSetor;
+
+      if (roleChanged) {
+        const novoTipo = tiposAcesso.find(t => Number(t.idTipoAcesso) === formData.idTipoAcesso);
+        setConfirmSave({ 
+          open: true, 
+          formData, 
+          isRoleChange: true, 
+          roleName: novoTipo?.tipoAcesso || "" 
+        });
+      } else if (otherChanged) {
+        setConfirmSave({ 
+          open: true, 
+          formData, 
+          isRoleChange: false, 
+          roleName: "" 
+        });
+      } else {
+        setFormModal({ open: false, user: null }); // Nada mudou
+      }
+    } else {
+      // Novo usuário: salva direto
+      realSave(formData);
+    }
+  };
+
+  const realSave = async (formData) => {
+    setConfirmSave({ open: false, formData: null, isRoleChange: false, roleName: "" });
     try {
       if (formModal.user) {
-        const updated = await api.put(`/api/usuarios-destino/${formModal.user.idUsuarioDestino}`, form);
+        const updated = await api.put(`/api/usuarios-destino/${formModal.user.idUsuarioDestino}`, formData);
         setUsers((us) => us.map((u) => u.idUsuarioDestino === updated.idUsuarioDestino ? updated : u));
         showFeedback("Usuário atualizado", "As alterações foram salvas com sucesso.");
       } else {
-        const created = await api.post("/api/usuarios-destino", form);
+        const created = await api.post("/api/usuarios-destino", formData);
         setUsers((us) => [...us, created]);
         showFeedback("Usuário cadastrado", "O novo usuário foi adicionado com sucesso.");
       }
-      if (andClose) setFormModal({ open: false, user: null });
+      setFormModal({ open: false, user: null });
     } catch (err) {
       showFeedback("Erro", err.message || "Não foi possível salvar o usuário.", "error");
-      throw err;
     }
   };
 
@@ -508,6 +568,21 @@ export default function UsersPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl pb-10">
+      <UserFormModal
+        open={formModal.open}
+        onClose={() => setFormModal({ open: false, user: null })}
+        onSave={handleSave}
+        editingUser={formModal.user}
+        setores={setores}
+        tiposAcesso={tiposAcesso}
+      />
+      <ImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImported={loadUsers}
+      />
+
+      {/* Modais de confirmação e feedback (devem vir por último para sobrepor outros modais se necessário) */}
       <Modal open={feedback.open} onClose={() => setFeedback((f) => ({ ...f, open: false }))} title={feedback.title} description={feedback.description} variant={feedback.variant} />
       <Modal
         open={deleteModal.open}
@@ -516,17 +591,18 @@ export default function UsersPage() {
         description={deleteModal.bulk ? `Tem certeza que deseja remover ${selected.length} usuário(s)? Essa ação não pode ser desfeita.` : "Tem certeza que deseja remover este usuário? Essa ação não pode ser desfeita."}
         variant="warning" confirm confirmLabel="Sim, remover" onConfirm={confirmDelete}
       />
-      <UserFormModal
-        open={formModal.open}
-        onClose={() => setFormModal({ open: false, user: null })}
-        onSave={handleSave}
-        editingUser={formModal.user}
-        setores={setores}
-      />
-      <ImportModal
-        open={importModalOpen}
-        onClose={() => setImportModalOpen(false)}
-        onImported={loadUsers}
+      <Modal
+        open={confirmSave.open}
+        onClose={() => setConfirmSave({ open: false, formData: null, isRoleChange: false, roleName: "" })}
+        title={confirmSave.isRoleChange ? "Alterar permissão de acesso" : "Salvar alterações?"}
+        description={confirmSave.isRoleChange 
+          ? `Tem certeza que deseja alterar o acesso de ${formModal.user?.nome} para ${confirmSave.roleName}?`
+          : "Tem certeza que deseja salvar as alterações realizadas no perfil do usuário?"
+        }
+        variant="warning"
+        confirm
+        confirmLabel={confirmSave.isRoleChange ? "Sim, alterar acesso" : "Sim, salvar"}
+        onConfirm={() => realSave(confirmSave.formData)}
       />
 
       {/* Header */}
@@ -562,14 +638,14 @@ export default function UsersPage() {
         isOpen={filterOpen}
         onToggle={() => setFilterOpen((v) => !v)}
         isActive={hasActiveFilters}
-        activeCount={[filterNome, filterSetor].filter(Boolean).length}
+        activeCount={[filterNome, filterSetor, (filterRole && filterRole !== "todos")].filter(Boolean).length}
         onClear={clearFilters}
       >
         <Field className="w-auto flex-1 min-w-40">
           <FieldLabel className="text-xs text-slate-500">Nome ou e-mail</FieldLabel>
           <Input value={filterNome} onChange={(e) => { setFilterNome(e.target.value); setPaginaAtual(1); }} placeholder="Buscar..." className="h-9 w-full" />
         </Field>
-        <Field className="w-auto shrink-0 min-w-60">
+        <Field className="w-auto shrink-0 min-w-40">
           <FieldLabel className="text-xs text-slate-500">Setor</FieldLabel>
           <Select value={filterSetor} onValueChange={(v) => { setFilterSetor(v); setPaginaAtual(1); }}>
             <SelectTrigger className="h-9">
@@ -578,8 +654,25 @@ export default function UsersPage() {
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="todos">Todos os setores</SelectItem>
               {setores.map((s) => (
                 <SelectItem key={s.idSetor} value={String(s.idSetor)}>{s.nomeSetor}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field className="w-auto shrink-0 min-w-40">
+          <FieldLabel className="text-xs text-slate-500">Papel</FieldLabel>
+          <Select value={filterRole || "todos"} onValueChange={(v) => { setFilterRole(v); setPaginaAtual(1); }}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Todos">
+                {filterRole === "todos" || !filterRole ? "Todos os papéis" : filterRole}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os papéis</SelectItem>
+              {tiposAcesso.map((t) => (
+                <SelectItem key={t.idTipoAcesso} value={t.tipoAcesso}>{t.tipoAcesso}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -625,6 +718,7 @@ export default function UsersPage() {
                 ) : (
                   pagina.map((user) => {
                     const isSelected = selected.includes(user.idUsuarioDestino);
+
                     return (
                       <tr key={user.idUsuarioDestino} className={`transition-colors ${isSelected ? "bg-teal-50/60" : "hover:bg-slate-50"}`}>
                         <td className="px-4 py-3">

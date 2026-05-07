@@ -7,7 +7,7 @@ export default function AppShellLayout() {
     return (
         <div className="relative isolate min-h-screen overflow-hidden px-3 pt-0 pb-4 sm:px-5">
             <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-[#051524]">
-                <AnimatedBackground />
+                <AnimatedBackground interactive={false} />
             </div>
 
             <div

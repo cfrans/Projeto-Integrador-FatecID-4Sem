@@ -499,7 +499,6 @@ const FILTROS = [
 
 const PAGE_SIZE = 10;
 
-<PaginationBar />
 
 function MonitoringView({ campanha, onBack }) {
   const [disparos, setDisparos] = useState([]);

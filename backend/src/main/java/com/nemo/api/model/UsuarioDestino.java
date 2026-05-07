@@ -21,6 +21,9 @@ public class UsuarioDestino {
     private Boolean primeiroAcesso;
     private java.time.LocalDateTime ultimoLogin;
 
+    @Column(name = "is_real")
+    private Boolean isReal = false;
+
     @ManyToOne
     @JoinColumn(name = "id_setor")
     private Setor setor;
