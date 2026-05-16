@@ -20,7 +20,7 @@ export default function AppShellLayout() {
             <div className="relative z-20 mx-auto flex w-full max-w-6xl flex-col gap-2">
                 <AppNavbar />
 
-                <section className="min-h-[calc(100vh-140px)] rounded-2xl border border-slate-200 bg-[#f4f5f7] p-5 text-slate-900 shadow-xl shadow-black/25 sm:p-6">
+                <section className="w-full min-w-0 min-h-[calc(100vh-140px)] rounded-2xl border border-slate-200 bg-[#f4f5f7] p-5 text-slate-900 shadow-xl shadow-black/25 sm:p-6 overflow-x-hidden">
                     <Outlet />
                 </section>
             </div>

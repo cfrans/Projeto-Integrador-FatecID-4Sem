@@ -219,7 +219,7 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
         )}
       </FilterBar>
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden min-w-0 w-full">
         {campanhasFiltradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="size-12 opacity-40">
@@ -230,7 +230,8 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
             </p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
               <tr>
                 <th className="px-6 py-4">Nome</th>
@@ -270,6 +271,7 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
               })}
             </tbody>
           </table>
+          </div>
         )}
         <div className="flex items-center justify-end px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
           <span className="text-xs text-slate-400">{campanhasFiltradas.length} de {totalVisiveis}</span>
@@ -611,7 +613,7 @@ function MonitoringView({ campanha, onBack }) {
       </div>
 
       {/* Tabela */}
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden min-w-0 w-full">
         {/* Filtros */}
         <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 flex-wrap">
           {FILTROS.map((f) => (
@@ -668,7 +670,8 @@ function MonitoringView({ campanha, onBack }) {
               paginaAtual={paginaAtual} totalPaginas={totalPaginas}
               pageSize={pageSize} setPage={setPage} setPageSize={setPageSize}
             />
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
                 <tr>
                   <th className="px-6 py-4">Destinatário</th>
@@ -713,6 +716,7 @@ function MonitoringView({ campanha, onBack }) {
                 ))}
               </tbody>
             </table>
+            </div>
 
             <PaginationBar
               inicio={inicio} fim={fim} total={disparosFiltrados.length}
