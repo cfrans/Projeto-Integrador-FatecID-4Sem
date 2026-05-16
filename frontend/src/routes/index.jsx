@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 
 import PrivateRoute from "../components/routing/PrivateRoute"
 import AdminRoute from "../components/routing/AdminRoute"
+import ColaboradorRoute from "../components/routing/ColaboradorRoute"
 import AppShellLayout from "../layouts/AppShellLayout"
 import LoginPage from "../pages/login"
 import HomePage from "../pages/home"
@@ -15,6 +16,11 @@ import UsersPage from "../pages/users"
 import ModelsPage from "../pages/models"
 import ChangePasswordPage from "../pages/change-password"
 
+// ── Páginas do Colaborador ────────────────────────────────────────────────────
+import QuizPage from "../pages/quiz"
+import ConteudosPage from "../pages/conteudos"
+import MeusGraficosPage from "../pages/meus-graficos"
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -23,12 +29,7 @@ export default function AppRoutes() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/trocar-senha" element={<ChangePasswordPage />} />
 
-        {/* Autenticadas — qualquer role */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/home" element={<HomePage />} />
-        </Route>
-
-        {/* Autenticadas — somente Admin */}
+        {/* ── Rotas exclusivas do Admin ── */}
         <Route element={<PrivateRoute />}>
           <Route element={<AdminRoute />}>
             <Route element={<AppShellLayout />}>
@@ -40,6 +41,19 @@ export default function AppRoutes() {
               <Route path="/templates" element={<TemplatesPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/models" element={<ModelsPage />} />
+            </Route>
+          </Route>
+        </Route>
+
+        {/* ── Rotas exclusivas do Colaborador ── */}
+        <Route element={<PrivateRoute />}>
+          <Route element={<ColaboradorRoute />}>
+            <Route element={<AppShellLayout />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/conteudos" element={<ConteudosPage />} />
+              <Route path="/meus-graficos" element={<MeusGraficosPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>
         </Route>

@@ -242,7 +242,7 @@ export default function ModelsPage() {
         </Field>
       </FilterBar>
 
-      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <Card className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden min-w-0 w-full">
         {filteredModels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
             <EnvelopeIcon className="size-10 opacity-30" />
@@ -251,39 +251,41 @@ export default function ModelsPage() {
             </p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
-              <tr>
-                <th className="px-6 py-4">Nome do Modelo</th>
-                <th className="px-6 py-4">Domínio Alvo</th>
-                <th className="px-6 py-4">Remetente</th>
-                <th className="px-6 py-4">Criado em</th>
-                <th className="px-6 py-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredModels.map((model) => (
-                <tr key={model.idModelo} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-900">{model.nomeModelo}</td>
-                  <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
-                  <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
-                  <td className="px-6 py-4 text-slate-400 text-xs">
-                    {model.data ? new Date(model.data).toLocaleDateString("pt-BR") : "—"}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                        <PencilIcon className="size-4 mr-1" /> Editar
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50">
-                        <TrashIcon className="size-4" />
-                      </Button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+                <tr>
+                  <th className="px-6 py-4">Nome do Modelo</th>
+                  <th className="px-6 py-4">Domínio Alvo</th>
+                  <th className="px-6 py-4">Remetente</th>
+                  <th className="px-6 py-4">Criado em</th>
+                  <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredModels.map((model) => (
+                  <tr key={model.idModelo} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-slate-900">{model.nomeModelo}</td>
+                    <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
+                    <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
+                    <td className="px-6 py-4 text-slate-400 text-xs">
+                      {model.data ? new Date(model.data).toLocaleDateString("pt-BR") : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                          <PencilIcon className="size-4 mr-1" /> Editar
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50">
+                          <TrashIcon className="size-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         <div className="flex items-center justify-end px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
           <span className="text-xs text-slate-400">{filteredModels.length} de {models.length} modelo(s)</span>
@@ -350,7 +352,7 @@ export default function ModelsPage() {
             </div>
             <Field>
               <div className="border border-slate-300 rounded-md overflow-hidden bg-white">
-                <JoditEditor value={htmlContent} config={editorConfig} tabIndex={1} onBlur={(newContent) => setHtmlContent(newContent)} onChange={() => {}} />
+                <JoditEditor value={htmlContent} config={editorConfig} tabIndex={1} onBlur={(newContent) => setHtmlContent(newContent)} onChange={() => { }} />
               </div>
             </Field>
           </section>

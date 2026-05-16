@@ -692,7 +692,8 @@ export default function UsersPage() {
         ) : (
           <>
             <PaginationBar inicio={inicio} fim={fim} total={total} paginaAtual={paginaAtual} totalPaginas={totalPaginas} pageSize={pageSize} setPage={setPaginaAtual} setPageSize={setPageSize} />
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-3 w-10">
@@ -757,7 +758,8 @@ export default function UsersPage() {
                   })
                 )}
               </tbody>
-            </table>
+              </table>
+            </div>
             <PaginationBar inicio={inicio} fim={fim} total={total} paginaAtual={paginaAtual} totalPaginas={totalPaginas} pageSize={pageSize} setPage={setPaginaAtual} setPageSize={setPageSize} borderTop />
           </>
         )}
