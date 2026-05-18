@@ -26,62 +26,121 @@ public class AuthService {
     private final JwtService jwtService;
 
     public LoginResponse login(LoginRequest request) {
-        var usuario = repository.findByEmail(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Credenciais inválidas"));
+        String email = request.email();
+        String senha = request.senha();
+        String nome;
+        String role;
+        String senhaHash;
+        boolean primeiroAcesso;
 
-        if (!passwordEncoder.matches(request.senha(), usuario.getSenhaHash())) {
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            nome = u.getNome();
+            role = u.getTipoAcesso().getTipoAcesso();
+            senhaHash = u.getSenhaHash();
+            primeiroAcesso = u.getPrimeiroAcesso();
+        } else {
+            var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+            if (usuarioDestino.isPresent()) {
+                var u = usuarioDestino.get();
+                nome = u.getNome();
+                role = u.getTipoAcesso().getTipoAcesso();
+                senhaHash = u.getSenhaHash();
+                primeiroAcesso = u.getPrimeiroAcesso();
+            } else {
+                throw new BadCredentialsException("Credenciais inválidas");
+            }
+        }
+
+        if (!passwordEncoder.matches(senha, senhaHash)) {
             throw new BadCredentialsException("Credenciais inválidas");
         }
 
         var claims = Map.<String, Object>of(
-                "nome", usuario.getNome(),
-                "role", usuario.getTipoAcesso().getTipoAcesso(),
-                "primeiroAcesso", usuario.getPrimeiroAcesso()
+                "nome", nome,
+                "role", role,
+                "primeiroAcesso", primeiroAcesso
         );
 
-        String token = jwtService.generate(usuario.getEmail(), claims);
+        String token = jwtService.generate(email, claims);
 
         // Registrar último login
-        usuario.setUltimoLogin(java.time.LocalDateTime.now());
-        repository.save(usuario);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            u.setUltimoLogin(java.time.LocalDateTime.now());
+            repository.save(u);
+        } else {
+            var u = usuarioDestinoRepository.findByEmail(email).get();
+            u.setUltimoLogin(java.time.LocalDateTime.now());
+            usuarioDestinoRepository.save(u);
+        }
 
-        return new LoginResponse(
-                token,
-                usuario.getNome(),
-                usuario.getTipoAcesso().getTipoAcesso(),
-                usuario.getPrimeiroAcesso()
-        );
+        return new LoginResponse(token, nome, role, primeiroAcesso);
     }
 
     public void trocarSenha(TrocarSenhaRequest request, String token) {
         String email = jwtService.extractEmail(token);
 
-        var usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-
-        if (!passwordEncoder.matches(request.senhaAtual(), usuario.getSenhaHash())) {
-            throw new BadCredentialsException("Senha atual incorreta");
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            if (!passwordEncoder.matches(request.senhaAtual(), u.getSenhaHash())) {
+                throw new BadCredentialsException("Senha atual incorreta");
+            }
+            u.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+            u.setPrimeiroAcesso(false);
+            repository.save(u);
+            return;
         }
 
-        usuario.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
-        usuario.setPrimeiroAcesso(false);
-        repository.save(usuario);
+        var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+        if (usuarioDestino.isPresent()) {
+            var u = usuarioDestino.get();
+            if (!passwordEncoder.matches(request.senhaAtual(), u.getSenhaHash())) {
+                throw new BadCredentialsException("Senha atual incorreta");
+            }
+            u.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+            u.setPrimeiroAcesso(false);
+            usuarioDestinoRepository.save(u);
+            return;
+        }
+
+        throw new ResourceNotFoundException("Usuário não encontrado");
     }
 
     public UsuarioDTO getMe(String token) {
         String email = jwtService.extractEmail(token);
-        var usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            return new UsuarioDTO(
+                    "S_" + u.getIdUsuarioSistema(),
+                    u.getNome(),
+                    u.getEmail(),
+                    u.getTipoAcesso().getTipoAcesso(),
+                    u.getFoto(),
+                    u.getPrimeiroAcesso(),
+                    u.getUltimoLogin()
+            );
+        }
 
-        return new UsuarioDTO(
-                "S_" + usuario.getIdUsuarioSistema(),
-                usuario.getNome(),
-                usuario.getEmail(),
-                usuario.getTipoAcesso().getTipoAcesso(),
-                usuario.getFoto(),
-                usuario.getPrimeiroAcesso(),
-                usuario.getUltimoLogin()
-        );
+        var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+        if (usuarioDestino.isPresent()) {
+            var u = usuarioDestino.get();
+            return new UsuarioDTO(
+                    "D_" + u.getIdUsuarioDestino(),
+                    u.getNome(),
+                    u.getEmail(),
+                    u.getTipoAcesso().getTipoAcesso(),
+                    null,
+                    u.getPrimeiroAcesso(),
+                    u.getUltimoLogin()
+            );
+        }
+
+        throw new ResourceNotFoundException("Usuário não encontrado");
     }
 
     public void atualizarFoto(byte[] fotoBytes, String token) {
@@ -91,7 +150,7 @@ public class AuthService {
 
         String email = jwtService.extractEmail(token);
         var usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Apenas usuários do sistema podem ter foto de perfil"));
 
         usuario.setFoto(fotoBytes);
         repository.save(usuario);
@@ -162,32 +221,56 @@ public class AuthService {
 
     public UsuarioDTO atualizarPerfil(AtualizarPerfilRequest request, String token) {
         String email = jwtService.extractEmail(token);
-        var usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-
-        if (request.nome() != null && !request.nome().isEmpty()) {
-            usuario.setNome(request.nome());
-        }
-
-        if (request.email() != null && !request.email().isEmpty()) {
-            // Verificar se o novo email já existe
-            if (!request.email().equals(email) && repository.findByEmail(request.email()).isPresent()) {
-                throw new BadCredentialsException("Este email já está em uso");
+        
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            if (request.nome() != null && !request.nome().isEmpty()) {
+                u.setNome(request.nome());
             }
-            usuario.setEmail(request.email());
+            if (request.email() != null && !request.email().isEmpty()) {
+                if (!request.email().equals(email) && (repository.findByEmail(request.email()).isPresent() || usuarioDestinoRepository.findByEmail(request.email()).isPresent())) {
+                    throw new BadCredentialsException("Este email já está em uso");
+                }
+                u.setEmail(request.email());
+            }
+            repository.save(u);
+            return new UsuarioDTO(
+                    "S_" + u.getIdUsuarioSistema(),
+                    u.getNome(),
+                    u.getEmail(),
+                    u.getTipoAcesso().getTipoAcesso(),
+                    u.getFoto(),
+                    u.getPrimeiroAcesso(),
+                    u.getUltimoLogin()
+            );
         }
 
-        repository.save(usuario);
+        var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+        if (usuarioDestino.isPresent()) {
+            var u = usuarioDestino.get();
+            if (request.nome() != null && !request.nome().isEmpty()) {
+                u.setNome(request.nome());
+            }
+            if (request.email() != null && !request.email().isEmpty()) {
+                if (!request.email().equals(email) && (repository.findByEmail(request.email()).isPresent() || usuarioDestinoRepository.findByEmail(request.email()).isPresent())) {
+                    throw new BadCredentialsException("Este email já está em uso");
+                }
+                u.setEmail(request.email());
+            }
+            usuarioDestinoRepository.save(u);
+            return new UsuarioDTO(
+                    "D_" + u.getIdUsuarioDestino(),
+                    u.getNome(),
+                    u.getEmail(),
+                    u.getTipoAcesso().getTipoAcesso(),
+                    null,
+                    u.getPrimeiroAcesso(),
+                    u.getUltimoLogin()
+            );
+        }
 
-        return new UsuarioDTO(
-                "S_" + usuario.getIdUsuarioSistema(),
-                usuario.getNome(),
-                usuario.getEmail(),
-                usuario.getTipoAcesso().getTipoAcesso(),
-                usuario.getFoto(),
-                usuario.getPrimeiroAcesso(),
-                usuario.getUltimoLogin()
-        );
+        throw new ResourceNotFoundException("Usuário não encontrado");
     }
 
     public List<TipoAcesso> listarTiposAcesso() {
