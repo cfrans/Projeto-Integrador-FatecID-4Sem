@@ -73,6 +73,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
 
 **Qualidade**
+- [ ] **Simplificação de Migrations** — Simplificar e unificar os migrations do Flyway para facilitar a manutenção e o setup inicial.
+- [ ] **Geração de Mock Dinâmico** — Criar uma migration ou script para gerar disparos, pontuações e cliques aleatórios, permitindo uma análise de dados e visualização de gráficos mais realista durante o desenvolvimento.
 - [ ] Tornar a geração de tokens assíncrona (`@Async`) com endpoint de status.
 - [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
