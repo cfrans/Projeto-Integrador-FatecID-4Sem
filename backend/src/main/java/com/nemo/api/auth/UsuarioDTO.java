@@ -7,7 +7,6 @@ public record UsuarioDTO(
         String nome,
         String email,
         String tipoAcesso,
-        byte[] foto,
         Boolean primeiroAcesso,
         LocalDateTime ultimoLogin
 ) { }

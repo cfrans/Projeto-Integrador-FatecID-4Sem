@@ -120,7 +120,6 @@ public class AuthService {
                     u.getNome(),
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
-                    u.getFoto(),
                     u.getPrimeiroAcesso(),
                     u.getUltimoLogin()
             );
@@ -134,26 +133,12 @@ public class AuthService {
                     u.getNome(),
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
-                    null,
                     u.getPrimeiroAcesso(),
                     u.getUltimoLogin()
             );
         }
 
         throw new ResourceNotFoundException("Usuário não encontrado");
-    }
-
-    public void atualizarFoto(byte[] fotoBytes, String token) {
-        if (fotoBytes == null || fotoBytes.length == 0) {
-            throw new IllegalArgumentException("A foto não pode estar vazia");
-        }
-
-        String email = jwtService.extractEmail(token);
-        var usuario = repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Apenas usuários do sistema podem ter foto de perfil"));
-
-        usuario.setFoto(fotoBytes);
-        repository.save(usuario);
     }
 
     public List<UsuarioDTO> listarUsuarios(String token) {
@@ -172,17 +157,15 @@ public class AuthService {
                 u.getNome(),
                 u.getEmail(),
                 u.getTipoAcesso().getTipoAcesso(),
-                u.getFoto(),
                 u.getPrimeiroAcesso(),
                 u.getUltimoLogin()
         )));
-        
+
         usuarioDestinoRepository.findAll().forEach(u -> todos.add(new UsuarioDTO(
                 "D_" + u.getIdUsuarioDestino(),
                 u.getNome(),
                 u.getEmail(),
                 u.getTipoAcesso().getTipoAcesso(),
-                null,
                 u.getPrimeiroAcesso(),
                 u.getUltimoLogin()
         )));
@@ -240,7 +223,6 @@ public class AuthService {
                     u.getNome(),
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
-                    u.getFoto(),
                     u.getPrimeiroAcesso(),
                     u.getUltimoLogin()
             );
@@ -264,7 +246,6 @@ public class AuthService {
                     u.getNome(),
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
-                    null,
                     u.getPrimeiroAcesso(),
                     u.getUltimoLogin()
             );

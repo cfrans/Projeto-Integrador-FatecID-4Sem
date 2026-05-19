@@ -4,9 +4,7 @@ import com.nemo.api.model.TipoAcesso;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -31,16 +29,6 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UsuarioDTO> getMe(@RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(authService.getMe(authHeader.replace("Bearer ", "")));
-    }
-
-    @PutMapping("/me/foto")
-    public ResponseEntity<Void> atualizarFoto(@RequestParam(value = "foto", required = true) MultipartFile file,
-                                              @RequestHeader("Authorization") String authHeader) throws IOException {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de foto não pode estar vazio");
-        }
-        authService.atualizarFoto(file.getBytes(), authHeader.replace("Bearer ", ""));
-        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/me")

@@ -27,7 +27,6 @@ export default function SettingsPage() {
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
 
-  const [fotoPreview, setFotoPreview] = useState(null)
   const [usuarioInfo, setUsuarioInfo] = useState(null)
 
   const [usuariosSistema, setUsuariosSistema] = useState([])
@@ -125,12 +124,6 @@ export default function SettingsPage() {
       setUsuarioInfo(dados)
       setNome(dados.nome)
       setEmail(dados.email)
-
-      if (dados.foto && dados.foto.length > 0) {
-        const blob = new Blob([new Uint8Array(dados.foto)], { type: 'image/jpeg' })
-        const url = URL.createObjectURL(blob)
-        setFotoPreview(url)
-      }
     } catch (e) {
       console.error('Erro ao carregar usuário:', e)
     }
@@ -208,46 +201,6 @@ export default function SettingsPage() {
       setMostrarTrocarSenha(false)
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : 'Erro ao trocar senha')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleAtualizarFoto(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setErro('')
-    setSucesso('')
-
-    if (!file.type.startsWith('image/')) {
-      setErro('Selecione um arquivo de imagem válido')
-      return
-    }
-
-    const maxSize = 5 * 1024 * 1024
-    if (file.size > maxSize) {
-      setErro('A imagem deve ter no máximo 5MB')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setFotoPreview(event.target.result)
-    }
-    reader.readAsDataURL(file)
-
-    try {
-      setLoading(true)
-      const formData = new FormData()
-      formData.append('foto', file)
-
-      await api.put('/api/auth/me/foto', formData)
-      setSucesso('Foto atualizada com sucesso!')
-      await carregarUsuario()
-    } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Erro ao atualizar foto')
-      setFotoPreview(null)
     } finally {
       setLoading(false)
     }

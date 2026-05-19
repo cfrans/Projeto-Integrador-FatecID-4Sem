@@ -47,7 +47,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - 🎨 **UI Moderna:** Dashboards interativos, fundo animado com peixes (identidade visual Nemo) e design responsivo.
 - 📋 **Monitoramento:** Tela de acompanhamento de campanhas com filtros avançados e métricas por setor.
 - 👥 **Gestão de Alvos:** Importação massiva de usuários via CSV com relatório de processamento detalhado.
-- ⚙️ **Perfil:** Gerenciamento de fotos de perfil, troca de senha e controle de papéis (Admin/Colaborador).
+- ⚙️ **Perfil:** Troca de senha, perguntas de segurança e controle de papéis (Admin/Colaborador).
 
 **Gamificação & Rastreamento**
 - 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
@@ -184,7 +184,7 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 
 | Migration | O que faz |
 |-----------|-----------|
-| `V1__create_schema.sql` | Cria todas as tabelas do banco (inclui `foto`, `ultimo_login`, `is_real` e `pontuacao_evento` já com baseline 500) |
+| `V1__create_schema.sql` | Cria todas as tabelas do banco (inclui `ultimo_login`, `is_real` e `pontuacao_evento` já com baseline 500) |
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
 | `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
 | `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
@@ -336,7 +336,7 @@ nemo/
         │   ├── campaigns/                # ✅ Criar campanha, listar, monitorar
         │   ├── models/                   # ✅ CRUD de modelos
         │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
-        │   ├── settings/                 # ✅ Perfil, senha e foto (gerenciamento de usuários pendente)
+        │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (gerenciamento de usuários pendente)
         │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
         │   ├── admin/                    # 🚧 placeholder
         │   └── home/                     # 🚧 placeholder (portal do colaborador)

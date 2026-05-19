@@ -10,7 +10,6 @@ CREATE TABLE usuario_sistema (
     senha_hash         VARCHAR(255) NOT NULL,
     id_tipo_acesso     INT          NOT NULL,
     primeiro_acesso    BOOLEAN      DEFAULT TRUE,
-    foto               LONGBLOB     DEFAULT NULL,
     ultimo_login       DATETIME     NULL,
     CONSTRAINT fk_tipo_acesso FOREIGN KEY (id_tipo_acesso) REFERENCES tipo_acesso (id_tipo_acesso)
 );
