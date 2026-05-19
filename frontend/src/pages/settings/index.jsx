@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
 import { api, ApiError } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,124 +6,102 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import LoadingOverlay from '@/components/ui/LoadingOverlay'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { PaginationBar } from '@/components/ui/PaginationBar'
-import { FilterBar } from '@/components/ui/FilterBar'
 import Modal from '@/components/ui/modal'
-import { CogIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import { CogIcon, CheckIcon, KeyIcon } from '@heroicons/react/24/solid'
 
 export default function SettingsPage() {
-  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')
-
-  const [nome, setNome] = useState('')
-  const [email, setEmail] = useState('')
 
   const [senhaAtual, setSenhaAtual] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
 
-  const [usuarioInfo, setUsuarioInfo] = useState(null)
-
-  const [confirmacaoRole, setConfirmacaoRole] = useState(null)
-
-  const [pergunta1, setPergunta1] = useState('')
+  const [perguntas, setPerguntas] = useState([])
+  const [idPergunta1, setIdPergunta1] = useState('')
   const [resposta1, setResposta1] = useState('')
-  const [pergunta2, setPergunta2] = useState('')
+  const [idPergunta2, setIdPergunta2] = useState('')
   const [resposta2, setResposta2] = useState('')
 
+  // Carga inicial: perguntas disponiveis + perguntas atuais do usuario.
   useEffect(() => {
-    carregarUsuario()
-    if (user?.role === 'Admin') {
-      carregarDadosAdmin()
-    }
-  }, [user?.role])
+    api.get('/api/auth/perguntas-seguranca').then(setPerguntas).catch(() => setPerguntas([]))
+    api.get('/api/auth/me')
+      .then((dados) => {
+        if (dados.idPergunta1) setIdPergunta1(String(dados.idPergunta1))
+        if (dados.idPergunta2) setIdPergunta2(String(dados.idPergunta2))
+      })
+      .catch(() => {})
+  }, [])
 
-  async function carregarDadosAdmin() {
-    try {
-      await Promise.all([
-        api.get('/api/auth/usuarios'),
-        api.get('/api/auth/tipos-acesso')
-      ])
-    } catch (e) {
-      console.error('Erro ao carregar dados admin:', e)
-    }
+  const perguntasGrupo1 = perguntas.filter((p) => p.grupo === 1)
+  const perguntasGrupo2 = perguntas.filter((p) => p.grupo === 2)
+
+  function nomePergunta(id) {
+    return perguntas.find((p) => String(p.idPergunta) === String(id))?.texto ?? 'Selecione uma pergunta'
   }
 
-  async function handleAlterarRole(idUsuario, idTipoAcesso) {
-    if (!idTipoAcesso) return
-    try {
-      setLoading(true)
-      await api.put(`/api/auth/usuarios/${idUsuario}/role`, { idTipoAcesso: Number(idTipoAcesso) })
-      setSucesso('Acesso do usuário atualizado com sucesso!')
-      await carregarDadosAdmin()
-    } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Erro ao alterar acesso')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function confirmarAlteracaoRole() {
-    if (!confirmacaoRole) return
-    const { usuario, novoIdTipoAcesso } = confirmacaoRole
-    
-    setConfirmacaoRole(null)
-    await handleAlterarRole(usuario.id, novoIdTipoAcesso)
-  }
-
-  async function carregarUsuario() {
-    try {
-      const dados = await api.get('/api/auth/me')
-      setUsuarioInfo(dados)
-      setNome(dados.nome)
-      setEmail(dados.email)
-    } catch (e) {
-      console.error('Erro ao carregar usuário:', e)
-    }
-  }
-
-  async function handleSalvarPerfil(e) {
-    e.preventDefault()
+  async function handleSalvarPerguntas() {
     setErro('')
     setSucesso('')
 
-    if (!nome.trim()) {
-      setErro('Nome não pode estar vazio')
+    if (!idPergunta1 || !idPergunta2) {
+      setErro('Selecione as duas perguntas de segurança')
       return
     }
-
-    if (!email.trim()) {
-      setErro('Email não pode estar vazio')
-      return
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      setErro('Email inválido')
+    if (!resposta1.trim() || !resposta2.trim()) {
+      setErro('Preencha as duas respostas')
       return
     }
 
     try {
       setLoading(true)
-      const dados = await api.put('/api/auth/me', {
-        nome: nome.trim(),
-        email: email.trim(),
+      await api.put('/api/auth/me/perguntas-seguranca', {
+        idPergunta1: Number(idPergunta1),
+        resposta1: resposta1.trim(),
+        idPergunta2: Number(idPergunta2),
+        resposta2: resposta2.trim(),
       })
-      setUsuarioInfo(dados)
-      setSucesso('Perfil atualizado com sucesso!')
+      setResposta1('')
+      setResposta2('')
+      setSucesso('Perguntas de segurança salvas com sucesso!')
     } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Erro ao atualizar perfil')
+      setErro(e instanceof ApiError ? e.message : 'Erro ao salvar perguntas')
     } finally {
       setLoading(false)
     }
   }
 
-  function handleCancelarEdicao() {
-    setNome(usuarioInfo?.nome || '')
-    setEmail(usuarioInfo?.email || '')
+  async function handleTrocarSenha() {
     setErro('')
+    setSucesso('')
+
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      setErro('Preencha todos os campos da senha')
+      return
+    }
+    if (novaSenha !== confirmarSenha) {
+      setErro('A nova senha e a confirmação não coincidem')
+      return
+    }
+    if (novaSenha.length < 6) {
+      setErro('A nova senha deve ter no mínimo 6 caracteres')
+      return
+    }
+
+    try {
+      setLoading(true)
+      await api.put('/api/auth/trocar-senha', { senhaAtual, novaSenha })
+      setSenhaAtual('')
+      setNovaSenha('')
+      setConfirmarSenha('')
+      setSucesso('Senha alterada com sucesso!')
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : 'Erro ao trocar senha')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -148,140 +125,133 @@ export default function SettingsPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6">
-            <Card className="p-6 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="grid gap-6">
-                <div>
-                  <p className="text-sm text-slate-700 mb-4">
-                    Selecione duas perguntas de segurança a seguir. Elas ajudarão a verificar sua identidade caso você esqueça sua senha.
-                  </p>
-                </div>
+        <Card className="p-6 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid gap-6">
+            <div>
+              <h2 className="text-base font-semibold text-slate-800 mb-1">Perguntas de segurança</h2>
+              <p className="text-sm text-slate-600">
+                Selecione duas perguntas a seguir. Elas ajudarão a verificar sua identidade caso você esqueça sua senha. As respostas não são sensíveis a maiúsculas/minúsculas.
+              </p>
+            </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="grid gap-4">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Pergunta de Segurança 1
-                    </Label>
-                    <Select value={pergunta1} onValueChange={setPergunta1}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Selecione uma pergunta" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Em que cidade você conheceu seu primeiro cônjuge/parceiro?">Em que cidade você conheceu seu primeiro cônjuge/parceiro?</SelectItem>
-                        <SelectItem value="Qual é o nome do meio da sua mãe?">Qual é o nome do meio da sua mãe?</SelectItem>
-                        <SelectItem value="Qual é o nome da primeira escola que frequentou?">Qual é o nome da primeira escola que frequentou?</SelectItem>
-                        <SelectItem value="Qual foi seu apelido na infância?">Qual foi seu apelido na infância?</SelectItem>
-                        <SelectItem value="Em que país você nasceu?">Em que país você nasceu?</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-4">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Resposta 1
-                    </Label>
-                    <Input
-                      value={resposta1}
-                      onChange={(e) => setResposta1(e.target.value)}
-                      placeholder="Digite sua resposta"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="grid gap-4">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Pergunta de Segurança 2
-                    </Label>
-                    <Select value={pergunta2} onValueChange={setPergunta2}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Selecione uma pergunta" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Qual é o nome do seu primeiro animal de estimação?">Qual é o nome do seu primeiro animal de estimação?</SelectItem>
-                        <SelectItem value="Qual é o nome do seu tio favorito?">Qual é o nome do seu tio favorito?</SelectItem>
-                        <SelectItem value="Qual é o nome do seu primo mais velho?">Qual é o nome do seu primo mais velho?</SelectItem>
-                        <SelectItem value="Qual é o nome do seu filho mais novo?">Qual é o nome do seu filho mais novo?</SelectItem>
-                        <SelectItem value="Onde você passou sua lua-de-mel?">Onde você passou sua lua-de-mel?</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-4">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Resposta 2
-                    </Label>
-                    <Input
-                      value={resposta2}
-                      onChange={(e) => setResposta2(e.target.value)}
-                      placeholder="Digite sua resposta"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-slate-200 grid gap-4">
-                  <p className="text-sm text-slate-700">Se desejar, troque sua senha aqui.</p>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="grid gap-4">
-                      <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Senha atual
-                      </Label>
-                      <Input
-                        type="password"
-                        placeholder=""
-                        value={senhaAtual}
-                        onChange={(e) => setSenhaAtual(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-4">
-                      <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Nova senha
-                      </Label>
-                      <Input
-                        type="password"
-                        placeholder=""
-                        value={novaSenha}
-                        onChange={(e) => setNovaSenha(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-4">
-                      <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Confirmar nova senha
-                      </Label>
-                      <Input
-                        type="password"
-                        placeholder=""
-                        value={confirmarSenha}
-                        onChange={(e) => setConfirmarSenha(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Pergunta de Segurança 1
+                </Label>
+                <Select value={idPergunta1} onValueChange={setIdPergunta1}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Selecione uma pergunta">
+                      {idPergunta1 ? nomePergunta(idPergunta1) : 'Selecione uma pergunta'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {perguntasGrupo1.map((p) => (
+                      <SelectItem key={p.idPergunta} value={String(p.idPergunta)}>{p.texto}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </Card>
-          </div>
 
-          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6">
-            <Button type="button" variant="secondary" size="sm" onClick={handleCancelarEdicao} className="h-10 px-4">
-              <XMarkIcon className="size-4 mr-2" /> Cancelar
-            </Button>
-            <Button type="button" size="sm" onClick={handleSalvarPerfil} className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white">
-              <CheckIcon className="size-4 mr-2" /> Salvar Alterações
-            </Button>
-          </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Resposta 1
+                </Label>
+                <Input
+                  value={resposta1}
+                  onChange={(e) => setResposta1(e.target.value)}
+                  placeholder="Digite sua resposta"
+                />
+              </div>
+            </div>
 
-        <Modal
-        open={!!confirmacaoRole}
-        onClose={() => setConfirmacaoRole(null)}
-        title="Alterar permissão de acesso"
-        description={`Tem certeza que deseja alterar o acesso de ${confirmacaoRole?.usuario?.nome} para ${confirmacaoRole?.nomeRole}?`}
-        variant="warning"
-        confirm
-        confirmLabel="Sim, alterar acesso"
-        onConfirm={confirmarAlteracaoRole}
-      />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Pergunta de Segurança 2
+                </Label>
+                <Select value={idPergunta2} onValueChange={setIdPergunta2}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Selecione uma pergunta">
+                      {idPergunta2 ? nomePergunta(idPergunta2) : 'Selecione uma pergunta'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {perguntasGrupo2.map((p) => (
+                      <SelectItem key={p.idPergunta} value={String(p.idPergunta)}>{p.texto}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Resposta 2
+                </Label>
+                <Input
+                  value={resposta2}
+                  onChange={(e) => setResposta2(e.target.value)}
+                  placeholder="Digite sua resposta"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="button" size="sm" onClick={handleSalvarPerguntas} className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white">
+                <CheckIcon className="size-4 mr-2" /> Salvar perguntas
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid gap-6">
+            <div>
+              <h2 className="text-base font-semibold text-slate-800 mb-1">Trocar senha</h2>
+              <p className="text-sm text-slate-600">Defina uma nova senha de no mínimo 6 caracteres.</p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Senha atual
+                </Label>
+                <Input
+                  type="password"
+                  value={senhaAtual}
+                  onChange={(e) => setSenhaAtual(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Nova senha
+                </Label>
+                <Input
+                  type="password"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Confirmar nova senha
+                </Label>
+                <Input
+                  type="password"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="button" size="sm" onClick={handleTrocarSenha} className="h-10 px-6 bg-slate-800 hover:bg-slate-900 text-white">
+                <KeyIcon className="size-4 mr-2" /> Trocar senha
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
 
       <Modal
         open={!!sucesso}

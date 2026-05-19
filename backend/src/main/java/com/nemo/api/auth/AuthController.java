@@ -54,4 +54,16 @@ public class AuthController {
     public ResponseEntity<List<TipoAcesso>> listarTiposAcesso() {
         return ResponseEntity.ok(authService.listarTiposAcesso());
     }
+
+    @GetMapping("/perguntas-seguranca")
+    public ResponseEntity<List<PerguntaSegurancaDTO>> listarPerguntasSeguranca() {
+        return ResponseEntity.ok(authService.listarPerguntasSeguranca());
+    }
+
+    @PutMapping("/me/perguntas-seguranca")
+    public ResponseEntity<Void> atualizarPerguntasSeguranca(@RequestBody PerguntasSegurancaRequest request,
+                                                            @RequestHeader("Authorization") String authHeader) {
+        authService.atualizarPerguntasSeguranca(request, authHeader.replace("Bearer ", ""));
+        return ResponseEntity.noContent().build();
+    }
 }

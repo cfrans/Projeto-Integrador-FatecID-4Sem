@@ -8,5 +8,7 @@ public record UsuarioDTO(
         String email,
         String tipoAcesso,
         Boolean primeiroAcesso,
-        LocalDateTime ultimoLogin
+        LocalDateTime ultimoLogin,
+        Integer idPergunta1,
+        Integer idPergunta2
 ) { }

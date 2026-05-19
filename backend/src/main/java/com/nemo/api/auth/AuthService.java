@@ -2,8 +2,10 @@ package com.nemo.api.auth;
 
 import com.nemo.api.config.exception.BadCredentialsException;
 import com.nemo.api.config.exception.ResourceNotFoundException;
+import com.nemo.api.model.PerguntaSeguranca;
 import com.nemo.api.model.TipoAcesso;
 import com.nemo.api.model.UsuarioSistema;
+import com.nemo.api.repository.PerguntaSegurancaRepository;
 import com.nemo.api.repository.TipoAcessoRepository;
 import com.nemo.api.repository.UsuarioSistemaRepository;
 import com.nemo.api.repository.UsuarioDestinoRepository;
@@ -22,6 +24,7 @@ public class AuthService {
     private final UsuarioSistemaRepository repository;
     private final TipoAcessoRepository tipoAcessoRepository;
     private final UsuarioDestinoRepository usuarioDestinoRepository;
+    private final PerguntaSegurancaRepository perguntaSegurancaRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -121,7 +124,9 @@ public class AuthService {
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
                     u.getPrimeiroAcesso(),
-                    u.getUltimoLogin()
+                    u.getUltimoLogin(),
+                    u.getIdPergunta1(),
+                    u.getIdPergunta2()
             );
         }
 
@@ -134,7 +139,9 @@ public class AuthService {
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
                     u.getPrimeiroAcesso(),
-                    u.getUltimoLogin()
+                    u.getUltimoLogin(),
+                    u.getIdPergunta1(),
+                    u.getIdPergunta2()
             );
         }
 
@@ -158,7 +165,9 @@ public class AuthService {
                 u.getEmail(),
                 u.getTipoAcesso().getTipoAcesso(),
                 u.getPrimeiroAcesso(),
-                u.getUltimoLogin()
+                u.getUltimoLogin(),
+                u.getIdPergunta1(),
+                u.getIdPergunta2()
         )));
 
         usuarioDestinoRepository.findAll().forEach(u -> todos.add(new UsuarioDTO(
@@ -167,7 +176,9 @@ public class AuthService {
                 u.getEmail(),
                 u.getTipoAcesso().getTipoAcesso(),
                 u.getPrimeiroAcesso(),
-                u.getUltimoLogin()
+                u.getUltimoLogin(),
+                u.getIdPergunta1(),
+                u.getIdPergunta2()
         )));
 
         return todos;
@@ -224,7 +235,9 @@ public class AuthService {
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
                     u.getPrimeiroAcesso(),
-                    u.getUltimoLogin()
+                    u.getUltimoLogin(),
+                    u.getIdPergunta1(),
+                    u.getIdPergunta2()
             );
         }
 
@@ -247,7 +260,9 @@ public class AuthService {
                     u.getEmail(),
                     u.getTipoAcesso().getTipoAcesso(),
                     u.getPrimeiroAcesso(),
-                    u.getUltimoLogin()
+                    u.getUltimoLogin(),
+                    u.getIdPergunta1(),
+                    u.getIdPergunta2()
             );
         }
 
@@ -256,6 +271,65 @@ public class AuthService {
 
     public List<TipoAcesso> listarTiposAcesso() {
         return tipoAcessoRepository.findAll();
+    }
+
+    public List<PerguntaSegurancaDTO> listarPerguntasSeguranca() {
+        return perguntaSegurancaRepository
+                .findAllByOrderByGrupoAscIdPerguntaAsc()
+                .stream()
+                .map(p -> new PerguntaSegurancaDTO(p.getIdPergunta(), p.getTexto(), p.getGrupo()))
+                .toList();
+    }
+
+    public void atualizarPerguntasSeguranca(PerguntasSegurancaRequest request, String token) {
+        if (request.idPergunta1() == null || request.idPergunta2() == null) {
+            throw new BadCredentialsException("As duas perguntas precisam ser selecionadas");
+        }
+        if (request.resposta1() == null || request.resposta1().isBlank()
+                || request.resposta2() == null || request.resposta2().isBlank()) {
+            throw new BadCredentialsException("As duas respostas precisam ser preenchidas");
+        }
+
+        PerguntaSeguranca p1 = perguntaSegurancaRepository.findById(request.idPergunta1())
+                .orElseThrow(() -> new ResourceNotFoundException("Pergunta 1 não encontrada"));
+        PerguntaSeguranca p2 = perguntaSegurancaRepository.findById(request.idPergunta2())
+                .orElseThrow(() -> new ResourceNotFoundException("Pergunta 2 não encontrada"));
+
+        if (p1.getGrupo() != 1) {
+            throw new BadCredentialsException("Pergunta 1 inválida (deve ser do grupo 1)");
+        }
+        if (p2.getGrupo() != 2) {
+            throw new BadCredentialsException("Pergunta 2 inválida (deve ser do grupo 2)");
+        }
+
+        String hash1 = passwordEncoder.encode(request.resposta1().trim().toLowerCase());
+        String hash2 = passwordEncoder.encode(request.resposta2().trim().toLowerCase());
+
+        String email = jwtService.extractEmail(token);
+
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            u.setIdPergunta1(p1.getIdPergunta());
+            u.setRespostaHash1(hash1);
+            u.setIdPergunta2(p2.getIdPergunta());
+            u.setRespostaHash2(hash2);
+            repository.save(u);
+            return;
+        }
+
+        var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+        if (usuarioDestino.isPresent()) {
+            var u = usuarioDestino.get();
+            u.setIdPergunta1(p1.getIdPergunta());
+            u.setRespostaHash1(hash1);
+            u.setIdPergunta2(p2.getIdPergunta());
+            u.setRespostaHash2(hash2);
+            usuarioDestinoRepository.save(u);
+            return;
+        }
+
+        throw new ResourceNotFoundException("Usuário não encontrado");
     }
 }
 
