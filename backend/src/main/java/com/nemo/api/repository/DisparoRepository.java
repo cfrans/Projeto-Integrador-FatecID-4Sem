@@ -20,7 +20,7 @@ public interface DisparoRepository extends JpaRepository<Disparo, Integer> {
         FROM Disparo d
         WHERE d.dataEnvio >= :cutoff
         """)
-    Object[] resumoNoPeriodo(@Param("cutoff") LocalDateTime cutoff);
+    List<Object[]> resumoNoPeriodo(@Param("cutoff") LocalDateTime cutoff);
 
     @Query("""
         SELECT d.usuarioDestino.setor.nomeSetor,

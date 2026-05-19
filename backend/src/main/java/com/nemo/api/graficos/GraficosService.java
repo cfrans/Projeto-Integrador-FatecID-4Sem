@@ -51,7 +51,8 @@ public class GraficosService {
     }
 
     private DashboardDTO.Totais buildTotais(LocalDateTime cutoff) {
-        Object[] row = disparoRepository.resumoNoPeriodo(cutoff);
+        List<Object[]> rows = disparoRepository.resumoNoPeriodo(cutoff);
+        Object[] row = rows.isEmpty() ? new Object[]{0L, 0L, 0L, 0L} : rows.get(0);
         long total      = row[0] == null ? 0L : ((Number) row[0]).longValue();
         long cliques    = row[1] == null ? 0L : ((Number) row[1]).longValue();
         long reportes   = row[2] == null ? 0L : ((Number) row[2]).longValue();

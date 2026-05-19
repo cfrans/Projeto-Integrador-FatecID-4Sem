@@ -67,9 +67,9 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 **Funcionalidade**
 - [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
-- [ ] **Endpoint consolidado de gráficos** — estatísticas agregadas de todas as campanhas para alimentar o dashboard `/graphics` (hoje com dados mockados).
+- [x] **Endpoint consolidado de gráficos** — `GET /api/graficos/dashboard?periodo=7d|30d|6m|tudo` retorna totais, agregação por setor, evolução mensal e últimas campanhas, ligado ao dashboard `/graphics`.
 - [ ] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
-- [ ] **Módulo de treinamentos** — CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão em `treinamento_concluido` (impede ganho duplicado pelo mesmo curso).
+- [ ] **Módulo de treinamentos** — falta a tabela catálogo `treinamento` (id, código, título, descrição, conteúdo) com FK em `treinamento_concluido` substituindo o `codigo_curso` string. Em seguida, CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão (impede ganho duplicado pelo mesmo curso).
 - [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
 
 **Qualidade**
