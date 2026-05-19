@@ -118,12 +118,6 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      {erro && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm font-medium">{erro}</p>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 gap-6">
         <Card className="p-6 flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-6">
@@ -259,6 +253,13 @@ export default function SettingsPage() {
         title="Sucesso!"
         description={sucesso}
         variant="success"
+      />
+      <Modal
+        open={!!erro}
+        onClose={() => setErro('')}
+        title="Erro"
+        description={erro}
+        variant="error"
       />
     </div>
   )

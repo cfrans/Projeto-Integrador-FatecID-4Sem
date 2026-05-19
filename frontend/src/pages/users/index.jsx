@@ -71,6 +71,12 @@ function SortIcon({ col, sortCol, sortDir }) {
   return sortDir === "asc" ? <IconSortAsc /> : <IconSortDesc />;
 }
 
+function classeBadgePontuacao(pts) {
+  if (pts >= 700) return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+  if (pts >= 300) return "bg-amber-50 text-amber-700 border border-amber-200";
+  return "bg-rose-50 text-rose-700 border border-rose-200";
+}
+
 // ── Add/Edit Modal Form ───────────────────────────────────────────────────────
 const EMPTY_FORM = { matricula: "", nome: "", email: "", idSetor: "", idTipoAcesso: "2" };
 
@@ -737,7 +743,7 @@ export default function UsersPage() {
                         </td>
                         <td className="px-4 py-3 text-slate-500">{user.email}</td>
                         <td className="px-4 py-3 text-right">
-                          <span className="inline-flex min-w-9 items-center justify-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 border border-teal-200">
+                          <span className={`inline-flex min-w-9 items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${classeBadgePontuacao(user.pontuacao ?? 0)}`}>
                             {user.pontuacao ?? 0}
                           </span>
                         </td>

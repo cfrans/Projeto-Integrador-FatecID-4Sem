@@ -50,7 +50,7 @@ export default function ChangePasswordPage() {
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid gap-2">
               <Label htmlFor="senhaAtual">Senha atual</Label>
-              <Input id="senhaAtual" type="password" name="senhaAtual" minLength={5} required />
+              <Input id="senhaAtual" type="password" name="senhaAtual" required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="novaSenha">Nova senha</Label>
