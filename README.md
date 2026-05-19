@@ -73,8 +73,6 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
 
 **Qualidade**
-- [ ] **Simplificação de Migrations** — Simplificar e unificar os migrations do Flyway para facilitar a manutenção e o setup inicial.
-- [ ] **Geração de Mock Dinâmico** — Criar uma migration ou script para gerar disparos, pontuações e cliques aleatórios, permitindo uma análise de dados e visualização de gráficos mais realista durante o desenvolvimento.
 - [ ] Tornar a geração de tokens assíncrona (`@Async`) com endpoint de status.
 - [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
@@ -186,17 +184,15 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 
 | Migration | O que faz |
 |-----------|-----------|
-| `V1__create_schema.sql` | Cria todas as tabelas do banco |
+| `V1__create_schema.sql` | Cria todas as tabelas do banco (inclui `foto`, `ultimo_login`, `is_real` e `pontuacao_evento` já com baseline 500) |
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
 | `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
 | `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
-| `V5__insert_users_base.sql` | Insere 100 usuários alvo de teste (`usuario_destino`) |
-| `V6__add_foto_to_usuario_sistema.sql` | Adiciona coluna `foto` (LONGBLOB) em `usuario_sistema` |
-| `V7__create_pontuacao_evento.sql` | Cria tabela `pontuacao_evento` (histórico de eventos de pontuação) e altera baseline de `usuario_destino.pontuacao` para 500 |
-| `V8__add_ultimo_login_to_usuarios.sql` | Adiciona coluna `ultimo_login` em ambos os tipos de usuários |
-| `V9__add_is_real_to_usuario_destino.sql` | Adiciona flag `is_real` para diferenciar usuários mock de reais na apresentação |
+| `V5__insert_users_base.sql` | Insere 50 usuários alvo mock (`usuario_destino`, `is_real=FALSE`, senha = matrícula) |
+| `V6__add_perguntas_seguranca.sql` | Catálogo `pergunta_seguranca` (10 perguntas em 2 grupos) + colunas `id_pergunta_1/2` e `resposta_hash_1/2` em `usuario_destino` e `usuario_sistema` |
+| `V7__seed_dashboard.sql` | Popula 8 campanhas, ~400 disparos, eventos de pontuação e treinamentos para alimentar o dashboard com dados realistas |
 
-> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V5__descricao.sql`, `V6__descricao.sql`, e assim por diante.
+> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V8__descricao.sql`, `V9__descricao.sql`, e assim por diante.
 
 #### 5. Acesso inicial
 
@@ -328,7 +324,7 @@ nemo/
 │       │   └── repository/               # Spring Data repositories
 │       └── resources/
 │           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V9)
+│           └── db/migration/             # Migrations Flyway (V1..V7)
 └── frontend/
     └── src/
         ├── components/                   # UI base, navbar, branding, routing guards

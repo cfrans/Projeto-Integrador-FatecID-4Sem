@@ -1,2 +1,0 @@
-ALTER TABLE usuario_sistema
-ADD COLUMN foto LONGBLOB DEFAULT NULL;

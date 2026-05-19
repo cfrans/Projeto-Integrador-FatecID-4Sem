@@ -10,6 +10,8 @@ CREATE TABLE usuario_sistema (
     senha_hash         VARCHAR(255) NOT NULL,
     id_tipo_acesso     INT          NOT NULL,
     primeiro_acesso    BOOLEAN      DEFAULT TRUE,
+    foto               LONGBLOB     DEFAULT NULL,
+    ultimo_login       DATETIME     NULL,
     CONSTRAINT fk_tipo_acesso FOREIGN KEY (id_tipo_acesso) REFERENCES tipo_acesso (id_tipo_acesso)
 );
 
@@ -24,8 +26,10 @@ CREATE TABLE usuario_destino (
     nome               VARCHAR(100) NOT NULL,
     email              VARCHAR(100) NOT NULL UNIQUE,
     senha_hash         VARCHAR(255) NOT NULL,
-    pontuacao          INT          DEFAULT 0,
+    pontuacao          INT          DEFAULT 500,
     primeiro_acesso    BOOLEAN      DEFAULT TRUE,
+    ultimo_login       DATETIME     NULL,
+    is_real            BOOLEAN      DEFAULT FALSE,
     id_setor           INT          NOT NULL,
     id_tipo_acesso     INT          NOT NULL DEFAULT 2,
     CONSTRAINT fk_setor_destino    FOREIGN KEY (id_setor)         REFERENCES setor (id_setor),
@@ -85,3 +89,21 @@ CREATE TABLE treinamento_concluido (
     data_conclusao           DATETIME    DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_treinamento_usuario FOREIGN KEY (id_usuario_destino) REFERENCES usuario_destino (id_usuario_destino)
 );
+
+CREATE TABLE pontuacao_evento (
+    id_pontuacao_evento INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario_destino  INT          NOT NULL,
+    id_disparo          INT          NULL,
+    id_campanha         INT          NULL,
+    tipo_evento         VARCHAR(30)  NOT NULL,
+    delta               INT          NOT NULL,
+    saldo_apos          INT          NOT NULL,
+    referencia_externa  VARCHAR(100) NULL,
+    criado_em           DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_evento_usuario  FOREIGN KEY (id_usuario_destino) REFERENCES usuario_destino (id_usuario_destino),
+    CONSTRAINT fk_evento_disparo  FOREIGN KEY (id_disparo)         REFERENCES disparos (id_disparo),
+    CONSTRAINT fk_evento_campanha FOREIGN KEY (id_campanha)        REFERENCES campanha (id_campanha)
+);
+
+CREATE UNIQUE INDEX idx_evento_disparo_tipo ON pontuacao_evento (id_disparo, tipo_evento);
+CREATE INDEX idx_evento_usuario_data       ON pontuacao_evento (id_usuario_destino, criado_em);
