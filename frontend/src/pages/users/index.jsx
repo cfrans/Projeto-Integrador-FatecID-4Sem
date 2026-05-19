@@ -72,14 +72,17 @@ function SortIcon({ col, sortCol, sortDir }) {
 }
 
 // ── Add/Edit Modal Form ───────────────────────────────────────────────────────
-function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcesso }) {
-  const emptyForm = { matricula: "", nome: "", email: "", idSetor: "", idTipoAcesso: "2" };
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
+const EMPTY_FORM = { matricula: "", nome: "", email: "", idSetor: "", idTipoAcesso: "2" };
 
+function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcesso }) {
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving] = useState(false);
+
+  // Sincroniza o form com o usuario que esta sendo editado quando o modal abre.
   useEffect(() => {
     if (editingUser) {
       const tipo = tiposAcesso.find(t => t.tipoAcesso === editingUser.tipoAcesso);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         matricula: String(editingUser.matricula),
         nome: editingUser.nome,
@@ -88,7 +91,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
         idTipoAcesso: tipo ? String(tipo.idTipoAcesso) : "2",
       });
     } else {
-      setForm(emptyForm);
+      setForm(EMPTY_FORM);
     }
   }, [open, editingUser, tiposAcesso]);
 
@@ -175,7 +178,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
 
         <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
           <button
-            onClick={() => setForm(emptyForm)}
+            onClick={() => setForm(EMPTY_FORM)}
             className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
           >
             {/* Borracha */}
@@ -432,7 +435,9 @@ export default function UsersPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Carga inicial dos dados auxiliares e da lista de usuarios.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadUsers();
     api.get("/api/setores").then(setSetores).catch(() => {});
     api.get("/api/auth/tipos-acesso").then(setTiposAcesso).catch(() => {});

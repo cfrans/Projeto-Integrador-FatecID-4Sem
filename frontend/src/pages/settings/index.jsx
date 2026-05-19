@@ -18,24 +18,14 @@ export default function SettingsPage() {
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState('')
 
-  const [editMode, setEditMode] = useState(false)
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
 
-  const [mostrarTrocarSenha, setMostrarTrocarSenha] = useState(false)
   const [senhaAtual, setSenhaAtual] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
 
   const [usuarioInfo, setUsuarioInfo] = useState(null)
-
-  const [usuariosSistema, setUsuariosSistema] = useState([])
-  const [tiposAcesso, setTiposAcesso] = useState([])
-  const [searchUsuario, setSearchUsuario] = useState('')
-  const [paginaAtual, setPaginaAtual] = useState(1)
-  const [pageSize, setPageSize] = useState(5)
-  const [mostrarFiltros, setMostrarFiltros] = useState(false)
-  const [filtroRole, setFiltroRole] = useState('')
 
   const [confirmacaoRole, setConfirmacaoRole] = useState(null)
 
@@ -51,18 +41,12 @@ export default function SettingsPage() {
     }
   }, [user?.role])
 
-  useEffect(() => {
-    setPaginaAtual(1)
-  }, [searchUsuario])
-
   async function carregarDadosAdmin() {
     try {
-      const [resUsuarios, resTipos] = await Promise.all([
+      await Promise.all([
         api.get('/api/auth/usuarios'),
         api.get('/api/auth/tipos-acesso')
       ])
-      setUsuariosSistema(resUsuarios)
-      setTiposAcesso(resTipos)
     } catch (e) {
       console.error('Erro ao carregar dados admin:', e)
     }
@@ -80,34 +64,6 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const usuariosFiltrados = usuariosSistema.filter(u => {
-    const termo = searchUsuario.toLowerCase()
-    const matchesBusca = (u.nome && u.nome.toLowerCase().includes(termo)) || (u.email && u.email.toLowerCase().includes(termo))
-    
-    if (filtroRole && filtroRole !== 'todos') {
-      return matchesBusca && u.tipoAcesso === filtroRole
-    }
-    return matchesBusca
-  })
-
-  const totalUsuarios = usuariosFiltrados.length
-  const totalPaginas = Math.ceil(totalUsuarios / pageSize) || 1
-  const paginados = usuariosFiltrados.slice((paginaAtual - 1) * pageSize, paginaAtual * pageSize)
-
-  function solicitarAlteracaoRole(u, novoIdTipoAcesso) {
-    const tipoAtual = tiposAcesso.find(t => t.tipoAcesso === u.tipoAcesso)
-    if (tipoAtual && String(tipoAtual.idTipoAcesso) === String(novoIdTipoAcesso)) return
-
-    const tipoNovo = tiposAcesso.find(t => String(t.idTipoAcesso) === String(novoIdTipoAcesso))
-    if (!tipoNovo) return
-
-    setConfirmacaoRole({
-      usuario: u,
-      novoIdTipoAcesso: novoIdTipoAcesso,
-      nomeRole: tipoNovo.tipoAcesso
-    })
   }
 
   async function confirmarAlteracaoRole() {
@@ -158,7 +114,6 @@ export default function SettingsPage() {
       })
       setUsuarioInfo(dados)
       setSucesso('Perfil atualizado com sucesso!')
-      setEditMode(false)
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : 'Erro ao atualizar perfil')
     } finally {
@@ -169,41 +124,7 @@ export default function SettingsPage() {
   function handleCancelarEdicao() {
     setNome(usuarioInfo?.nome || '')
     setEmail(usuarioInfo?.email || '')
-    setEditMode(false)
     setErro('')
-  }
-
-  async function handleTrocarSenha(e) {
-    e.preventDefault()
-    setErro('')
-    setSucesso('')
-
-    if (novaSenha !== confirmarSenha) {
-      setErro('As senhas não coincidem')
-      return
-    }
-
-    if (novaSenha.length < 6) {
-      setErro('A nova senha deve ter no mínimo 6 caracteres')
-      return
-    }
-
-    try {
-      setLoading(true)
-      await api.put('/api/auth/trocar-senha', {
-        senhaAtual,
-        novaSenha,
-      })
-      setSucesso('Senha alterada com sucesso!')
-      setSenhaAtual('')
-      setNovaSenha('')
-      setConfirmarSenha('')
-      setMostrarTrocarSenha(false)
-    } catch (e) {
-      setErro(e instanceof ApiError ? e.message : 'Erro ao trocar senha')
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (

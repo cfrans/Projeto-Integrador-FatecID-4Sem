@@ -51,12 +51,13 @@ export default function AnimatedBackground({ children, interactive = true }) {
   const rafRef = useRef(null)
 
   /* ─── Parallax dos orbs ─── */
-  const animateOrbs = useCallback(() => {
+  // Funcao nomeada (tick) pra se auto-referenciar no rAF sem depender do binding externo.
+  const animateOrbs = useCallback(function tick() {
     if (!interactive) return;
 
     const m = mouseRef.current
     const c = currentRef.current
-    
+
     // Calcula a diferença para saber se precisamos continuar animando
     const diffX = Math.abs(c.x - m.x)
     const diffY = Math.abs(c.y - m.y)
@@ -65,16 +66,16 @@ export default function AnimatedBackground({ children, interactive = true }) {
     if (diffX > 0.001 || diffY > 0.001) {
       c.x = lerp(c.x, m.x, 0.04)
       c.y = lerp(c.y, m.y, 0.04)
-      
+
       const dx = (c.x - 0.5) * 60
       const dy = (c.y - 0.5) * 40
-      
+
       // Usa translate3d para forçar aceleração de hardware (GPU)
       if (orb1Ref.current) orb1Ref.current.style.transform = `translate3d(${dx * 0.8}px, ${dy * 0.8}px, 0)`
       if (orb2Ref.current) orb2Ref.current.style.transform = `translate3d(${-dx * 0.6}px, ${-dy * 0.6}px, 0)`
       if (orb3Ref.current) orb3Ref.current.style.transform = `translate3d(${dx * 1.2}px, ${dy * 1.0}px, 0)`
-      
-      rafRef.current = requestAnimationFrame(animateOrbs)
+
+      rafRef.current = requestAnimationFrame(tick)
     } else {
       rafRef.current = null; // Pausa o loop
     }

@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError } from "@/lib/api";
 
 ChartJS.register(
@@ -207,6 +208,9 @@ export default function Graphics() {
   const totais        = dados?.totais            ?? { campanhas: 0, usuarios: 0, percentualCliques: 0, percentualReportes: 0 };
   const evolucao      = dados?.evolucao          ?? [];
   const campanhas     = dados?.campanhasRecentes ?? [];
+
+  // Mostra skeleton so na primeira carga; em refreshes (filtro mudou) mantem dados antigos.
+  const skeleton = carregando && !dados;
 
   const cliquesSetor = {
     labels: totaisDados.map((s) => s.setor),
@@ -418,7 +422,11 @@ export default function Graphics() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{m.label}</p>
-                  <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">{carregando ? "…" : m.value}</p>
+                  {skeleton ? (
+                    <Skeleton className="mt-2 h-7 w-16" />
+                  ) : (
+                    <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">{m.value}</p>
+                  )}
                 </div>
                 <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${m.iconBg}`}>
                   <m.icon className={`size-5 ${m.iconColor}`} />
@@ -435,7 +443,7 @@ export default function Graphics() {
           <CardContent className="p-4">
             <p className="text-sm font-semibold text-slate-800 mb-4">Interações por setor</p>
             <div className="h-[280px]">
-              <Bar data={cliquesSetor} options={BAR_OPTIONS} />
+              {skeleton ? <Skeleton className="h-full w-full" /> : <Bar data={cliquesSetor} options={BAR_OPTIONS} />}
             </div>
           </CardContent>
         </Card>
@@ -444,13 +452,21 @@ export default function Graphics() {
           <CardContent className="p-4">
             <p className="text-sm font-semibold text-slate-800 mb-4">Distribuição de cliques</p>
             <div className="relative h-[280px]">
-              <Doughnut data={distribuicaoPizza} options={DOUGHNUT_OPTIONS} />
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
-                <p className="text-[10px] uppercase tracking-wide text-slate-500">Taxa de clique</p>
-                <p className="text-2xl font-bold text-slate-900 tabular-nums">
-                  {carregando ? "…" : `${totais.percentualCliques}%`}
-                </p>
-              </div>
+              {skeleton ? (
+                <div className="flex h-full items-center justify-center">
+                  <Skeleton className="size-44 rounded-full" />
+                </div>
+              ) : (
+                <>
+                  <Doughnut data={distribuicaoPizza} options={DOUGHNUT_OPTIONS} />
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Taxa de clique</p>
+                    <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                      {`${totais.percentualCliques}%`}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -460,7 +476,7 @@ export default function Graphics() {
         <CardContent className="p-4">
           <p className="text-sm font-semibold text-slate-800 mb-4">Evolução mensal</p>
           <div className="h-[280px]">
-            <Line data={evolucaoMensal} options={LINE_OPTIONS} />
+            {skeleton ? <Skeleton className="h-full w-full" /> : <Line data={evolucaoMensal} options={LINE_OPTIONS} />}
           </div>
         </CardContent>
       </Card>
@@ -471,7 +487,13 @@ export default function Graphics() {
             <p className="text-sm font-semibold text-slate-800">Taxa de clique por setor</p>
             <p className="text-[11px] text-slate-500">cliques ÷ disparos no período</p>
           </div>
-          {taxaPorSetorDados.length === 0 ? (
+          {skeleton ? (
+            <div className="space-y-2 py-2">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-5" style={{ width: `${90 - i * 15}%` }} />
+              ))}
+            </div>
+          ) : taxaPorSetorDados.length === 0 ? (
             <p className="py-10 text-center text-sm text-slate-500">Sem dados no período</p>
           ) : (
             <div style={{ height: Math.max(140, taxaPorSetorDados.length * 34 + 60) }}>
@@ -498,10 +520,20 @@ export default function Graphics() {
                 </tr>
               </thead>
               <tbody>
-                {campanhas.length === 0 && !carregando && (
+                {skeleton && [1, 2, 3, 4].map((i) => (
+                  <tr key={`sk-${i}`} className="border-t">
+                    <td className="p-2"><Skeleton className="h-4 w-10" /></td>
+                    <td className="p-2"><Skeleton className="h-4 w-40" /></td>
+                    <td className="p-2"><Skeleton className="mx-auto h-4 w-8" /></td>
+                    <td className="p-2"><Skeleton className="mx-auto h-4 w-8" /></td>
+                    <td className="p-2"><Skeleton className="mx-auto h-5 w-12 rounded-full" /></td>
+                    <td className="p-2"><Skeleton className="mx-auto h-4 w-8" /></td>
+                  </tr>
+                ))}
+                {!skeleton && campanhas.length === 0 && (
                   <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Sem campanhas no período</td></tr>
                 )}
-                {campanhas.map((c) => {
+                {!skeleton && campanhas.map((c) => {
                   const pct = c.alvos > 0 ? Math.round((c.cliques / c.alvos) * 100) : 0;
                   return (
                     <tr key={c.id} className="border-t">
