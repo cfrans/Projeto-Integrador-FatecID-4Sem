@@ -93,6 +93,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 **Funcionalidade — Painel Admin**
 - [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
 
+- [ ] **Página de Configurações para usuário destino** — a página `/settings` (trocar senha + perguntas de segurança) foi integrada ao backend usando o repositório de `UsuarioSistema`; quando um colaborador (`UsuarioDestino`) está logado as chamadas precisam ser roteadas para o repositório correto.
+
 **Funcionalidade — Portal do Colaborador**
 - [ ] **Página de Pontuação** (`/home` ou `/colaborador`) — card com saldo atual e gráfico de linha mostrando a evolução histórica da pontuação ao longo do tempo (alimentado pelo endpoint de histórico de eventos).
 - [ ] **Página de Treinamentos** (`/treinamentos`) — listagem dos módulos disponíveis com indicador de conclusão. Cada módulo abre uma tela com vídeo embedado (YouTube/Vimeo via `<iframe>`) seguido de um quiz de múltipla escolha. A conclusão do quiz envia o resultado ao backend e libera os pontos.
