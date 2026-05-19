@@ -78,6 +78,12 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
 - [ ] Documentação de API via springdoc-openapi (Swagger UI).
 
+**Padronização da arquitetura em camadas** (controller → service → repository → model)
+- [ ] **`HealthController` fora do padrão** — vive em `com.nemo.api.controller/` (estilo layer-based), enquanto todos os outros controllers ficam na pasta da própria feature. Mover para `com.nemo.api.health/` para alinhar com o resto.
+- [ ] **`SetorController` acessa `SetorRepository` direto** — pula a camada de service. Criar `SetorService` para isolar a montagem do DTO, mesmo que a regra hoje seja só `findAll() → map`.
+- [ ] **`TrackingController` com regra de domínio dentro** — injeta `DisparoRepository` e `PontuacaoService` direto, marca `clicouLink/abriuAnexo`, escolhe o redirect, monta HTML falso de 60+ linhas. Extrair tudo isso para um `TrackingService` (`registrarClique(token)` e `registrarAnexo(token)`); o controller fica só com a serialização HTTP.
+- [ ] **`SetorDTO` em pacote errado** — está em `com.nemo.api.campanha.SetorDTO` mas é usado tanto pelo `CampanhaController` quanto pelo `SetorController`. Mover para `com.nemo.api.setor/` (ou um pacote `dto/` compartilhado) para reduzir acoplamento entre features.
+
 ---
 
 #### Frontend
