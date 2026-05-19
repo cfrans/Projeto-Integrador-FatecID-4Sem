@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,6 +14,7 @@ import { Bar, Pie, Line } from "react-chartjs-2";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { api, ApiError } from "@/lib/api";
 
 ChartJS.register(
   CategoryScale,
@@ -29,64 +30,84 @@ ChartJS.register(
 const TEAL = "#1D9E75";
 const ORANGE = "#D85A30";
 const NAVY2 = "#1E3A5F";
+const PIE_COLORS = [ORANGE, TEAL, NAVY2, "#0F6E56", "#BA7517", "#888780"];
 
-/*AJUSTAR PRO BACK END*/
-const SETORES = ["Financeiro", "TI", "RH", "Comercial", "Marketing", "Diretoria"];
-
-/*AJUSTAR PRO BACK END*/
-const cliquesSetor = {
-  labels: SETORES,
-  datasets: [
-    { label: "Clicou", data: [14, 7, 11, 9, 8, 5], backgroundColor: ORANGE },
-    { label: "Anexo", data: [8, 4, 7, 5, 6, 3], backgroundColor: TEAL },
-    { label: "Reportou", data: [3, 9, 4, 2, 2, 4], backgroundColor: NAVY2 },
-  ],
-};
-/*AJUSTAR PRO BACK END*/
-const distribuicaoPizza = {
-  labels: SETORES,
-  datasets: [
-    {
-      data: [14, 7, 11, 9, 8, 5],
-      backgroundColor: [ORANGE, TEAL, NAVY2, "#0F6E56", "#BA7517", "#888780"],
-    },
-  ],
-};
-
-const evolucaoMensal = {
-  labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-  datasets: [
-    {
-      /*AJUSTAR PRO BACK END*/
-      label: "Cliques",
-      data: [22, 30, 18, 35, 28, 40],
-      borderColor: ORANGE,
-      backgroundColor: "rgba(216,90,48,0.1)",
-      fill: true,
-      tension: 0.4,
-    },
-    {
-      /*AJUSTAR PRO BACK END*/
-      label: "Reportes",
-      data: [5, 8, 12, 10, 15, 20],
-      borderColor: TEAL,
-      backgroundColor: "rgba(29,158,117,0.1)",
-      fill: true,
-      tension: 0.4,
-    },
-  ],
-};
-/*AJUSTAR PRO BACK END*/
-const campanhasRecentes = [
-  { data: "17/03", nome: "Modelo X", alvos: 100, cliques: 54, reportes: 12 },
-  { data: "10/03", nome: "Alerta Banco", alvos: 60, cliques: 28, reportes: 8 },
-  { data: "02/03", nome: "Reset TI", alvos: 40, cliques: 9, reportes: 16 },
+const PERIODOS = [
+  { label: "7 dias",  value: "7d"  },
+  { label: "30 dias", value: "30d" },
+  { label: "6 meses", value: "6m"  },
+  { label: "Tudo",    value: "tudo" },
 ];
 
-const PERIODOS = ["7 dias", "30 dias", "6 meses", "Tudo"];
-
 export default function Graphics() {
-  const [periodo, setPeriodo] = useState("30 dias");
+  const [periodo, setPeriodo] = useState("30d");
+  const [dados, setDados]     = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    let cancelado = false;
+    async function fetchDados() {
+      setCarregando(true);
+      setErro("");
+      try {
+        const res = await api.get(`/api/graficos/dashboard?periodo=${periodo}`);
+        if (!cancelado) setDados(res);
+      } catch (e) {
+        if (!cancelado) setErro(e instanceof ApiError ? e.message : "Erro ao carregar gráficos");
+      } finally {
+        if (!cancelado) setCarregando(false);
+      }
+    }
+    fetchDados();
+    return () => { cancelado = true; };
+  }, [periodo]);
+
+  const setores       = dados?.porSetor          ?? [];
+  const totais        = dados?.totais            ?? { campanhas: 0, usuarios: 0, percentualCliques: 0, percentualReportes: 0 };
+  const evolucao      = dados?.evolucao          ?? [];
+  const campanhas     = dados?.campanhasRecentes ?? [];
+
+  const cliquesSetor = {
+    labels: setores.map((s) => s.setor),
+    datasets: [
+      { label: "Clicou",   data: setores.map((s) => s.cliques),  backgroundColor: ORANGE },
+      { label: "Anexo",    data: setores.map((s) => s.anexos),   backgroundColor: TEAL   },
+      { label: "Reportou", data: setores.map((s) => s.reportes), backgroundColor: NAVY2  },
+    ],
+  };
+
+  const distribuicaoPizza = {
+    labels: setores.map((s) => s.setor),
+    datasets: [
+      {
+        data: setores.map((s) => s.cliques),
+        backgroundColor: PIE_COLORS,
+      },
+    ],
+  };
+
+  const evolucaoMensal = {
+    labels: evolucao.map((e) => e.label),
+    datasets: [
+      {
+        label: "Cliques",
+        data: evolucao.map((e) => e.cliques),
+        borderColor: ORANGE,
+        backgroundColor: "rgba(216,90,48,0.1)",
+        fill: true,
+        tension: 0.4,
+      },
+      {
+        label: "Reportes",
+        data: evolucao.map((e) => e.reportes),
+        borderColor: TEAL,
+        backgroundColor: "rgba(29,158,117,0.1)",
+        fill: true,
+        tension: 0.4,
+      },
+    ],
+  };
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
@@ -107,93 +128,80 @@ export default function Graphics() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {PERIODOS.map((p) => {
-            const ativo = periodo === p;
-
+            const ativo = periodo === p.value;
             return (
               <Button
-                key={p}
+                key={p.value}
                 size="sm"
                 className={`h-9 px-4 ${ativo
                     ? "bg-teal-600 hover:bg-teal-700 text-white"
                     : "bg-slate-200 hover:bg-slate-300 text-slate-700"
                   }`}
-                onClick={() => setPeriodo(p)}
+                onClick={() => setPeriodo(p.value)}
               >
-                {p}
+                {p.label}
               </Button>
             );
           })}
         </div>
       </div>
 
-    {/* Métricas - AJUSTAR PRO BACK END  */}
+      {erro && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700 text-sm font-medium">{erro}</p>
+        </div>
+      )}
+
+      {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Campanhas", value: "12" },
-          { label: "Usuários", value: "348" },
-          { label: "Cliques", value: "38%" },
-          { label: "Reportes", value: "14%" },
+          { label: "Campanhas", value: String(totais.campanhas) },
+          { label: "Usuários",  value: String(totais.usuarios)  },
+          { label: "Cliques",   value: `${totais.percentualCliques}%`  },
+          { label: "Reportes",  value: `${totais.percentualReportes}%` },
         ].map((m) => (
           <Card key={m.label}>
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">{m.label}</p>
-              <p className="text-2xl font-bold">{m.value}</p>
+              <p className="text-2xl font-bold">{carregando ? "…" : m.value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Gráficos */}
-      {/*AJUSTAR PRO BACK END  */}
       <div className="grid md:grid-cols-3 gap-4">
-
-        {/* Barras */}
         <Card className="md:col-span-2">
           <CardContent className="p-4">
-            <p className="text-sm font-semibold mb-4">
-              Interações por setor
-            </p>
+            <p className="text-sm font-semibold mb-4">Interações por setor</p>
             <div className="h-250px">
               <Bar data={cliquesSetor} />
             </div>
           </CardContent>
         </Card>
 
-        {/* Pizza */}
-        {/*AJUSTAR PRO BACK END  */}
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm font-semibold mb-4">
-              Distribuição
-            </p>
+            <p className="text-sm font-semibold mb-4">Distribuição de cliques</p>
             <div className="h-250px">
               <Pie data={distribuicaoPizza} />
             </div>
           </CardContent>
         </Card>
-
       </div>
 
-      {/* Linha */}
-      {/*AJUSTAR PRO BACK END  */}
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm font-semibold mb-4">
-            Evolução mensal
-          </p>
+          <p className="text-sm font-semibold mb-4">Evolução mensal</p>
           <div className="h-250px">
             <Line data={evolucaoMensal} />
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabela */}
-      {/*AJUSTAR PRO BACK END  */}
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm font-semibold mb-4">
-            Últimas campanhas
-          </p>
+          <p className="text-sm font-semibold mb-4">Últimas campanhas</p>
 
           <div className="overflow-auto">
             <table className="w-full text-sm">
@@ -208,14 +216,17 @@ export default function Graphics() {
                 </tr>
               </thead>
               <tbody>
-                {campanhasRecentes.map((c, i) => (
-                  <tr key={i} className="border-t">
-                    <td className="p-2">{c.data}</td>
+                {campanhas.length === 0 && !carregando && (
+                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Sem campanhas no período</td></tr>
+                )}
+                {campanhas.map((c) => (
+                  <tr key={c.id} className="border-t">
+                    <td className="p-2">{formatarData(c.data)}</td>
                     <td className="p-2">{c.nome}</td>
                     <td className="p-2 text-center">{c.alvos}</td>
                     <td className="p-2 text-center text-orange-500">{c.cliques}</td>
                     <td className="p-2 text-center">
-                      {Math.round((c.cliques / c.alvos) * 100)}%
+                      {c.alvos > 0 ? Math.round((c.cliques / c.alvos) * 100) : 0}%
                     </td>
                     <td className="p-2 text-center text-green-500">{c.reportes}</td>
                   </tr>
@@ -223,19 +234,25 @@ export default function Graphics() {
               </tbody>
             </table>
           </div>
-
         </CardContent>
       </Card>
-
     </div>
   );
 }
 
+function formatarData(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const dia = String(d.getDate()).padStart(2, "0");
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dia}/${mes}`;
+}
+
 function ChartBadgeIcon({ className }) {
   return (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="currentColor" 
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -249,7 +266,7 @@ function ChartBadgeIcon({ className }) {
           transform: scaleY(1.1);
           opacity: 0.9;
         }
-        
+
         .graphics-badge:hover .animate-chart-wave-1 { animation: chart-wave-down 0.6s ease-in-out forwards; }
         .graphics-badge:hover .animate-chart-wave-2 { animation: chart-wave-down 0.6s ease-in-out 0.1s forwards; }
         .graphics-badge:hover .animate-chart-wave-3 { animation: chart-wave-down 0.6s ease-in-out 0.2s forwards; }
