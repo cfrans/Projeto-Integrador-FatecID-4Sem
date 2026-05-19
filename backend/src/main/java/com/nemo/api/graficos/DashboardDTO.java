@@ -20,7 +20,8 @@ public record DashboardDTO(
             String setor,
             long cliques,
             long anexos,
-            long reportes
+            long reportes,
+            long disparos
     ) {}
 
     public record EvolucaoMes(

@@ -92,7 +92,7 @@ public class GraficosService {
         // Quando filtra por setor, so esse setor aparece. Senao, todos zerados como baseline.
         for (Setor s : setorRepository.findAll()) {
             if (idSetor == null || s.getIdSetor().equals(idSetor)) {
-                porSetor.put(s.getNomeSetor(), new long[]{0, 0, 0});
+                porSetor.put(s.getNomeSetor(), new long[]{0, 0, 0, 0});
             }
         }
 
@@ -101,12 +101,13 @@ public class GraficosService {
             long cliques    = row[1] == null ? 0 : ((Number) row[1]).longValue();
             long anexos     = row[2] == null ? 0 : ((Number) row[2]).longValue();
             long reportes   = row[3] == null ? 0 : ((Number) row[3]).longValue();
-            porSetor.put(nome, new long[]{cliques, anexos, reportes});
+            long disparos   = row[4] == null ? 0 : ((Number) row[4]).longValue();
+            porSetor.put(nome, new long[]{cliques, anexos, reportes, disparos});
         }
 
         List<DashboardDTO.SetorMetrica> out = new ArrayList<>();
         porSetor.forEach((nome, valores) ->
-                out.add(new DashboardDTO.SetorMetrica(nome, valores[0], valores[1], valores[2])));
+                out.add(new DashboardDTO.SetorMetrica(nome, valores[0], valores[1], valores[2], valores[3])));
         return out;
     }
 

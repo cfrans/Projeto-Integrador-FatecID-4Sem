@@ -32,7 +32,8 @@ public interface DisparoRepository extends JpaRepository<Disparo, Integer> {
         SELECT d.usuarioDestino.setor.nomeSetor,
                SUM(CASE WHEN d.clicouLink = TRUE THEN 1 ELSE 0 END),
                SUM(CASE WHEN d.abriuAnexo = TRUE THEN 1 ELSE 0 END),
-               SUM(CASE WHEN d.reportouPhishing = TRUE THEN 1 ELSE 0 END)
+               SUM(CASE WHEN d.reportouPhishing = TRUE THEN 1 ELSE 0 END),
+               COUNT(d)
         FROM Disparo d
         WHERE d.dataEnvio >= :inicio
           AND d.dataEnvio <  :fim

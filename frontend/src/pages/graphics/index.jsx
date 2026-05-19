@@ -9,8 +9,15 @@ import {
   PointElement,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
-import { Bar, Pie, Line } from "react-chartjs-2";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
+import {
+  MegaphoneIcon,
+  UsersIcon,
+  CursorArrowRippleIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/outline";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { FilterBar } from "@/components/ui/FilterBar";
@@ -33,13 +40,109 @@ ChartJS.register(
   LineElement,
   PointElement,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 const TEAL = "#1D9E75";
 const ORANGE = "#D85A30";
 const NAVY2 = "#1E3A5F";
+const AMBER = "#F59E0B";
 const PIE_COLORS = [ORANGE, TEAL, NAVY2, "#0F6E56", "#BA7517", "#888780"];
+
+const BASE_PLUGINS = {
+  legend: {
+    position: "bottom",
+    labels: {
+      usePointStyle: true,
+      pointStyle: "circle",
+      boxWidth: 8,
+      padding: 14,
+      color: "#475569",
+      font: { size: 11, family: "inherit", weight: "500" },
+    },
+  },
+  tooltip: {
+    backgroundColor: "#0F172A",
+    titleColor: "#FFFFFF",
+    bodyColor: "#E2E8F0",
+    padding: 10,
+    cornerRadius: 8,
+    displayColors: true,
+    usePointStyle: true,
+    boxPadding: 4,
+    titleFont: { size: 12, weight: "600" },
+    bodyFont: { size: 12 },
+  },
+};
+
+const BAR_OPTIONS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: BASE_PLUGINS,
+  scales: {
+    x: { grid: { display: false }, ticks: { color: "#64748B", font: { size: 11 } } },
+    y: { grid: { color: "#E2E8F0" }, ticks: { color: "#64748B", font: { size: 11 } }, beginAtZero: true },
+  },
+};
+
+const DOUGHNUT_OPTIONS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  cutout: "70%",
+  plugins: BASE_PLUGINS,
+};
+
+const LINE_OPTIONS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: BASE_PLUGINS,
+  scales: {
+    x: { grid: { display: false }, ticks: { color: "#64748B", font: { size: 11 } } },
+    y: { grid: { color: "#E2E8F0" }, ticks: { color: "#64748B", font: { size: 11 } }, beginAtZero: true },
+  },
+  elements: {
+    point: { radius: 3, hoverRadius: 6, borderWidth: 2, backgroundColor: "#FFFFFF" },
+    line: { borderWidth: 2 },
+  },
+};
+
+const TAXA_OPTIONS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  indexAxis: "y",
+  plugins: {
+    ...BASE_PLUGINS,
+    legend: { display: false },
+    tooltip: {
+      ...BASE_PLUGINS.tooltip,
+      callbacks: {
+        label: (ctx) => ` ${ctx.parsed.x.toFixed(1)}% de cliques`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      max: 100,
+      grid: { color: "#E2E8F0" },
+      ticks: { color: "#64748B", font: { size: 11 }, callback: (v) => `${v}%` },
+    },
+    y: { grid: { display: false }, ticks: { color: "#475569", font: { size: 11, weight: "500" } } },
+  },
+};
+
+function corPorTaxa(pct) {
+  if (pct < 15) return TEAL;
+  if (pct < 40) return AMBER;
+  return ORANGE;
+}
+
+function classeBadgePct(pct) {
+  if (pct < 15) return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
+  if (pct < 40) return "bg-amber-50 text-amber-700 ring-1 ring-amber-200";
+  return "bg-rose-50 text-rose-700 ring-1 ring-rose-200";
+}
 
 const PERIODOS = [
   { label: "Últimos 7 dias",  value: "7d"   },
@@ -108,9 +211,9 @@ export default function Graphics() {
   const cliquesSetor = {
     labels: totaisDados.map((s) => s.setor),
     datasets: [
-      { label: "Clicou",   data: totaisDados.map((s) => s.cliques),  backgroundColor: ORANGE },
-      { label: "Anexo",    data: totaisDados.map((s) => s.anexos),   backgroundColor: TEAL   },
-      { label: "Reportou", data: totaisDados.map((s) => s.reportes), backgroundColor: NAVY2  },
+      { label: "Clicou",   data: totaisDados.map((s) => s.cliques),  backgroundColor: ORANGE, borderRadius: 6, maxBarThickness: 28 },
+      { label: "Anexo",    data: totaisDados.map((s) => s.anexos),   backgroundColor: TEAL,   borderRadius: 6, maxBarThickness: 28 },
+      { label: "Reportou", data: totaisDados.map((s) => s.reportes), backgroundColor: NAVY2,  borderRadius: 6, maxBarThickness: 28 },
     ],
   };
 
@@ -120,6 +223,9 @@ export default function Graphics() {
       {
         data: totaisDados.map((s) => s.cliques),
         backgroundColor: PIE_COLORS,
+        borderColor: "#FFFFFF",
+        borderWidth: 2,
+        hoverOffset: 6,
       },
     ],
   };
@@ -131,17 +237,39 @@ export default function Graphics() {
         label: "Cliques",
         data: evolucao.map((e) => e.cliques),
         borderColor: ORANGE,
-        backgroundColor: "rgba(216,90,48,0.1)",
+        backgroundColor: "rgba(216,90,48,0.12)",
         fill: true,
         tension: 0.4,
+        pointBorderColor: ORANGE,
       },
       {
         label: "Reportes",
         data: evolucao.map((e) => e.reportes),
         borderColor: TEAL,
-        backgroundColor: "rgba(29,158,117,0.1)",
+        backgroundColor: "rgba(29,158,117,0.12)",
         fill: true,
         tension: 0.4,
+        pointBorderColor: TEAL,
+      },
+    ],
+  };
+
+  const taxaPorSetorDados = totaisDados
+    .map((s) => ({
+      setor: s.setor,
+      pct: s.disparos > 0 ? (s.cliques / s.disparos) * 100 : 0,
+    }))
+    .sort((a, b) => b.pct - a.pct);
+
+  const taxaCliquePorSetor = {
+    labels: taxaPorSetorDados.map((s) => s.setor),
+    datasets: [
+      {
+        label: "Taxa de clique",
+        data: taxaPorSetorDados.map((s) => s.pct),
+        backgroundColor: taxaPorSetorDados.map((s) => corPorTaxa(s.pct)),
+        borderRadius: 6,
+        barThickness: 18,
       },
     ],
   };
@@ -197,7 +325,9 @@ export default function Graphics() {
             onValueChange={(v) => { setPeriodo(v); setDataInicio(""); setDataFim(""); }}
           >
             <SelectTrigger className="h-9">
-              <SelectValue />
+              <SelectValue>
+                {PERIODOS.find((p) => p.value === periodo)?.label ?? ""}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {PERIODOS.map((p) => (
@@ -234,7 +364,9 @@ export default function Graphics() {
             onValueChange={(v) => setIdSetor(v === TODOS ? "" : v)}
           >
             <SelectTrigger className="h-9">
-              <SelectValue placeholder="Todos" />
+              <SelectValue placeholder="Todos">
+                {idSetor ? (setores.find((s) => String(s.idSetor) === idSetor)?.nomeSetor ?? "Todos") : "Todos"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={TODOS}>Todos</SelectItem>
@@ -252,7 +384,9 @@ export default function Graphics() {
             onValueChange={(v) => setIdModelo(v === TODOS ? "" : v)}
           >
             <SelectTrigger className="h-9">
-              <SelectValue placeholder="Todos" />
+              <SelectValue placeholder="Todos">
+                {idModelo ? (modelos.find((m) => String(m.idModelo) === idModelo)?.nomeModelo ?? "Todos") : "Todos"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={TODOS}>Todos</SelectItem>
@@ -273,15 +407,23 @@ export default function Graphics() {
       {/* Métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Campanhas", value: String(totais.campanhas) },
-          { label: "Usuários",  value: String(totais.usuarios)  },
-          { label: "Cliques",   value: `${totais.percentualCliques}%`  },
-          { label: "Reportes",  value: `${totais.percentualReportes}%` },
+          { label: "Campanhas", value: String(totais.campanhas),               icon: MegaphoneIcon,          accent: "bg-indigo-600",  iconBg: "bg-indigo-50",  iconColor: "text-indigo-600"  },
+          { label: "Usuários",  value: String(totais.usuarios),                icon: UsersIcon,              accent: "bg-sky-600",     iconBg: "bg-sky-50",     iconColor: "text-sky-600"     },
+          { label: "Cliques",   value: `${totais.percentualCliques}%`,         icon: CursorArrowRippleIcon,  accent: "bg-orange-500",  iconBg: "bg-orange-50",  iconColor: "text-orange-500"  },
+          { label: "Reportes",  value: `${totais.percentualReportes}%`,        icon: ShieldCheckIcon,        accent: "bg-emerald-600", iconBg: "bg-emerald-50", iconColor: "text-emerald-600" },
         ].map((m) => (
-          <Card key={m.label}>
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{m.label}</p>
-              <p className="text-2xl font-bold">{carregando ? "…" : m.value}</p>
+          <Card key={m.label} className="relative overflow-hidden">
+            <div className={`absolute top-0 left-0 h-full w-1 ${m.accent}`} />
+            <CardContent className="p-4 pl-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{m.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">{carregando ? "…" : m.value}</p>
+                </div>
+                <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${m.iconBg}`}>
+                  <m.icon className={`size-5 ${m.iconColor}`} />
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -291,18 +433,24 @@ export default function Graphics() {
       <div className="grid md:grid-cols-3 gap-4">
         <Card className="md:col-span-2">
           <CardContent className="p-4">
-            <p className="text-sm font-semibold mb-4">Interações por setor</p>
-            <div className="h-250px">
-              <Bar data={cliquesSetor} />
+            <p className="text-sm font-semibold text-slate-800 mb-4">Interações por setor</p>
+            <div className="h-[280px]">
+              <Bar data={cliquesSetor} options={BAR_OPTIONS} />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm font-semibold mb-4">Distribuição de cliques</p>
-            <div className="h-250px">
-              <Pie data={distribuicaoPizza} />
+            <p className="text-sm font-semibold text-slate-800 mb-4">Distribuição de cliques</p>
+            <div className="relative h-[280px]">
+              <Doughnut data={distribuicaoPizza} options={DOUGHNUT_OPTIONS} />
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
+                <p className="text-[10px] uppercase tracking-wide text-slate-500">Taxa de clique</p>
+                <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                  {carregando ? "…" : `${totais.percentualCliques}%`}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -310,10 +458,26 @@ export default function Graphics() {
 
       <Card>
         <CardContent className="p-4">
-          <p className="text-sm font-semibold mb-4">Evolução mensal</p>
-          <div className="h-250px">
-            <Line data={evolucaoMensal} />
+          <p className="text-sm font-semibold text-slate-800 mb-4">Evolução mensal</p>
+          <div className="h-[280px]">
+            <Line data={evolucaoMensal} options={LINE_OPTIONS} />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-baseline justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-800">Taxa de clique por setor</p>
+            <p className="text-[11px] text-slate-500">cliques ÷ disparos no período</p>
+          </div>
+          {taxaPorSetorDados.length === 0 ? (
+            <p className="py-10 text-center text-sm text-slate-500">Sem dados no período</p>
+          ) : (
+            <div style={{ height: Math.max(140, taxaPorSetorDados.length * 34 + 60) }}>
+              <Bar data={taxaCliquePorSetor} options={TAXA_OPTIONS} />
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -337,18 +501,23 @@ export default function Graphics() {
                 {campanhas.length === 0 && !carregando && (
                   <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Sem campanhas no período</td></tr>
                 )}
-                {campanhas.map((c) => (
-                  <tr key={c.id} className="border-t">
-                    <td className="p-2">{formatarData(c.data)}</td>
-                    <td className="p-2">{c.nome}</td>
-                    <td className="p-2 text-center">{c.alvos}</td>
-                    <td className="p-2 text-center text-orange-500">{c.cliques}</td>
-                    <td className="p-2 text-center">
-                      {c.alvos > 0 ? Math.round((c.cliques / c.alvos) * 100) : 0}%
-                    </td>
-                    <td className="p-2 text-center text-green-500">{c.reportes}</td>
-                  </tr>
-                ))}
+                {campanhas.map((c) => {
+                  const pct = c.alvos > 0 ? Math.round((c.cliques / c.alvos) * 100) : 0;
+                  return (
+                    <tr key={c.id} className="border-t">
+                      <td className="p-2">{formatarData(c.data)}</td>
+                      <td className="p-2">{c.nome}</td>
+                      <td className="p-2 text-center tabular-nums">{c.alvos}</td>
+                      <td className="p-2 text-center text-orange-500 tabular-nums">{c.cliques}</td>
+                      <td className="p-2 text-center">
+                        <span className={`inline-flex items-center justify-center min-w-[44px] rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${classeBadgePct(pct)}`}>
+                          {pct}%
+                        </span>
+                      </td>
+                      <td className="p-2 text-center text-green-500 tabular-nums">{c.reportes}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
