@@ -71,15 +71,24 @@ function SortIcon({ col, sortCol, sortDir }) {
   return sortDir === "asc" ? <IconSortAsc /> : <IconSortDesc />;
 }
 
-// ── Add/Edit Modal Form ───────────────────────────────────────────────────────
-function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcesso }) {
-  const emptyForm = { matricula: "", nome: "", email: "", idSetor: "", idTipoAcesso: "2" };
-  const [form, setForm] = useState(emptyForm);
-  const [saving, setSaving] = useState(false);
+function classeBadgePontuacao(pts) {
+  if (pts >= 700) return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+  if (pts >= 300) return "bg-amber-50 text-amber-700 border border-amber-200";
+  return "bg-rose-50 text-rose-700 border border-rose-200";
+}
 
+// ── Add/Edit Modal Form ───────────────────────────────────────────────────────
+const EMPTY_FORM = { matricula: "", nome: "", email: "", idSetor: "", idTipoAcesso: "2" };
+
+function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcesso }) {
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving] = useState(false);
+
+  // Sincroniza o form com o usuario que esta sendo editado quando o modal abre.
   useEffect(() => {
     if (editingUser) {
       const tipo = tiposAcesso.find(t => t.tipoAcesso === editingUser.tipoAcesso);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         matricula: String(editingUser.matricula),
         nome: editingUser.nome,
@@ -88,7 +97,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
         idTipoAcesso: tipo ? String(tipo.idTipoAcesso) : "2",
       });
     } else {
-      setForm(emptyForm);
+      setForm(EMPTY_FORM);
     }
   }, [open, editingUser, tiposAcesso]);
 
@@ -175,7 +184,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
 
         <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
           <button
-            onClick={() => setForm(emptyForm)}
+            onClick={() => setForm(EMPTY_FORM)}
             className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
           >
             {/* Borracha */}
@@ -432,7 +441,9 @@ export default function UsersPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Carga inicial dos dados auxiliares e da lista de usuarios.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadUsers();
     api.get("/api/setores").then(setSetores).catch(() => {});
     api.get("/api/auth/tipos-acesso").then(setTiposAcesso).catch(() => {});
@@ -732,7 +743,7 @@ export default function UsersPage() {
                         </td>
                         <td className="px-4 py-3 text-slate-500">{user.email}</td>
                         <td className="px-4 py-3 text-right">
-                          <span className="inline-flex min-w-9 items-center justify-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 border border-teal-200">
+                          <span className={`inline-flex min-w-9 items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${classeBadgePontuacao(user.pontuacao ?? 0)}`}>
                             {user.pontuacao ?? 0}
                           </span>
                         </td>

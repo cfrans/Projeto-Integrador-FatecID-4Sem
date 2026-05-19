@@ -19,9 +19,17 @@ public class UsuarioSistema {
     private Boolean primeiroAcesso;
     private java.time.LocalDateTime ultimoLogin;
 
-    @Lob
-    @Column(columnDefinition = "LONGBLOB")
-    private byte[] foto;
+    @Column(name = "id_pergunta_1")
+    private Integer idPergunta1;
+
+    @Column(name = "resposta_hash_1")
+    private String respostaHash1;
+
+    @Column(name = "id_pergunta_2")
+    private Integer idPergunta2;
+
+    @Column(name = "resposta_hash_2")
+    private String respostaHash2;
 
     @ManyToOne
     @JoinColumn(name = "id_tipo_acesso")

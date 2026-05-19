@@ -47,7 +47,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - 🎨 **UI Moderna:** Dashboards interativos, fundo animado com peixes (identidade visual Nemo) e design responsivo.
 - 📋 **Monitoramento:** Tela de acompanhamento de campanhas com filtros avançados e métricas por setor.
 - 👥 **Gestão de Alvos:** Importação massiva de usuários via CSV com relatório de processamento detalhado.
-- ⚙️ **Perfil:** Gerenciamento de fotos de perfil, troca de senha e controle de papéis (Admin/Colaborador).
+- ⚙️ **Perfil:** Troca de senha, perguntas de segurança e controle de papéis (Admin/Colaborador).
 
 **Gamificação & Rastreamento**
 - 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
@@ -67,9 +67,9 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 **Funcionalidade**
 - [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
-- [ ] **Endpoint consolidado de gráficos** — estatísticas agregadas de todas as campanhas para alimentar o dashboard `/graphics` (hoje com dados mockados).
+- [x] **Endpoint consolidado de gráficos** — `GET /api/graficos/dashboard?periodo=7d|30d|6m|tudo` retorna totais, agregação por setor, evolução mensal e últimas campanhas, ligado ao dashboard `/graphics`.
 - [ ] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
-- [ ] **Módulo de treinamentos** — CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão em `treinamento_concluido` (impede ganho duplicado pelo mesmo curso).
+- [ ] **Módulo de treinamentos** — falta a tabela catálogo `treinamento` (id, código, título, descrição, conteúdo) com FK em `treinamento_concluido` substituindo o `codigo_curso` string. Em seguida, CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão (impede ganho duplicado pelo mesmo curso).
 - [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
 
 **Qualidade**
@@ -77,6 +77,12 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
 - [ ] Documentação de API via springdoc-openapi (Swagger UI).
+
+**Padronização da arquitetura em camadas** (controller → service → repository → model)
+- [ ] **`HealthController` fora do padrão** — vive em `com.nemo.api.controller/` (estilo layer-based), enquanto todos os outros controllers ficam na pasta da própria feature. Mover para `com.nemo.api.health/` para alinhar com o resto.
+- [ ] **`SetorController` acessa `SetorRepository` direto** — pula a camada de service. Criar `SetorService` para isolar a montagem do DTO, mesmo que a regra hoje seja só `findAll() → map`.
+- [ ] **`TrackingController` com regra de domínio dentro** — injeta `DisparoRepository` e `PontuacaoService` direto, marca `clicouLink/abriuAnexo`, escolhe o redirect, monta HTML falso de 60+ linhas. Extrair tudo isso para um `TrackingService` (`registrarClique(token)` e `registrarAnexo(token)`); o controller fica só com a serialização HTTP.
+- [ ] **`SetorDTO` em pacote errado** — está em `com.nemo.api.campanha.SetorDTO` mas é usado tanto pelo `CampanhaController` quanto pelo `SetorController`. Mover para `com.nemo.api.setor/` (ou um pacote `dto/` compartilhado) para reduzir acoplamento entre features.
 
 ---
 
@@ -86,6 +92,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [x] **Gerenciamento de usuários do sistema** — promover/rebaixar entre Admin ↔ Colaborador (UI integrada na página de Usuários).
 **Funcionalidade — Painel Admin**
 - [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
+
+- [ ] **Página de Configurações para usuário destino** — a página `/settings` (trocar senha + perguntas de segurança) foi integrada ao backend usando o repositório de `UsuarioSistema`; quando um colaborador (`UsuarioDestino`) está logado as chamadas precisam ser roteadas para o repositório correto.
 
 **Funcionalidade — Portal do Colaborador**
 - [ ] **Página de Pontuação** (`/home` ou `/colaborador`) — card com saldo atual e gráfico de linha mostrando a evolução histórica da pontuação ao longo do tempo (alimentado pelo endpoint de histórico de eventos).
@@ -184,17 +192,15 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 
 | Migration | O que faz |
 |-----------|-----------|
-| `V1__create_schema.sql` | Cria todas as tabelas do banco |
+| `V1__create_schema.sql` | Cria todas as tabelas do banco (inclui `ultimo_login`, `is_real` e `pontuacao_evento` já com baseline 500) |
 | `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
 | `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
 | `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
-| `V5__insert_users_base.sql` | Insere 100 usuários alvo de teste (`usuario_destino`) |
-| `V6__add_foto_to_usuario_sistema.sql` | Adiciona coluna `foto` (LONGBLOB) em `usuario_sistema` |
-| `V7__create_pontuacao_evento.sql` | Cria tabela `pontuacao_evento` (histórico de eventos de pontuação) e altera baseline de `usuario_destino.pontuacao` para 500 |
-| `V8__add_ultimo_login_to_usuarios.sql` | Adiciona coluna `ultimo_login` em ambos os tipos de usuários |
-| `V9__add_is_real_to_usuario_destino.sql` | Adiciona flag `is_real` para diferenciar usuários mock de reais na apresentação |
+| `V5__insert_users_base.sql` | Insere 50 usuários alvo mock (`usuario_destino`, `is_real=FALSE`, senha = matrícula) |
+| `V6__add_perguntas_seguranca.sql` | Catálogo `pergunta_seguranca` (10 perguntas em 2 grupos) + colunas `id_pergunta_1/2` e `resposta_hash_1/2` em `usuario_destino` e `usuario_sistema` |
+| `V7__seed_dashboard.sql` | Popula 8 campanhas, ~400 disparos, eventos de pontuação e treinamentos para alimentar o dashboard com dados realistas |
 
-> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V5__descricao.sql`, `V6__descricao.sql`, e assim por diante.
+> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V8__descricao.sql`, `V9__descricao.sql`, e assim por diante.
 
 #### 5. Acesso inicial
 
@@ -326,7 +332,7 @@ nemo/
 │       │   └── repository/               # Spring Data repositories
 │       └── resources/
 │           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V9)
+│           └── db/migration/             # Migrations Flyway (V1..V7)
 └── frontend/
     └── src/
         ├── components/                   # UI base, navbar, branding, routing guards
@@ -338,7 +344,7 @@ nemo/
         │   ├── campaigns/                # ✅ Criar campanha, listar, monitorar
         │   ├── models/                   # ✅ CRUD de modelos
         │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
-        │   ├── settings/                 # ✅ Perfil, senha e foto (gerenciamento de usuários pendente)
+        │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (gerenciamento de usuários pendente)
         │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
         │   ├── admin/                    # 🚧 placeholder
         │   └── home/                     # 🚧 placeholder (portal do colaborador)

@@ -747,9 +747,6 @@ export default function CampaignsPage() {
     catch { return new Set(); }
   });
 
-  const showModal = (title, description, variant = "error") =>
-    setModal({ open: true, title, description, variant });
-
   const loadCampanhas = useCallback(() => {
     api.get("/api/campanhas").then(setCampanhas).catch(() => setCampanhas([]));
   }, []);
