@@ -9,4 +9,5 @@ public interface UsuarioDestinoRepository extends JpaRepository<UsuarioDestino, 
     java.util.Optional<UsuarioDestino> findByEmail(String email);
     boolean existsByMatricula(Integer matricula);
     boolean existsByEmail(String email);
+    long countBySetor_IdSetor(Integer idSetor);
 }

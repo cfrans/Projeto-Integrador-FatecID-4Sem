@@ -13,7 +13,16 @@ import {
 import { Bar, Pie, Line } from "react-chartjs-2";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { FilterBar } from "@/components/ui/FilterBar";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api, ApiError } from "@/lib/api";
 
 ChartJS.register(
@@ -33,25 +42,53 @@ const NAVY2 = "#1E3A5F";
 const PIE_COLORS = [ORANGE, TEAL, NAVY2, "#0F6E56", "#BA7517", "#888780"];
 
 const PERIODOS = [
-  { label: "7 dias",  value: "7d"  },
-  { label: "30 dias", value: "30d" },
-  { label: "6 meses", value: "6m"  },
-  { label: "Tudo",    value: "tudo" },
+  { label: "Últimos 7 dias",  value: "7d"   },
+  { label: "Últimos 30 dias", value: "30d"  },
+  { label: "Últimos 6 meses", value: "6m"   },
+  { label: "Tudo",            value: "tudo" },
 ];
 
-export default function Graphics() {
-  const [periodo, setPeriodo] = useState("30d");
-  const [dados, setDados]     = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState("");
+const DEFAULT_PERIODO = "30d";
+const TODOS = "__todos__";
 
+export default function Graphics() {
+  // Filtros
+  const [periodo, setPeriodo]       = useState(DEFAULT_PERIODO);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim]       = useState("");
+  const [idSetor, setIdSetor]       = useState("");
+  const [idModelo, setIdModelo]     = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  // Catalogos pros selects
+  const [setores, setSetores] = useState([]);
+  const [modelos, setModelos] = useState([]);
+
+  // Dados do dashboard
+  const [dados, setDados]           = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro]             = useState("");
+
+  // Carrega catalogos uma vez
+  useEffect(() => {
+    api.get("/api/setores").then(setSetores).catch(() => setSetores([]));
+    api.get("/api/modelos").then(setModelos).catch(() => setModelos([]));
+  }, []);
+
+  // Busca dashboard sempre que algum filtro mudar
   useEffect(() => {
     let cancelado = false;
     async function fetchDados() {
       setCarregando(true);
       setErro("");
       try {
-        const res = await api.get(`/api/graficos/dashboard?periodo=${periodo}`);
+        const params = new URLSearchParams();
+        params.set("periodo", periodo);
+        if (dataInicio) params.set("dataInicio", dataInicio);
+        if (dataFim)    params.set("dataFim",    dataFim);
+        if (idSetor)    params.set("idSetor",    idSetor);
+        if (idModelo)   params.set("idModelo",   idModelo);
+        const res = await api.get(`/api/graficos/dashboard?${params.toString()}`);
         if (!cancelado) setDados(res);
       } catch (e) {
         if (!cancelado) setErro(e instanceof ApiError ? e.message : "Erro ao carregar gráficos");
@@ -61,27 +98,27 @@ export default function Graphics() {
     }
     fetchDados();
     return () => { cancelado = true; };
-  }, [periodo]);
+  }, [periodo, dataInicio, dataFim, idSetor, idModelo]);
 
-  const setores       = dados?.porSetor          ?? [];
+  const totaisDados   = dados?.porSetor          ?? [];
   const totais        = dados?.totais            ?? { campanhas: 0, usuarios: 0, percentualCliques: 0, percentualReportes: 0 };
   const evolucao      = dados?.evolucao          ?? [];
   const campanhas     = dados?.campanhasRecentes ?? [];
 
   const cliquesSetor = {
-    labels: setores.map((s) => s.setor),
+    labels: totaisDados.map((s) => s.setor),
     datasets: [
-      { label: "Clicou",   data: setores.map((s) => s.cliques),  backgroundColor: ORANGE },
-      { label: "Anexo",    data: setores.map((s) => s.anexos),   backgroundColor: TEAL   },
-      { label: "Reportou", data: setores.map((s) => s.reportes), backgroundColor: NAVY2  },
+      { label: "Clicou",   data: totaisDados.map((s) => s.cliques),  backgroundColor: ORANGE },
+      { label: "Anexo",    data: totaisDados.map((s) => s.anexos),   backgroundColor: TEAL   },
+      { label: "Reportou", data: totaisDados.map((s) => s.reportes), backgroundColor: NAVY2  },
     ],
   };
 
   const distribuicaoPizza = {
-    labels: setores.map((s) => s.setor),
+    labels: totaisDados.map((s) => s.setor),
     datasets: [
       {
-        data: setores.map((s) => s.cliques),
+        data: totaisDados.map((s) => s.cliques),
         backgroundColor: PIE_COLORS,
       },
     ],
@@ -109,42 +146,123 @@ export default function Graphics() {
     ],
   };
 
+  // Filtros considerados "ativos" para badge da FilterBar
+  const filtrosAtivos = [
+    periodo !== DEFAULT_PERIODO,
+    !!dataInicio,
+    !!dataFim,
+    !!idSetor,
+    !!idModelo,
+  ].filter(Boolean).length;
+
+  const hasActiveFilters = filtrosAtivos > 0;
+
+  function limparFiltros() {
+    setPeriodo(DEFAULT_PERIODO);
+    setDataInicio("");
+    setDataFim("");
+    setIdSetor("");
+    setIdModelo("");
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
 
       {/* Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="graphics-badge flex items-center justify-center size-12 rounded-xl bg-indigo-700 shrink-0 cursor-default shadow-sm overflow-hidden">
-            <ChartBadgeIcon className="size-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Gráficos</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Análise detalhada das campanhas e métricas de desempenho.
-            </p>
-          </div>
+      <div className="flex items-center gap-3 mb-2">
+        <div className="graphics-badge flex items-center justify-center size-12 rounded-xl bg-indigo-700 shrink-0 cursor-default shadow-sm overflow-hidden">
+          <ChartBadgeIcon className="size-8 text-white" />
         </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {PERIODOS.map((p) => {
-            const ativo = periodo === p.value;
-            return (
-              <Button
-                key={p.value}
-                size="sm"
-                className={`h-9 px-4 ${ativo
-                    ? "bg-teal-600 hover:bg-teal-700 text-white"
-                    : "bg-slate-200 hover:bg-slate-300 text-slate-700"
-                  }`}
-                onClick={() => setPeriodo(p.value)}
-              >
-                {p.label}
-              </Button>
-            );
-          })}
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Gráficos</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Análise detalhada das campanhas e métricas de desempenho.
+          </p>
         </div>
       </div>
+
+      {/* Filtros */}
+      <FilterBar
+        label="Filtrar dashboard"
+        isOpen={filterOpen}
+        onToggle={() => setFilterOpen((v) => !v)}
+        isActive={hasActiveFilters}
+        activeCount={filtrosAtivos}
+        onClear={limparFiltros}
+      >
+        <Field className="w-auto shrink-0 min-w-44">
+          <FieldLabel className="text-xs text-slate-500">Período</FieldLabel>
+          <Select
+            value={periodo}
+            onValueChange={(v) => { setPeriodo(v); setDataInicio(""); setDataFim(""); }}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PERIODOS.map((p) => (
+                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field className="w-auto shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Data início</FieldLabel>
+          <Input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="h-9 w-40"
+          />
+        </Field>
+
+        <Field className="w-auto shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Data fim</FieldLabel>
+          <Input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="h-9 w-40"
+          />
+        </Field>
+
+        <Field className="w-auto shrink-0 min-w-40">
+          <FieldLabel className="text-xs text-slate-500">Setor</FieldLabel>
+          <Select
+            value={idSetor || TODOS}
+            onValueChange={(v) => setIdSetor(v === TODOS ? "" : v)}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TODOS}>Todos</SelectItem>
+              {setores.map((s) => (
+                <SelectItem key={s.idSetor} value={String(s.idSetor)}>{s.nomeSetor}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field className="w-auto shrink-0 min-w-48">
+          <FieldLabel className="text-xs text-slate-500">Modelo</FieldLabel>
+          <Select
+            value={idModelo || TODOS}
+            onValueChange={(v) => setIdModelo(v === TODOS ? "" : v)}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TODOS}>Todos</SelectItem>
+              {modelos.map((m) => (
+                <SelectItem key={m.idModelo} value={String(m.idModelo)}>{m.nomeModelo}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </FilterBar>
 
       {erro && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
