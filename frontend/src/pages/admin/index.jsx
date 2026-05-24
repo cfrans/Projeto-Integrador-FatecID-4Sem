@@ -51,11 +51,8 @@ export default function AdminPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 opacity-90" />
         
         {/* Decoração lateral direita (Escudo) */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-full hidden sm:flex items-center justify-end pr-8 pointer-events-none text-indigo-400 opacity-15">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-48">
-            <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 0 0-1.032 0 11.209 11.209 0 0 0-7.877 3.08.75.75 0 0 0-.222.515c0 4.148 2.062 8.784 5.92 11.666 1.488 1.11 3.23 2 5.095 2.665.41.147.85-.18.85-.623V2.171a.75.75 0 0 0-.222-.516z" clipRule="evenodd" />
-            <path fillRule="evenodd" d="M12.984 2.17a.75.75 0 0 1 1.032 0 11.209 11.209 0 0 1 7.877 3.08.75.75 0 0 1 .222.515c0 4.148-2.062 8.784-5.92 11.666-1.488 1.11-3.23 2-5.095 2.665-.41.147-.85-.18-.85-.623V2.171c0-.286.114-.56.317-.762z" clipRule="evenodd" />
-          </svg>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-full hidden sm:flex items-center justify-end pr-8 pointer-events-none">
+          <ShieldCheckIcon className="size-48 shrink-0 text-indigo-400 opacity-[0.15] -rotate-12" strokeWidth={1} />
         </div>
         
         <div className="relative p-6 sm:p-8 flex flex-col items-start gap-3 w-full sm:w-2/3">
@@ -66,7 +63,7 @@ export default function AdminPage() {
             </span>
             Painel Administrativo
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight flex flex-wrap gap-2">
+          <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight">
             Bem-vindo, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-sky-400">{primeiroNome}</span>!
           </h1>
           <p className="mt-2 text-indigo-100/80 text-sm sm:text-base leading-relaxed max-w-2xl">
