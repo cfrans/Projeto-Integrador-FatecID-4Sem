@@ -42,12 +42,20 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - ⚡ **Performance:** Geração de tokens ultrarrápida via Worker em C (multithread, algoritmos de hash DJB2).
 - 🔎 **Tracking:** Rastreamento de cliques e abertura de anexos com geração de arquivos "isca" *on-the-fly*.
 - 📊 **Gestão de Dados:** Migrations via Flyway, repositórios auditáveis e lógica de pontuação idempotente.
+- 📈 **Dashboard de Gráficos:** `GET /api/graficos/dashboard` integrado ao frontend — filtros por período, setor e modelo, sem dados mockados.
 
 **Interface & Experiência (React + Tailwind)**
 - 🎨 **UI Moderna:** Dashboards interativos, fundo animado com peixes (identidade visual Nemo) e design responsivo.
 - 📋 **Monitoramento:** Tela de acompanhamento de campanhas com filtros avançados e métricas por setor.
 - 👥 **Gestão de Alvos:** Importação massiva de usuários via CSV com relatório de processamento detalhado.
 - ⚙️ **Perfil:** Troca de senha, perguntas de segurança e controle de papéis (Admin/Colaborador).
+- 🔀 **Separação de perfis no frontend:** `AdminRoute` e `ColaboradorRoute` — rotas, menus e navegação completamente separados por `role` no JWT.
+
+**Portal do Colaborador**
+- 🏠 **Página inicial** (`/home`) — boas-vindas personalizado, cards de ação (Quiz, Conteúdos, Meu Desempenho) e dica de segurança do dia.
+- 🎓 **Conteúdos Educativos** (`/conteudos`) — 8 vídeos do YouTube embeddados, filtro por categoria (Phishing, Senhas, Redes Sociais, Corporativo), player integrado com thumbnail. **Hardcoded** (sem backend).
+- 🧠 **Quiz de Phishing** (`/quiz`) — quizzes interativos de múltipla escolha. **Hardcoded** (sem backend).
+- 📊 **Meu Desempenho** (`/meus-graficos`) — KPIs, gráfico de rosca e linha temporal. Tenta consumir `/relatorio/usuario/{id}`; cai em mock enquanto o endpoint não existe.
 
 **Gamificação & Rastreamento**
 - 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
@@ -90,14 +98,18 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 **Crítico (bloqueia o MVP)**
 - [x] **Gerenciamento de usuários do sistema** — promover/rebaixar entre Admin ↔ Colaborador (UI integrada na página de Usuários).
-**Funcionalidade — Painel Admin**
-- [ ] **Conectar dashboard de gráficos ao backend** — a página `/graphics` exibe os gráficos mas com dados mockados; aguarda endpoint consolidado de estatísticas.
+- [x] **Dashboard de gráficos integrado ao backend** — a página `/graphics` já consome `GET /api/graficos/dashboard` com filtros reais (período, setor, modelo). Sem dados mockados.
+- [x] **Login de colaborador com separação de rotas** — `ColaboradorRoute` valida `role` no JWT; menus e páginas são completamente diferentes dos do Admin.
 
-- [ ] **Página de Configurações para usuário destino** — a página `/settings` (trocar senha + perguntas de segurança) foi integrada ao backend usando o repositório de `UsuarioSistema`; quando um colaborador (`UsuarioDestino`) está logado as chamadas precisam ser roteadas para o repositório correto.
+**Funcionalidade — Painel Admin**
+- [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio (`EmailService`). **Bloqueia o MVP operacional.**
 
 **Funcionalidade — Portal do Colaborador**
-- [ ] **Página de Pontuação** (`/home` ou `/colaborador`) — card com saldo atual e gráfico de linha mostrando a evolução histórica da pontuação ao longo do tempo (alimentado pelo endpoint de histórico de eventos).
-- [ ] **Página de Treinamentos** (`/treinamentos`) — listagem dos módulos disponíveis com indicador de conclusão. Cada módulo abre uma tela com vídeo embedado (YouTube/Vimeo via `<iframe>`) seguido de um quiz de múltipla escolha. A conclusão do quiz envia o resultado ao backend e libera os pontos.
+- [x] **Endpoint de pontuação do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de `pontuacao_evento`. Integrado em `/meus-graficos` com mapeamento dos eventos reais.
+- [ ] **Página de Configurações para `UsuarioDestino`** — a página `/settings` já funciona para colaborador no backend (todos os endpoints de `trocar-senha`, `me` e `perguntas-seguranca` já tratam `UsuarioDestino`). Pendência: verificar UX (senha inicial do colaborador é a matrícula).
+
+**Treinamentos (prioridade menor — hardcoded é suficiente para apresentação)**
+- [ ] **Módulo de treinamentos no backend** — tabela `treinamento`, CRUD de quizzes (perguntas + alternativas + resposta correta), endpoint de conclusão com +50 pontos idempotente. Atualmente `/conteudos` e `/quiz` funcionam com dados hardcoded no frontend.
 
 ---
 

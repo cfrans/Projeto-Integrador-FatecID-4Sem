@@ -29,32 +29,32 @@ export default function AppRoutes() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/trocar-senha" element={<ChangePasswordPage />} />
 
-        {/* ── Rotas exclusivas do Admin ── */}
+        {/* ── Rotas Protegidas e com Layout ── */}
         <Route element={<PrivateRoute />}>
-          <Route element={<AdminRoute />}>
-            <Route element={<AppShellLayout />}>
+          <Route element={<AppShellLayout />}>
+            
+            {/* Rotas Compartilhadas */}
+            <Route path="/settings" element={<SettingsPage />} />
+
+            {/* ── Rotas exclusivas do Admin ── */}
+            <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/create" element={<CampaignsPage />} />
               <Route path="/graphics" element={<GraphicsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/models" element={<ModelsPage />} />
             </Route>
-          </Route>
-        </Route>
 
-        {/* ── Rotas exclusivas do Colaborador ── */}
-        <Route element={<PrivateRoute />}>
-          <Route element={<ColaboradorRoute />}>
-            <Route element={<AppShellLayout />}>
+            {/* ── Rotas exclusivas do Colaborador ── */}
+            <Route element={<ColaboradorRoute />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/conteudos" element={<ConteudosPage />} />
               <Route path="/meus-graficos" element={<MeusGraficosPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
             </Route>
+
           </Route>
         </Route>
 
