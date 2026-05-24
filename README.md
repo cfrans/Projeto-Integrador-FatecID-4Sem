@@ -52,10 +52,10 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - 🔀 **Separação de perfis no frontend:** `AdminRoute` e `ColaboradorRoute` — rotas, menus e navegação completamente separados por `role` no JWT.
 
 **Portal do Colaborador**
-- 🏠 **Página inicial** (`/home`) — boas-vindas personalizado, cards de ação (Quiz, Conteúdos, Meu Desempenho) e dica de segurança do dia.
+- 🏠 **Página inicial** (`/home`) — boas-vindas personalizado, velocímetro integrado, cards de ação (Quiz, Conteúdos, Meu Desempenho) e dica de segurança do dia.
 - 🎓 **Conteúdos Educativos** (`/conteudos`) — 8 vídeos do YouTube embeddados, filtro por categoria (Phishing, Senhas, Redes Sociais, Corporativo), player integrado com thumbnail. **Hardcoded** (sem backend).
 - 🧠 **Quiz de Phishing** (`/quiz`) — quizzes interativos de múltipla escolha. **Hardcoded** (sem backend).
-- 📊 **Meu Desempenho** (`/meus-graficos`) — KPIs, gráfico de rosca e linha temporal. Tenta consumir `/relatorio/usuario/{id}`; cai em mock enquanto o endpoint não existe.
+- 📊 **Meu Desempenho** (`/meus-graficos`) — KPIs, velocímetro dinâmico, gráficos com Chart.js. Consome `GET /api/colaborador/pontuacao` real, sem dados mockados.
 
 **Gamificação & Rastreamento**
 - 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
@@ -76,7 +76,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 **Funcionalidade**
 - [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
 - [x] **Endpoint consolidado de gráficos** — `GET /api/graficos/dashboard?periodo=7d|30d|6m|tudo` retorna totais, agregação por setor, evolução mensal e últimas campanhas, ligado ao dashboard `/graphics`.
-- [ ] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
+- [x] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
 - [ ] **Módulo de treinamentos** — falta a tabela catálogo `treinamento` (id, código, título, descrição, conteúdo) com FK em `treinamento_concluido` substituindo o `codigo_curso` string. Em seguida, CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão (impede ganho duplicado pelo mesmo curso).
 - [ ] **Recuperação de senha** — endpoint de reset para conectar ao fluxo de "Esqueci minha senha" do login.
 
@@ -106,7 +106,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 **Funcionalidade — Portal do Colaborador**
 - [x] **Endpoint de pontuação do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de `pontuacao_evento`. Integrado em `/meus-graficos` com mapeamento dos eventos reais.
-- [ ] **Página de Configurações para `UsuarioDestino`** — a página `/settings` já funciona para colaborador no backend (todos os endpoints de `trocar-senha`, `me` e `perguntas-seguranca` já tratam `UsuarioDestino`). Pendência: verificar UX (senha inicial do colaborador é a matrícula).
+- [x] **Página de Configurações para `UsuarioDestino`** — a página `/settings` já funciona para colaborador tanto no backend quanto no frontend de forma isolada do admin.
 
 **Treinamentos (prioridade menor — hardcoded é suficiente para apresentação)**
 - [ ] **Módulo de treinamentos no backend** — tabela `treinamento`, CRUD de quizzes (perguntas + alternativas + resposta correta), endpoint de conclusão com +50 pontos idempotente. Atualmente `/conteudos` e `/quiz` funcionam com dados hardcoded no frontend.
@@ -356,10 +356,10 @@ nemo/
         │   ├── campaigns/                # ✅ Criar campanha, listar, monitorar
         │   ├── models/                   # ✅ CRUD de modelos
         │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
-        │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (gerenciamento de usuários pendente)
+        │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (rota compartilhada)
         │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
-        │   ├── admin/                    # 🚧 placeholder
-        │   └── home/                     # 🚧 placeholder (portal do colaborador)
+        │   ├── admin/                    # 🚧 placeholder (portal admin)
+        │   └── home/                     # ✅ Portal do colaborador (Hero revamp, Velocímetro)
         └── routes/index.jsx              # Definição de rotas
 ```
 
