@@ -125,8 +125,12 @@ export default function LoginPage() {
                 <input className="h-4 w-4" id="keepConnected" type="checkbox" name="keepConnected" />
                 Manter sessão
               </Label>
-              <a className="font-bold text-teal-700 hover:underline" href="#" aria-label="Recuperar senha">
-                Esqueci minha senha (fazer ainda)
+              <a 
+                className="font-bold text-teal-700 hover:underline cursor-pointer" 
+                onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }} 
+                aria-label="Recuperar senha"
+              >
+                Esqueci minha senha
               </a>
             </div>
 

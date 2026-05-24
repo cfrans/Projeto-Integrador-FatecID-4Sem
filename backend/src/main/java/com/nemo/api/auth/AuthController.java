@@ -66,4 +66,15 @@ public class AuthController {
         authService.atualizarPerguntasSeguranca(request, authHeader.replace("Bearer ", ""));
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/recuperar-senha/perguntas")
+    public ResponseEntity<List<PerguntaSegurancaDTO>> buscarPerguntasUsuario(@RequestParam String email) {
+        return ResponseEntity.ok(authService.buscarPerguntasUsuario(email));
+    }
+
+    @PostMapping("/recuperar-senha")
+    public ResponseEntity<Void> recuperarSenha(@RequestBody RecuperarSenhaRequest request) {
+        authService.recuperarSenha(request);
+        return ResponseEntity.noContent().build();
+    }
 }

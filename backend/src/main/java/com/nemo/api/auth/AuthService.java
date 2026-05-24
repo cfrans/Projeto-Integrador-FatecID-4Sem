@@ -331,5 +331,76 @@ public class AuthService {
 
         throw new ResourceNotFoundException("Usuário não encontrado");
     }
-}
+    public List<PerguntaSegurancaDTO> buscarPerguntasUsuario(String email) {
+        Integer idPergunta1 = null;
+        Integer idPergunta2 = null;
 
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            idPergunta1 = usuarioSistema.get().getIdPergunta1();
+            idPergunta2 = usuarioSistema.get().getIdPergunta2();
+        } else {
+            var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+            if (usuarioDestino.isPresent()) {
+                idPergunta1 = usuarioDestino.get().getIdPergunta1();
+                idPergunta2 = usuarioDestino.get().getIdPergunta2();
+            } else {
+                throw new ResourceNotFoundException("Usuário não encontrado");
+            }
+        }
+
+        if (idPergunta1 == null || idPergunta2 == null) {
+            throw new BadCredentialsException("Usuário não configurou as perguntas de segurança");
+        }
+
+        PerguntaSeguranca p1 = perguntaSegurancaRepository.findById(idPergunta1).orElse(null);
+        PerguntaSeguranca p2 = perguntaSegurancaRepository.findById(idPergunta2).orElse(null);
+
+        if (p1 == null || p2 == null) {
+            throw new BadCredentialsException("Perguntas de segurança inválidas ou não encontradas");
+        }
+
+        return List.of(
+            new PerguntaSegurancaDTO(p1.getIdPergunta(), p1.getTexto(), p1.getGrupo()),
+            new PerguntaSegurancaDTO(p2.getIdPergunta(), p2.getTexto(), p2.getGrupo())
+        );
+    }
+
+    public void recuperarSenha(RecuperarSenhaRequest request) {
+        String email = request.email();
+        String resp1 = request.resposta1().trim().toLowerCase();
+        String resp2 = request.resposta2().trim().toLowerCase();
+
+        var usuarioSistema = repository.findByEmail(email);
+        if (usuarioSistema.isPresent()) {
+            var u = usuarioSistema.get();
+            if (u.getIdPergunta1() == null || u.getIdPergunta2() == null) {
+                throw new BadCredentialsException("Perguntas de segurança não configuradas");
+            }
+            if (!passwordEncoder.matches(resp1, u.getRespostaHash1()) || 
+                !passwordEncoder.matches(resp2, u.getRespostaHash2())) {
+                throw new BadCredentialsException("Respostas incorretas");
+            }
+            u.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+            repository.save(u);
+            return;
+        }
+
+        var usuarioDestino = usuarioDestinoRepository.findByEmail(email);
+        if (usuarioDestino.isPresent()) {
+            var u = usuarioDestino.get();
+            if (u.getIdPergunta1() == null || u.getIdPergunta2() == null) {
+                throw new BadCredentialsException("Perguntas de segurança não configuradas");
+            }
+            if (!passwordEncoder.matches(resp1, u.getRespostaHash1()) || 
+                !passwordEncoder.matches(resp2, u.getRespostaHash2())) {
+                throw new BadCredentialsException("Respostas incorretas");
+            }
+            u.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+            usuarioDestinoRepository.save(u);
+            return;
+        }
+
+        throw new ResourceNotFoundException("Usuário não encontrado");
+    }
+}
