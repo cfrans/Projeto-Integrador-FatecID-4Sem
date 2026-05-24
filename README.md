@@ -59,7 +59,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 **Gamificação & Rastreamento**
 - 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
-- 🛡️ **Conformidade:** Rastreamento via tokens únicos que mascaram Identidade (PII), respeitando a privacidade dos colaboradores.
+- 📈 **Métricas de Risco (Vulnerabilidade Geral):** Calculada dividindo o total de cliques pelo total de e-mails disparados (`(cliques / disparos) * 100`). É a principal KPI de gestão exibida no dashboard administrativo e nas análises gráficas.
+- 🎯 **Monitoramento de Interações:** Captura em tempo real via webhook (pixel de rastreamento falso injetado no HTML e rotas `/tracking/*`), garantindo a privacidade dos colaboradores.
 
 ### 🚧 Em construção / falta fazer
 
@@ -358,7 +359,7 @@ nemo/
         │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
         │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (rota compartilhada)
         │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
-        │   ├── admin/                    # 🚧 placeholder (portal admin)
+        │   ├── admin/                    # ✅ Dashboard administrativo (KPIs, atalhos, visão geral)
         │   └── home/                     # ✅ Portal do colaborador (Hero revamp, Velocímetro)
         └── routes/index.jsx              # Definição de rotas
 ```
