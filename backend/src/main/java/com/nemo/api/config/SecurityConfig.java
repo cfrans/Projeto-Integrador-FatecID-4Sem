@@ -34,6 +34,7 @@ public class SecurityConfig {
                                 "/api/usuarios-destino/**",
                                 "/api/graficos/**",
                                 "/api/colaborador/**",
+                                "/api/treinamentos/**",
                                 "/confirmar/**",
                                 "/doc/**",
                                 "/error",
