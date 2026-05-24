@@ -539,7 +539,7 @@ export default function Graphics() {
                 {!skeleton && campanhas.map((c) => {
                   const pct = c.alvos > 0 ? Math.round((c.cliques / c.alvos) * 100) : 0;
                   return (
-                    <tr key={c.id} className="border-t cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => navigate('/create')}>
+                    <tr key={c.id} className="border-t cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => navigate('/create', { state: { view: 'monitoring', campanhaId: c.id } })}>
                       <td className="p-2">{formatarData(c.data)}</td>
                       <td className="p-2 font-medium text-indigo-700 hover:underline">{c.nome}</td>
                       <td className="p-2 text-center tabular-nums">{c.alvos}</td>

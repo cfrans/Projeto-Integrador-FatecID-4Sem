@@ -1,12 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import logoNemo from "../../assets/logo-dark.png";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { Velocimetro } from "@/components/ui/velocimetro";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [pontos, setPontos] = useState(null);
 
-  const primeiroNome = user?.name?.split(" ")[0] || user?.sub || "Colaborador";
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const res = await api.get("/api/colaborador/pontuacao");
+        setPontos(res.saldoAtual ?? 500);
+      } catch {
+        setPontos(500);
+      }
+    }
+    carregar();
+  }, []);
+
+  const primeiroNome = user?.nome?.split(" ")[0] || "Colaborador";
 
   const acoes = [
     {
@@ -44,25 +59,52 @@ export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-5xl space-y-6 px-2 py-6">
 
-      {/* Hero */}
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row items-center gap-6">
-        <img
-          src={logoNemo}
-          alt="Logo NEMO"
-          className="h-auto w-[min(180px,40vw)] shrink-0"
-        />
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.06em] text-teal-700 mb-1">
-            Portal do Colaborador
-          </p>
-          <h1 className="text-2xl font-black text-slate-800 leading-tight">
-            Bem-vindo, {primeiroNome}!
-          </h1>
-          <p className="mt-2 text-slate-600 text-sm leading-relaxed max-w-[60ch]">
-            Esta plataforma foi criada para te ajudar a reconhecer e evitar ataques
-            de phishing. Use os recursos abaixo para treinar e acompanhar seu
-            progresso em segurança digital.
-          </p>
+      {/* Hero Revamp */}
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {/* Fundo decorativo sutil */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-teal-50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none" />
+        
+        <div className="relative p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 justify-between">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-600 mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+              </span>
+              Portal do Colaborador
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black text-slate-800 leading-tight tracking-tight">
+              Bem-vindo de volta,<br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-indigo-600">
+                {primeiroNome}
+              </span>!
+            </h1>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed">
+              O NEMO ajuda você a reconhecer e evitar ataques cibernéticos. 
+              Fique de olho na sua pontuação, reporte e-mails suspeitos e complete treinamentos para manter a segurança da nossa rede em dia.
+            </p>
+            <button
+              onClick={() => navigate("/meus-graficos")}
+              className="mt-6 px-5 py-2.5 bg-slate-900 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
+            >
+              Ver relatório completo
+            </button>
+          </div>
+
+          <div className="shrink-0 w-full md:w-auto flex justify-center">
+            {pontos === null ? (
+              <div className="w-[260px] h-[160px] flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 animate-pulse">
+                <span className="text-sm font-medium text-slate-400">Carregando métricas...</span>
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-5 flex flex-col items-center w-[260px]">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Seu índice atual</p>
+                <div className="-mx-4 w-[240px]">
+                  <Velocimetro saldo={pontos} />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

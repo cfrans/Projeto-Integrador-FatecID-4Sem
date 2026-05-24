@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -737,7 +738,8 @@ function MonitoringView({ campanha, onBack }) {
 const ARCHIVE_KEY = "nemo_archived_campaigns";
 
 export default function CampaignsPage() {
-  const [view, setView] = useState("list"); // "list" | "form" | "monitoring"
+  const location = useLocation();
+  const [view, setView] = useState(location.state?.view || "list"); // "list" | "form" | "monitoring"
   const [campanhas, setCampanhas] = useState([]);
   const [campanhaAtiva, setCampanhaAtiva] = useState(null);
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
@@ -748,8 +750,14 @@ export default function CampaignsPage() {
   });
 
   const loadCampanhas = useCallback(() => {
-    api.get("/api/campanhas").then(setCampanhas).catch(() => setCampanhas([]));
-  }, []);
+    api.get("/api/campanhas").then((data) => {
+      setCampanhas(data);
+      if (location.state?.campanhaId && location.state?.view === "monitoring") {
+        const found = data.find((c) => c.idCampanha === location.state.campanhaId);
+        if (found) setCampanhaAtiva(found);
+      }
+    }).catch(() => setCampanhas([]));
+  }, [location.state]);
 
   useEffect(() => { loadCampanhas(); }, [loadCampanhas]);
 
