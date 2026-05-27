@@ -100,7 +100,7 @@ function VideoModal({ video, progresso, onProgress, onClose, onConcluir }) {
         </div>
 
         {/* Footer / Conclusão */}
-        <div className="p-4 flex justify-between items-center bg-slate-800">
+        <div className="p-4 flex flex-wrap justify-between items-center gap-3 bg-slate-800">
           <div className="text-slate-300 text-sm font-medium">
             {video.concluido 
               ? '✅ Você já concluiu este treinamento.' 

@@ -121,7 +121,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
       <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transition-all duration-200 ${open ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {editingUser && <PencilIcon className="w-4 h-4 text-slate-400" />}
             <h2 className="text-lg font-semibold text-slate-800">
               {editingUser ? "Editar Usuário" : "Cadastro de Usuário"}
@@ -194,7 +194,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
             </svg>
             LIMPAR
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               disabled={saving}
@@ -277,7 +277,7 @@ function ImportModal({ open, onClose, onImported }) {
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
       <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transition-all duration-200 ${open ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <ArrowUpTrayIcon className="w-5 h-5 text-teal-600" />
             <h2 className="text-lg font-semibold text-slate-800">Importar Usuários</h2>
           </div>
@@ -627,7 +627,7 @@ export default function UsersPage() {
             <p className="mt-1 text-sm text-slate-600">Gerencie os colaboradores alvos das campanhas de phishing.</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
             <PlusIcon className="w-4 h-4 mr-1.5" />
             Adicionar
@@ -691,7 +691,7 @@ export default function UsersPage() {
       </FilterBar>
 
       {/* Table */}
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden min-w-0">
         {loading ? (
           <div className="flex items-center justify-center py-20 text-slate-400 text-sm gap-3">
             <svg className="animate-spin size-5 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

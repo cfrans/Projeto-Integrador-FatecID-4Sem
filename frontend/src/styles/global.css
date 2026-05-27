@@ -215,3 +215,14 @@
 .about-badge:hover .about-icon {
   animation: fishSwim 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* ── Responsividade: tabelas em mobile ───────────────────────────────────── */
+@layer base {
+  .overflow-x-auto table {
+    min-width: 600px;
+  }
+}
+
+/* ── xs breakpoint (320px) ────────────────────────────────────────────────── */
+@media (min-width: 360px) {
+  .xs\:inline { display: inline; }
+}

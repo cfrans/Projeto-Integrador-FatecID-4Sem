@@ -510,7 +510,7 @@ export default function Graphics() {
         <CardContent className="p-4">
           <p className="text-sm font-semibold mb-4">Últimas campanhas</p>
 
-          <div className="overflow-auto">
+          <div className="overflow-x-auto w-full">
             <table className="w-full text-sm">
               <thead className="text-muted-foreground text-xs">
                 <tr>
