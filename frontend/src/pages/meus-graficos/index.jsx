@@ -368,7 +368,7 @@ export default function MeusGraficosPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Field className="w-full sm:w-auto shrink-0 pr-4 sm:border-r border-slate-200">
               <FieldLabel className="text-xs text-slate-500">Filtros rápidos</FieldLabel>
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-wrap gap-2 mt-1">
                 <Button type="button" variant="outline" size="sm" onClick={() => aplicarPreset("30d")} className={getBtnClass("30d")}>30 dias</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => aplicarPreset("3m")}  className={getBtnClass("3m")}>3 meses</Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => aplicarPreset("6m")}  className={getBtnClass("6m")}>6 meses</Button>

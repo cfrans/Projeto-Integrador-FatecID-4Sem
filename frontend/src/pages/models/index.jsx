@@ -174,7 +174,7 @@ export default function ModelsPage() {
 
   const renderTable = () => (
     <div className="grid gap-4">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="envelope-badge flex items-center justify-center size-12 rounded-xl bg-violet-600 shrink-0 cursor-default">
             <EnvelopeIcon className="envelope-icon size-6 text-white" />

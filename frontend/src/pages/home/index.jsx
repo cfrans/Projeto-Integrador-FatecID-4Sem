@@ -91,7 +91,7 @@ export default function HomePage() {
             </button>
           </div>
 
-          <div className="shrink-0 w-full md:w-auto flex justify-center">
+          <div className="w-full md:w-auto flex justify-center">
             {pontos === null ? (
               <div className="w-[260px] h-[160px] flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 animate-pulse">
                 <span className="text-sm font-medium text-slate-400">Carregando métricas...</span>

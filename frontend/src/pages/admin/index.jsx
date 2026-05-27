@@ -55,7 +55,7 @@ export default function AdminPage() {
           <ShieldCheckIcon className="size-48 shrink-0 text-indigo-400 opacity-[0.15] -rotate-12" strokeWidth={1} />
         </div>
         
-        <div className="relative p-6 sm:p-8 flex flex-col items-start gap-3 w-full sm:w-2/3">
+        <div className="relative p-6 sm:p-8 flex flex-col items-start gap-3 w-full lg:w-2/3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-xs font-bold text-indigo-300 mb-1">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>

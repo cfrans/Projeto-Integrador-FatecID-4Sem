@@ -205,7 +205,7 @@ export default function SettingsPage() {
               <p className="text-sm text-slate-600">Defina uma nova senha de no mínimo 6 caracteres.</p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div className="grid gap-2">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Senha atual

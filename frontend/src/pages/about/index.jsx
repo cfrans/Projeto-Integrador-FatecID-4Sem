@@ -66,7 +66,7 @@ export default function AboutPage() {
 
       {/* Seção de Gamificação e Tracking */}
       <section className="mt-12 overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
-        <div className="grid md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="p-8 md:p-12 space-y-6">
             <h2 className="text-2xl font-bold flex items-center gap-3 text-cyan-400">
               <span className="flex size-8 items-center justify-center rounded-full bg-cyan-900/50 text-sm">🎮</span>

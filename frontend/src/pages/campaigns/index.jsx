@@ -164,7 +164,7 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
 
   return (
     <div className="grid gap-4">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="hook-badge flex items-center justify-center size-12 rounded-xl bg-orange-500 shrink-0 cursor-default">
             <IconHook className="hook-icon size-6 text-white" />
@@ -606,7 +606,7 @@ function MonitoringView({ campanha, onBack }) {
       </header>
 
       {/* Cards de estatística */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Total de alvos" value={totais.total} total={totais.total} color="slate" />
         <StatCard label="Clicaram no link" value={totais.clicouLink} total={totais.total} color="red" />
         <StatCard label="Abriram anexo" value={totais.abriuAnexo} total={totais.total} color="orange" />
