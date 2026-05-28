@@ -1,5 +1,6 @@
 package com.nemo.api.campanha;
 
+import com.nemo.api.setor.SetorDTO;
 import java.time.LocalDateTime;
 import java.util.List;
 

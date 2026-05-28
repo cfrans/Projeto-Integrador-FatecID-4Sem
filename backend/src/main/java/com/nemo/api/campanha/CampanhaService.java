@@ -6,6 +6,7 @@ import com.nemo.api.model.Campanha;
 import com.nemo.api.model.Disparo;
 import com.nemo.api.model.UsuarioDestino;
 import com.nemo.api.repository.*;
+import com.nemo.api.setor.SetorDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -196,44 +197,6 @@ public class CampanhaService {
         // 4. LIMPEZA: Excluir os CSVs temporários
         Files.deleteIfExists(arquivoTemp);
         Files.deleteIfExists(arquivoSaida);
-    }
-
-    // Método temporário para testar o C via PowerShell
-    public String testarWorkerC() throws Exception {
-        Integer idCampanha = 999;
-        Path tokensDir = Paths.get(csvDir).toAbsolutePath();
-        Files.createDirectories(tokensDir);
-
-        Path arquivoTemp  = tokensDir.resolve("alvos_temp_" + idCampanha + ".csv");
-        Path arquivoSaida = tokensDir.resolve("disparos_campanha_" + idCampanha + ".csv");
-
-        // 1. Gera um CSV falso com 2 usuários
-        try (PrintWriter writer = new PrintWriter(arquivoTemp.toFile())) {
-            writer.println("matricula,nome,email,departamento");
-            writer.println("1001,Caio,caio@fatec.edu.br,TI");
-            writer.println("1002,Professor,mome@fatec.edu.br,Diretoria");
-        }
-
-        // 2. Aciona o Worker
-        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-        String workerName = isWindows ? "gerador_tokens_worker.exe" : "gerador_tokens_worker";
-        Path workerPath = Paths.get(System.getProperty("user.dir"), "scripts", workerName).toAbsolutePath();
-
-        ProcessBuilder pb = new ProcessBuilder(
-                workerPath.toString(),
-                arquivoTemp.toString(),
-                String.valueOf(idCampanha));
-        pb.directory(tokensDir.toFile());
-        pb.inheritIO();
-        Process process = pb.start();
-
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            return "Erro! O C retornou o código: " + exitCode;
-        }
-
-        // Não vamos deletar os arquivos para você poder ver eles na sua pasta!
-        return "Sucesso! Verifique " + arquivoSaida + " — o worker gerou os tokens lá.";
     }
 
 }
