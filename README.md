@@ -179,6 +179,13 @@ logging:
 jwt:
   secret: nemo-jwt-secret-dev-apenas-local-nao-commitar
   expiration-ms: 86400000
+
+# Configuração do Listener IMAP (para capturar reportes de phishing)
+nemo:
+  imap:
+    enabled: false # Altere para true para ativar o Listener localmente
+    username: seu-email-abuse@gmail.com
+    password: sua-senha-de-aplicativo-de-16-digitos # Veja seção de configuração de Rastreamento abaixo
 ```
 
 > ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
@@ -307,6 +314,28 @@ O backend lerá o HTML do Modelo, substituirá `{{LINK_AQUI}}` pela URL contendo
 #### Como funciona a captura de denúncias (IMAP Listener)
 Para evitar a complexidade de subir contêineres separados de *SMTP-to-Webhook*, o Spring Boot possui uma thread em background (`@Scheduled`) que se conecta via protocolo **IMAP** diretamente à caixa de entrada do Gmail designada como *Abuse Inbox* (ex: `nemo.phishing.report@gmail.com`). 
 De 1 em 1 minuto, o serviço lê apenas as mensagens **Não Lidas**, utiliza expressões regulares (Regex) no corpo da mensagem para pescar a URL contendo o token de rastreamento do colaborador, registra o ganho de pontos e marca a mensagem como "Lida".
+
+##### ⚙️ Como configurar o IMAP Listener:
+1. **Ative o IMAP no Gmail**: 
+   * Acesse a conta de e-mail designada como *Abuse Inbox* (ex: `nemo.phishing.report@gmail.com`).
+   * Vá em **Configurações** (ícone de engrenagem) > **Ver todas as configurações**.
+   * Acesse a aba **Encaminhamento e POP/IMAP**.
+   * Na seção **Acesso IMAP**, selecione **Ativar IMAP** e salve as alterações.
+2. **Gere uma Senha de Aplicativo (App Password)**:
+   * Acesse a página de gerenciamento da sua **Conta Google**.
+   * Vá na aba **Segurança**.
+   * Certifique-se de que a **Verificação em duas etapas** está **Ativada** (obrigatório para liberar Senhas de Aplicativo).
+   * No campo de busca superior, digite **Senhas de aplicativo** (ou *App Passwords*).
+   * Crie uma nova senha de aplicativo, dê um nome identificável (ex: `Nemo IMAP Listener`) e copie o código de **16 caracteres** gerado.
+3. **Configure as credenciais no `application-local.yaml`**:
+   No seu arquivo local do backend, insira:
+   ```yaml
+   nemo:
+     imap:
+       enabled: true
+       username: seu-email-abuse@gmail.com
+       password: codigo-de-16-caracteres-sem-espacos
+   ```
 
 ### Gamificação
 
