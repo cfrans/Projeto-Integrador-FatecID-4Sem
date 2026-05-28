@@ -27,6 +27,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/health/**",
+                                "/api/tracking/**",
                                 "/api/auth/**",
                                 "/api/modelos/**",
                                 "/api/campanhas/**",

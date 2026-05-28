@@ -53,8 +53,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 **Portal do Colaborador**
 - 🏠 **Página inicial** (`/home`) — boas-vindas personalizado, velocímetro integrado, cards de ação (Quiz, Conteúdos, Meu Desempenho) e dica de segurança do dia.
-- 🎓 **Conteúdos Educativos** (`/conteudos`) — 8 vídeos do YouTube embeddados, filtro por categoria (Phishing, Senhas, Redes Sociais, Corporativo), player integrado com thumbnail. **Hardcoded** (sem backend).
-- 🧠 **Quiz de Phishing** (`/quiz`) — quizzes interativos de múltipla escolha. **Hardcoded** (sem backend).
+- 🎓 **Conteúdos Educativos** (`/conteudos`) — 8 vídeos do YouTube embeddados, filtro por categoria (Phishing, Senhas, Redes Sociais, Corporativo), player integrado com thumbnail.
+- 🧠 **Quiz de Phishing** (`/quiz`) — quizzes interativos de múltipla escolha. Integrado ao backend.
 - 📊 **Meu Desempenho** (`/meus-graficos`) — KPIs, velocímetro dinâmico, gráficos com Chart.js. Consome `GET /api/colaborador/pontuacao` real, sem dados mockados.
 
 **Gamificação & Rastreamento**
@@ -75,23 +75,24 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [x] **Lógica de pontuação** comportamental — `PontuacaoService` aplica penalidade por clique (−20) e abertura de anexo (−30) com idempotência por disparo, clamp em 0–1000 e histórico em `pontuacao_evento`. Falta integrar com o reporte (depende do SMTP-to-Webhook) e com a conclusão de treinamentos (depende do módulo de treinamentos).
 
 **Funcionalidade**
-- [ ] **SMTP-to-Webhook** para captura de reportes na *abuse inbox* — ferramentas mapeadas: [`alash3al/smtp2http`](https://github.com/alash3al/smtp2http) ou [`rnwood/smtp4dev`](https://github.com/rnwood/smtp4dev).
+- [x] **IMAP Listener nativo** para captura de reportes na *abuse inbox* — substitui ferramentas externas. Lê a caixa do Gmail de 1 em 1 minuto usando `jakarta.mail` (`spring-boot-starter-mail`).
 - [x] **Endpoint consolidado de gráficos** — `GET /api/graficos/dashboard?periodo=7d|30d|6m|tudo` retorna totais, agregação por setor, evolução mensal e últimas campanhas, ligado ao dashboard `/graphics`.
 - [x] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
-- [ ] **Módulo de treinamentos** — falta a tabela catálogo `treinamento` (id, código, título, descrição, conteúdo) com FK em `treinamento_concluido` substituindo o `codigo_curso` string. Em seguida, CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão (impede ganho duplicado pelo mesmo curso).
+- [x] **Módulo de treinamentos** — falta a tabela catálogo `treinamento` (id, código, título, descrição, conteúdo) com FK em `treinamento_concluido` substituindo o `codigo_curso` string. Em seguida, CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão (impede ganho duplicado pelo mesmo curso).
 - [x] **Recuperação de senha** — fluxo de "Esqueci minha senha" validado por Perguntas de Segurança integrado no portal e na API.
 
 **Qualidade**
-- [ ] Tornar a geração de tokens assíncrona (`@Async`) com endpoint de status.
-- [ ] Remover endpoint de debug `/api/campanhas/teste-worker` (adiado junto do filtro JWT, é útil em dev).
 - [ ] Suíte de testes (hoje só existe `contextLoads()`).
-- [ ] Documentação de API via springdoc-openapi (Swagger UI).
+- [x] Documentação de API via springdoc-openapi (Swagger UI).
+
+### 🚀 Melhorias Futuras (Escalabilidade)
+- **Geração Assíncrona de Tokens**: Atualmente o backend aguarda de forma síncrona o processamento do Worker em C. Para escalas maiores (>10.000 usuários), será ideal isolar a chamada ao executável em uma thread `@Async` e prover um endpoint de *polling* (`/status`) para o frontend acompanhar o progresso sem risco de timeout.
 
 **Padronização da arquitetura em camadas** (controller → service → repository → model)
-- [ ] **`HealthController` fora do padrão** — vive em `com.nemo.api.controller/` (estilo layer-based), enquanto todos os outros controllers ficam na pasta da própria feature. Mover para `com.nemo.api.health/` para alinhar com o resto.
-- [ ] **`SetorController` acessa `SetorRepository` direto** — pula a camada de service. Criar `SetorService` para isolar a montagem do DTO, mesmo que a regra hoje seja só `findAll() → map`.
-- [ ] **`TrackingController` com regra de domínio dentro** — injeta `DisparoRepository` e `PontuacaoService` direto, marca `clicouLink/abriuAnexo`, escolhe o redirect, monta HTML falso de 60+ linhas. Extrair tudo isso para um `TrackingService` (`registrarClique(token)` e `registrarAnexo(token)`); o controller fica só com a serialização HTTP.
-- [ ] **`SetorDTO` em pacote errado** — está em `com.nemo.api.campanha.SetorDTO` mas é usado tanto pelo `CampanhaController` quanto pelo `SetorController`. Mover para `com.nemo.api.setor/` (ou um pacote `dto/` compartilhado) para reduzir acoplamento entre features.
+- [x] **`HealthController` fora do padrão** — movido de `com.nemo.api.controller/` para `com.nemo.api.health/`, alinhado com o padrão package-by-feature.
+- [x] **`SetorController` acessa `SetorRepository` direto** — `SetorService` criado para intermediar o acesso ao repositório e encapsular o mapeamento para DTO.
+- [x] **`TrackingController` com regra de domínio dentro** — `TrackingService` extraído com `registrarClique(token)` e `registrarAnexo(token)`; o controller ficou com ~10 linhas, só serialização HTTP.
+- [x] **`SetorDTO` em pacote errado** — movido de `com.nemo.api.campanha` para `com.nemo.api.setor`; imports atualizados em `CampanhaDTO` e `CampanhaService`.
 
 ---
 
@@ -110,7 +111,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [x] **Página de Configurações para `UsuarioDestino`** — a página `/settings` já funciona para colaborador tanto no backend quanto no frontend de forma isolada do admin.
 
 **Treinamentos (prioridade menor — hardcoded é suficiente para apresentação)**
-- [ ] **Módulo de treinamentos no backend** — tabela `treinamento`, CRUD de quizzes (perguntas + alternativas + resposta correta), endpoint de conclusão com +50 pontos idempotente. Atualmente `/conteudos` e `/quiz` funcionam com dados hardcoded no frontend.
+- [x] **Módulo de treinamentos no backend** — tabela `treinamento`, CRUD de quizzes (perguntas + alternativas + resposta correta), endpoint de conclusão com +50 pontos idempotente. Atualmente `/conteudos` e `/quiz` funcionam com dados hardcoded no frontend.
 
 ---
 
@@ -138,8 +139,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - Worker em C (multithread, geração paralela de tokens com key stretching, algoritmo DJB2 modificado, estrutura de Lista Encadeada Simples com alocação dinâmica)
 
 **Envio de E-mails**
-- *(planejado)* SMTP via JavaMail
-- *(planejado)* Container SMTP-to-Webhook para captura de reportes (`alash3al/smtp2http` ou `rnwood/smtp4dev`)
+- *(planejado)* Disparo SMTP via Postfix (domínio próprio)
+- Captura de reportes via Listener IMAP Nativo (Gmail)
 
 ---
 
@@ -258,6 +259,13 @@ O frontend ficará disponível em `http://localhost:5173`.
                             └──────────────────┘
 ```
 
+> 💡 **Nota sobre o ambiente de Apresentação/TCC:**
+> Para simplificar a infraestrutura no dia da banca, a arquitetura recomendada e homologada é uma topologia híbrida:
+> 1. **O Nemo (React + Spring Boot)** roda em `localhost` na máquina do apresentador.
+> 2. O **Disparo de E-mails** é feito através de uma VM externa rodando **Postfix** sob um domínio real (`acesso-seguro.top`), garantindo o spoofing realista.
+> 3. Os **Links de Phishing** dentro do e-mail apontam para o próprio `localhost:8080`.
+> 4. Após clicar no link (e ser penalizado), a vítima é redirecionada para uma *landing page* de alerta hospedada no domínio real (ex: `alerta.acesso-seguro.top`), que por sua vez contém um botão direcionando a vítima de volta para o portal de treinamentos no `localhost:5173`.
+
 ### Perfis de acesso
 
 O sistema atende a dois públicos com fluxos completamente separados:
@@ -294,7 +302,11 @@ O backend lerá o HTML do Modelo, substituirá `{{LINK_AQUI}}` pela URL contendo
 |--------|---------------|----------------------|
 | **Clique no link** | Vítima acessa `/confirmar/{token}` → 302 redirect pro domínio falso. | `disparos.clicou_link = TRUE` |
 | **Abertura do anexo** | Vítima acessa `/doc/{token}` → o backend gera on-the-fly um arquivo `.html` com nome configurável pelo admin (ex: `relatorio.pdf.html`) contendo apenas um script de redirecionamento para a API. O arquivo não é um PDF/DOCX real, evitando bloqueios por antivírus e filtros de spam, mas registra a interação. | `disparos.abriu_anexo = TRUE` |
-| **Reporte do e-mail** *(planejado)* | Vítima encaminha o e-mail para a *abuse inbox* → SMTP-to-Webhook extrai o token. | `disparos.reportou_phishing = TRUE` |
+| **Reporte do e-mail** | Vítima encaminha o e-mail para a *abuse inbox* → O **IMAP Listener** nativo do Spring Boot lê a caixa do Gmail, acha o token usando regex e chama o webhook interno de pontuação. | `disparos.reportou_phishing = TRUE` |
+
+#### Como funciona a captura de denúncias (IMAP Listener)
+Para evitar a complexidade de subir contêineres separados de *SMTP-to-Webhook*, o Spring Boot possui uma thread em background (`@Scheduled`) que se conecta via protocolo **IMAP** diretamente à caixa de entrada do Gmail designada como *Abuse Inbox* (ex: `nemo.phishing.report@gmail.com`). 
+De 1 em 1 minuto, o serviço lê apenas as mensagens **Não Lidas**, utiliza expressões regulares (Regex) no corpo da mensagem para pescar a URL contendo o token de rastreamento do colaborador, registra o ganho de pontos e marca a mensagem como "Lida".
 
 ### Gamificação
 
@@ -306,7 +318,7 @@ O portal do Usuário Destino opera sob um sistema de pontuação comportamental 
 |--------|-------|--------|-------|
 | Clicou no link malicioso | **−20** | ✅ implementado | hook em `/confirmar/{token}` |
 | Abriu o anexo simulado | **−30** | ✅ implementado | hook em `/doc/{token}` |
-| Reportou o e-mail à *abuse inbox* | **+30** | 🚧 service pronto, aguarda webhook SMTP | SMTP-to-Webhook |
+| Reportou o e-mail à *abuse inbox* | **+30** | ✅ implementado | IMAP Listener nativo |
 | Concluiu um treinamento | **+50** | 🚧 service pronto, aguarda módulo de treinamentos | quiz |
 | Ignorou o e-mail | 0 | — | — |
 

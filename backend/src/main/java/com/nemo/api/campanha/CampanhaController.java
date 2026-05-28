@@ -42,13 +42,4 @@ public class CampanhaController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/teste-worker")
-    public ResponseEntity<String> testeWorker() {
-        try {
-            String resultado = campanhaService.testarWorkerC();
-            return ResponseEntity.ok(resultado);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro no Java: " + e.getMessage());
-        }
-    }
 }
