@@ -102,6 +102,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [x] **Gerenciamento de usuários do sistema** — promover/rebaixar entre Admin ↔ Colaborador (UI integrada na página de Usuários).
 - [x] **Dashboard de gráficos integrado ao backend** — a página `/graphics` já consome `GET /api/graficos/dashboard` com filtros reais (período, setor, modelo). Sem dados mockados.
 - [x] **Login de colaborador com separação de rotas** — `ColaboradorRoute` valida `role` no JWT; menus e páginas são completamente diferentes dos do Admin.
+- [x] **Responsividade de todas as telas** — Adaptabilidade para mobile, tablet e desktop nas telas de Login, Dashboard, Configurações, Usuários e menus de navegação (feito pela Vitória).
 
 **Funcionalidade — Painel Admin**
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio (`EmailService`). **Bloqueia o MVP operacional.**
