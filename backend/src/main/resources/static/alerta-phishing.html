@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviso de Segurança - Projeto Nemo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #334155;
+        }
+
+        .container {
+            background-color: white;
+            max-width: 600px;
+            width: 90%;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-top: 6px solid #ef4444;
+        }
+
+        .icon {
+            background-color: #fee2e2;
+            color: #ef4444;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 24px;
+        }
+
+        .icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        h1 {
+            color: #0f172a;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: #475569;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #ef4444;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #2563eb;
+        }
+
+        .footer {
+            margin-top: 32px;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        
+        <h1>Oops! Você clicou em um link de Phishing</h1>
+        
+        <p>Este foi apenas um <strong>teste de conscientização de segurança</strong> realizado pela equipe do Projeto Nemo. Fique tranquilo, <span class="highlight">seus dados não foram roubados</span> nem seu computador foi infectado.</p>
+        
+        <p>No entanto, se este fosse um ataque real, cibercriminosos poderiam ter obtido suas senhas ou acesso à rede da empresa.</p>
+        
+        <a href="http://localhost:5173/home" class="button">
+            Ir para o Portal de Treinamentos
+        </a>
+
+        <div class="footer">
+            Ao clicar no botão, você será redirecionado para o seu painel do Nemo para recuperar os pontos perdidos realizando um treinamento.
+        </div>
+    </div>
+
+</body>
+</html>

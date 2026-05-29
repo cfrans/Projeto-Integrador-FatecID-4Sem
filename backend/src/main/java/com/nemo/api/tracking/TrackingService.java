@@ -28,9 +28,9 @@ public class TrackingService {
             pontuacaoService.aplicarEventoDisparo(d, TipoEvento.CLIQUE_LINK);
         });
 
-        return disparo
-                .map(d -> "https://" + d.getCampanha().getModelo().getDominioAlvo())
-                .orElse("https://www.google.com");
+        // O dominio_alvo do modelo é puramente visual (para o admin saber qual tema usou).
+        // No cenário de apresentação, sempre redirecionamos para a landing page local de alerta.
+        return "http://localhost:8080/alerta-phishing.html";
     }
 
     /**
