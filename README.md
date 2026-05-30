@@ -102,6 +102,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [x] **Gerenciamento de usuários do sistema** — promover/rebaixar entre Admin ↔ Colaborador (UI integrada na página de Usuários).
 - [x] **Dashboard de gráficos integrado ao backend** — a página `/graphics` já consome `GET /api/graficos/dashboard` com filtros reais (período, setor, modelo). Sem dados mockados.
 - [x] **Login de colaborador com separação de rotas** — `ColaboradorRoute` valida `role` no JWT; menus e páginas são completamente diferentes dos do Admin.
+- [x] **Responsividade de todas as telas** — Adaptabilidade para mobile, tablet e desktop nas telas de Login, Dashboard, Configurações, Usuários e menus de navegação (feito pela Vitória).
 
 **Funcionalidade — Painel Admin**
 - [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio (`EmailService`). **Bloqueia o MVP operacional.**
@@ -271,7 +272,7 @@ O frontend ficará disponível em `http://localhost:5173`.
 > 1. **O Nemo (React + Spring Boot)** roda em `localhost` na máquina do apresentador.
 > 2. O **Disparo de E-mails** é feito através de uma VM externa rodando **Postfix** sob um domínio real (`acesso-seguro.top`), garantindo o spoofing realista.
 > 3. Os **Links de Phishing** dentro do e-mail apontam para o próprio `localhost:8080`.
-> 4. Após clicar no link (e ser penalizado), a vítima é redirecionada para uma *landing page* de alerta hospedada no domínio real (ex: `alerta.acesso-seguro.top`), que por sua vez contém um botão direcionando a vítima de volta para o portal de treinamentos no `localhost:5173`.
+> 4. Após clicar no link (e ser penalizado), o backend redireciona a vítima para a página de alerta no próprio frontend React (`http://localhost:5173/alerta-phishing`), que a tranquiliza e a convida a realizar um treinamento.
 
 ### Perfis de acesso
 
@@ -401,6 +402,7 @@ nemo/
         │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (rota compartilhada)
         │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
         │   ├── admin/                    # ✅ Dashboard administrativo (KPIs, atalhos, visão geral)
+        │   ├── alerta-phishing/          # ✅ Página de alerta (redirecionamento pós clique de phishing)
         │   └── home/                     # ✅ Portal do colaborador (Hero revamp, Velocímetro)
         └── routes/index.jsx              # Definição de rotas
 ```

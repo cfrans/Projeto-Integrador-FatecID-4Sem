@@ -1,3 +1,4 @@
+import * as React from "react"
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva } from "class-variance-authority";
 
@@ -55,19 +56,58 @@ const buttonVariants = cva(
   }
 )
 
-function Button({
+const Button = React.forwardRef(({
   className,
   variant = "primary",
   size = "default",
+  onMouseMove,
   ...props
-}) {
+}, ref) => {
+  const internalRef = React.useRef(null)
+  const rafRef = React.useRef(null)
+
+  // Sincroniza o ref externo (se existir) com o interno
+  const handleRef = React.useCallback((node) => {
+    internalRef.current = node
+    if (typeof ref === "function") {
+      ref(node)
+    } else if (ref) {
+      ref.current = node
+    }
+  }, [ref])
+
+  // Lógica local otimizada para o efeito spotlight (hover)
+  const handleMouseMove = React.useCallback((e) => {
+    if (onMouseMove) onMouseMove(e)
+    if (rafRef.current) return // Throttle com rAF para evitar overhead no Mac/Safari
+    
+    rafRef.current = requestAnimationFrame(() => {
+      const el = internalRef.current
+      if (el) {
+        const rect = el.getBoundingClientRect()
+        el.style.setProperty('--x', `${e.clientX - rect.left}px`)
+        el.style.setProperty('--y', `${e.clientY - rect.top}px`)
+      }
+      rafRef.current = null
+    })
+  }, [onMouseMove])
+
+  React.useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
+
   return (
     <ButtonPrimitive
+      ref={handleRef}
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      onMouseMove={handleMouseMove}
       {...props} />
   );
-}
+})
+Button.displayName = "Button"
 
 // eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }

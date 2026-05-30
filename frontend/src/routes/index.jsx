@@ -5,6 +5,8 @@ import AdminRoute from "../components/routing/AdminRoute"
 import ColaboradorRoute from "../components/routing/ColaboradorRoute"
 import AppShellLayout from "../layouts/AppShellLayout"
 import LoginPage from "../pages/login"
+import BackgroundDemoPage from "../pages/background-demo"
+import AlertaPhishingPage from "../pages/alerta-phishing"
 import ForgotPasswordPage from "../pages/forgot-password"
 import HomePage from "../pages/home"
 import AdminPage from "../pages/admin"
@@ -28,6 +30,8 @@ export default function AppRoutes() {
       <Routes>
         {/* Pública */}
         <Route path="/" element={<LoginPage />} />
+        <Route path="/bg-demo" element={<BackgroundDemoPage />} />
+        <Route path="/alerta-phishing" element={<AlertaPhishingPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/trocar-senha" element={<ChangePasswordPage />} />
 

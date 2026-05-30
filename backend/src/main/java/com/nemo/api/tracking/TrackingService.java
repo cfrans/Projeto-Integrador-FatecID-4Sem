@@ -28,9 +28,8 @@ public class TrackingService {
             pontuacaoService.aplicarEventoDisparo(d, TipoEvento.CLIQUE_LINK);
         });
 
-        return disparo
-                .map(d -> "https://" + d.getCampanha().getModelo().getDominioAlvo())
-                .orElse("https://www.google.com");
+        // Redireciona para a página de alerta do portal React (frontend)
+        return "http://localhost:5173/alerta-phishing";
     }
 
     /**

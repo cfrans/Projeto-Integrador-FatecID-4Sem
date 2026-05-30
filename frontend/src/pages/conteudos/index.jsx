@@ -39,6 +39,7 @@ function YouTubePlayer({ videoId, onProgress }) {
           onStateChange: (e) => {
             // Se estiver tocando (1), começa a checar o progresso
             if (e.data === 1) {
+              clearInterval(interval); // Previne vazamento caso dispare o estado 'playing' multiplas vezes seguidas
               interval = setInterval(() => {
                 if (playerRef.current && playerRef.current.getCurrentTime) {
                   const current = playerRef.current.getCurrentTime();
