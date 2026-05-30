@@ -28,9 +28,8 @@ public class TrackingService {
             pontuacaoService.aplicarEventoDisparo(d, TipoEvento.CLIQUE_LINK);
         });
 
-        // O dominio_alvo do modelo é puramente visual (para o admin saber qual tema usou).
-        // No cenário de apresentação, sempre redirecionamos para a landing page local de alerta.
-        return "http://localhost:8080/alerta-phishing.html";
+        // Redireciona para a página de alerta do portal React (frontend)
+        return "http://localhost:5173/alerta-phishing";
     }
 
     /**

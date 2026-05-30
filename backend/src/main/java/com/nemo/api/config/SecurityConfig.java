@@ -39,7 +39,6 @@ public class SecurityConfig {
                                 "/api/treinamentos/**",
                                 "/confirmar/**",
                                 "/doc/**",
-                                "/alerta-phishing.html", // Página estática de alerta (servida localmente)
                                 "/error",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
