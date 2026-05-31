@@ -46,6 +46,7 @@ public class UsuarioDestinoService {
         usuario.setSenhaHash(passwordEncoder.encode(String.valueOf(request.matricula())));
         usuario.setPontuacao(PontuacaoService.SALDO_INICIAL);
         usuario.setPrimeiroAcesso(true);
+        usuario.setIsReal(true); // Usuários criados manualmente são sempre reais
         usuario.setSetor(setor);
         usuario.setTipoAcesso(tipoAcesso);
 

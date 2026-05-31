@@ -195,7 +195,12 @@ public class CampanhaService {
             });
         }
 
-        // 4. LIMPEZA: Excluir os CSVs temporários
+        // 4. Atualizar status da campanha para Concluído
+        var campanhaFinalizada = campanhaRepository.findById(idCampanha).orElseThrow();
+        campanhaFinalizada.setStatusEnvio("Concluído");
+        campanhaRepository.save(campanhaFinalizada);
+
+        // 5. LIMPEZA: Excluir os CSVs temporários
         Files.deleteIfExists(arquivoTemp);
         Files.deleteIfExists(arquivoSaida);
     }
