@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   MegaphoneIcon,
   UsersIcon,
@@ -132,7 +133,7 @@ export default function AdminPage() {
             ) : (
               <div className="divide-y divide-slate-100">
                 {campanhas.map((c) => {
-                  const pct = c.alvos > 0 ? Math.round((c.cliques / c.alvos) * 100) : 0;
+                  const taxaMista = c.alvos > 0 ? Math.round(((c.cliques + (c.anexos || 0)) / c.alvos) * 100) : 0;
                   return (
                     <div 
                       key={c.id} 
@@ -149,8 +150,16 @@ export default function AdminPage() {
                           <p className="text-sm font-black text-orange-600 tabular-nums">{c.cliques}</p>
                         </div>
                         <div className="text-right hidden sm:block">
-                          <p className="text-[10px] uppercase font-bold text-slate-400">Taxa</p>
-                          <p className="text-sm font-black text-slate-700 tabular-nums">{pct}%</p>
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Anexos</p>
+                          <p className="text-sm font-black text-yellow-600 tabular-nums">{c.anexos || 0}</p>
+                        </div>
+                        <div className="text-right hidden sm:block">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Reports</p>
+                          <p className="text-sm font-black text-emerald-600 tabular-nums">{c.reportes}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Taxa Mista</p>
+                          <p className="text-sm font-black text-slate-700 tabular-nums">{taxaMista}%</p>
                         </div>
                       </div>
                     </div>
@@ -195,12 +204,13 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <button 
+              <Button 
+                variant="ghost"
                 onClick={() => navigate('/graphics')}
-                className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white text-sm font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white hover:text-white text-sm font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
               >
                 Abrir Dashboard
-              </button>
+              </Button>
             </div>
           </Card>
 

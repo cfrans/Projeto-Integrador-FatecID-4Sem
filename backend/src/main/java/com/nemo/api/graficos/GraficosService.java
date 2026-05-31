@@ -154,7 +154,8 @@ public class GraficosService {
                     (String) row[2],
                     row[3] == null ? 0 : ((Number) row[3]).longValue(),
                     row[4] == null ? 0 : ((Number) row[4]).longValue(),
-                    row[5] == null ? 0 : ((Number) row[5]).longValue()
+                    row[5] == null ? 0 : ((Number) row[5]).longValue(),
+                    row[6] == null ? 0 : ((Number) row[6]).longValue()
             ));
             if (out.size() >= 8) break;
         }

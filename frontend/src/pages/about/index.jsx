@@ -114,15 +114,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Rodapé informativo */}
-      <footer className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 pt-8 border-t border-slate-200">
-        <div>Nemo Phishing Awareness — Versão 1.0</div>
-        <div className="flex items-center gap-6">
-          <span className="flex items-center gap-1">🔒 SSL Ativo</span>
-          <span className="flex items-center gap-1">🛡️ LGPD Compliant</span>
-          <span className="flex items-center gap-1">🚀 v0.0.1-alpha</span>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -85,8 +85,10 @@ public class EmailService {
             log.info("[SMTP] E-mail enviado com sucesso → {} (campanha: {}, token: {})",
                     emailAlvo, campanha.getNomeCampanha(), token);
 
+        } catch (org.springframework.mail.MailException e) {
+            log.error("[SMTP] Falha síncrona do Postfix ao enviar e-mail para {} — {}", emailAlvo, e.getMessage());
         } catch (MessagingException | UnsupportedEncodingException e) {
-            log.error("[SMTP] Falha ao enviar e-mail para {} — {}", emailAlvo, e.getMessage());
+            log.error("[SMTP] Falha ao montar ou enviar e-mail para {} — {}", emailAlvo, e.getMessage());
         }
     }
 

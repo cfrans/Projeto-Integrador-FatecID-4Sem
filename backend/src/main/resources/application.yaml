@@ -58,3 +58,4 @@ nemo:
     enabled: ${IMAP_ENABLED:false}
     username: ${IMAP_USER:}
     password: ${IMAP_PASS:}
+    polling-delay: ${IMAP_POLLING_DELAY:60000}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   PlusIcon,
   PencilIcon,
@@ -84,6 +85,7 @@ const EMPTY_FORM = { matricula: "", nome: "", email: "", idSetor: "", idTipoAces
 function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcesso }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Sincroniza o form com o usuario que esta sendo editado quando o modal abre.
   useEffect(() => {
@@ -99,6 +101,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
       });
     } else {
       setForm(EMPTY_FORM);
+      setErrorMsg("");
     }
   }, [open, editingUser, tiposAcesso]);
 
@@ -106,7 +109,11 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
     setForm((f) => ({ ...f, [key]: typeof e === "string" ? e : e.target.value }));
 
   const handleSubmit = () => {
-    if (!form.matricula || !form.nome || !form.email || !form.idSetor || !form.idTipoAcesso) return;
+    if (!form.matricula || !form.nome || !form.email || !form.idSetor || !form.idTipoAcesso) {
+      setErrorMsg("Por favor, preencha todos os campos.");
+      return;
+    }
+    setErrorMsg("");
     
     const formData = {
       ...form,
@@ -118,8 +125,15 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
     onSave(formData);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} onKeyDown={handleKeyDown}>
       <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transition-all duration-200 ${open ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="flex flex-wrap items-center gap-2">
@@ -181,6 +195,12 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
               </SelectContent>
             </Select>
           </Field>
+
+          {errorMsg && (
+            <p className="text-sm font-medium text-red-600 bg-red-50 p-2 rounded-lg border border-red-200 text-center">
+              {errorMsg}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-4 border-t border-slate-100">
@@ -401,6 +421,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [parent] = useAutoAnimate();
 
   const [filterNome, setFilterNome] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
@@ -415,7 +436,7 @@ export default function UsersPage() {
 
   const [formModal, setFormModal] = useState({ open: false, user: null });
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, bulk: false });
+  const [actionModal, setActionModal] = useState({ open: false, id: null, bulk: false, type: 'desativar' });
   const [confirmSave, setConfirmSave] = useState({ open: false, formData: null, isRoleChange: false, roleName: "" });
   const [feedback, setFeedback] = useState({ open: false, title: "", description: "", variant: "success" });
 
@@ -497,7 +518,9 @@ export default function UsersPage() {
   const clearFilters = () => { setFilterNome(""); setFilterSetor(""); setFilterRole(""); setFilterAtivo("ativos"); setPaginaAtual(1); };
   const hasActiveFilters = filterNome || filterSetor || (filterRole && filterRole !== "todos") || filterAtivo !== "ativos";
 
-  // ── Seleção ──
+  const selectedUsersData = selected.map(id => users.find(u => u.idUsuarioDestino === id)).filter(Boolean);
+  const allSelectedInactive = selectedUsersData.length > 0 && selectedUsersData.every(u => !u.isAtivo);
+
   const toggleSelect = (id) =>
     setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
   const toggleAll = () =>
@@ -558,34 +581,41 @@ export default function UsersPage() {
     }
   };
 
-  const confirmDelete = async () => {
-    const { id, bulk } = deleteModal;
-    setDeleteModal({ open: false, id: null, bulk: false });
+  const confirmAction = async () => {
+    const { id, bulk, type } = actionModal;
+    setActionModal({ open: false, id: null, bulk: false, type: 'desativar' });
     try {
-      if (bulk) {
-        await Promise.all(selected.map((sid) => api.delete(`/api/usuarios-destino/${sid}`)));
-        setUsers((us) => us.map((u) => selected.includes(u.idUsuarioDestino) ? { ...u, isAtivo: false } : u));
-        setSelected([]);
-        showFeedback("Usuários desativados", `${selected.length} usuário(s) desativado(s) com sucesso.`);
+      if (type === 'reativar') {
+        if (bulk) {
+          await Promise.all(selected.map((sid) => api.put(`/api/usuarios-destino/${sid}/reativar`)));
+          setUsers((us) => us.map((u) => selected.includes(u.idUsuarioDestino) ? { ...u, isAtivo: true } : u));
+          setSelected([]);
+          showFeedback("Usuários reativados", `${selected.length} usuário(s) reativado(s) com sucesso.`);
+        } else {
+          await api.put(`/api/usuarios-destino/${id}/reativar`);
+          setUsers((us) => us.map((u) => u.idUsuarioDestino === id ? { ...u, isAtivo: true } : u));
+          showFeedback("Usuário reativado", "O usuário foi reativado com sucesso.");
+        }
       } else {
-        await api.delete(`/api/usuarios-destino/${id}`);
-        setUsers((us) => us.map((u) => u.idUsuarioDestino === id ? { ...u, isAtivo: false } : u));
-        setSelected((s) => s.filter((x) => x !== id));
-        showFeedback("Usuário desativado", "O usuário foi desativado com sucesso.");
+        if (bulk) {
+          await Promise.all(selected.map((sid) => api.delete(`/api/usuarios-destino/${sid}`)));
+          setUsers((us) => us.map((u) => selected.includes(u.idUsuarioDestino) ? { ...u, isAtivo: false } : u));
+          setSelected([]);
+          showFeedback("Usuários desativados", `${selected.length} usuário(s) desativado(s) com sucesso.`);
+        } else {
+          await api.delete(`/api/usuarios-destino/${id}`);
+          setUsers((us) => us.map((u) => u.idUsuarioDestino === id ? { ...u, isAtivo: false } : u));
+          setSelected((s) => s.filter((x) => x !== id));
+          showFeedback("Usuário desativado", "O usuário foi desativado com sucesso.");
+        }
       }
     } catch (err) {
-      showFeedback("Erro", err.message || "Não foi possível desativar o usuário.", "error");
+      showFeedback("Erro", err.message || `Não foi possível ${type} o(s) usuário(s).`, "error");
     }
   };
 
   const handleReactivate = async (id) => {
-    try {
-      await api.put(`/api/usuarios-destino/${id}/reativar`);
-      setUsers((us) => us.map((u) => u.idUsuarioDestino === id ? { ...u, isAtivo: true } : u));
-      showFeedback("Usuário reativado", "O usuário foi reativado com sucesso.");
-    } catch (err) {
-      showFeedback("Erro", err.message || "Não foi possível reativar o usuário.", "error");
-    }
+    setActionModal({ open: true, id, bulk: false, type: 'reativar' });
   };
 
   const COLUNAS = ["Matrícula", "Nome", "Setor", "E-mail", "Pontuação", "Último Login", "Ações"];
@@ -609,11 +639,15 @@ export default function UsersPage() {
       {/* Modais de confirmação e feedback (devem vir por último para sobrepor outros modais se necessário) */}
       <Modal open={feedback.open} onClose={() => setFeedback((f) => ({ ...f, open: false }))} title={feedback.title} description={feedback.description} variant={feedback.variant} />
       <Modal
-        open={deleteModal.open}
-        onClose={() => setDeleteModal({ open: false, id: null, bulk: false })}
-        title={deleteModal.bulk ? "Desativar usuários selecionados?" : "Desativar usuário?"}
-        description={deleteModal.bulk ? `Tem certeza que deseja desativar ${selected.length} usuário(s)? Eles não poderão receber novos envios de campanhas.` : "Tem certeza que deseja desativar este usuário? Ele não poderá receber novos envios de campanhas."}
-        variant="warning" confirm confirmLabel="Sim, desativar" onConfirm={confirmDelete}
+        open={actionModal.open}
+        onClose={() => setActionModal({ open: false, id: null, bulk: false, type: 'desativar' })}
+        title={actionModal.type === 'reativar' 
+          ? (actionModal.bulk ? "Reativar usuários selecionados?" : "Reativar usuário?") 
+          : (actionModal.bulk ? "Desativar usuários selecionados?" : "Desativar usuário?")}
+        description={actionModal.type === 'reativar'
+          ? (actionModal.bulk ? `Tem certeza que deseja reativar ${selected.length} usuário(s)? Eles voltarão a receber envios de campanhas.` : "Tem certeza que deseja reativar este usuário? Ele voltará a receber envios de campanhas.")
+          : (actionModal.bulk ? `Tem certeza que deseja desativar ${selected.length} usuário(s)? Eles não poderão receber novos envios de campanhas.` : "Tem certeza que deseja desativar este usuário? Ele não poderá receber novos envios de campanhas.")}
+        variant={actionModal.type === 'reativar' ? 'success' : 'warning'} confirm confirmLabel={`Sim, ${actionModal.type}`} onConfirm={confirmAction}
       />
       <Modal
         open={confirmSave.open}
@@ -641,6 +675,19 @@ export default function UsersPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {selected.length > 0 && (
+            allSelectedInactive ? (
+              <Button size="sm" variant="outline" className="h-9 px-4 border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors" onClick={() => setActionModal({ open: true, id: null, bulk: true, type: 'reativar' })}>
+                <CheckIcon className="w-4 h-4 mr-1.5 stroke-[3]" />
+                Reativar ({selected.length})
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="h-9 px-4 border-red-200 text-red-600 hover:bg-red-50 transition-colors" onClick={() => setActionModal({ open: true, id: null, bulk: true, type: 'desativar' })}>
+                <XCircleIcon className="w-4 h-4 mr-1.5" />
+                Desativar ({selected.length})
+              </Button>
+            )
+          )}
           <Button size="sm" className="h-9 px-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setFormModal({ open: true, user: null })}>
             <PlusIcon className="w-4 h-4 mr-1.5" />
             Adicionar
@@ -750,7 +797,7 @@ export default function UsersPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody ref={parent} className="divide-y divide-slate-100">
                 {pagina.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-4 py-10 text-center text-slate-400 text-sm">Nenhum usuário encontrado.</td>
@@ -789,7 +836,7 @@ export default function UsersPage() {
                                 <button onClick={() => setFormModal({ open: true, user })} className="p-1.5 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors" title="Editar">
                                   <PencilIcon className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setDeleteModal({ open: true, id: user.idUsuarioDestino, bulk: false })} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Desativar">
+                                <button onClick={() => setActionModal({ open: true, id: user.idUsuarioDestino, bulk: false, type: 'desativar' })} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Desativar">
                                   <XCircleIcon className="w-4 h-4" />
                                 </button>
                               </>

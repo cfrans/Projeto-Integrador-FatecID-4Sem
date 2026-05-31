@@ -31,7 +31,7 @@ public class ImapReportListenerService {
     // Procura por tokens nos links do modelo: /confirmar/{token} ou /doc/{token}
     private static final Pattern TOKEN_PATTERN = Pattern.compile("(?:confirmar|doc)/([A-Za-z0-9_-]+)");
 
-    @Scheduled(fixedDelay = 60000) // Roda a cada 60 segundos
+    @Scheduled(fixedDelayString = "${nemo.imap.polling-delay:60000}")
     public void verificarCaixaDeDenuncias() {
         log.info("[IMAP] Verificando nova caixa de denúncias para: {}", username);
         
@@ -73,9 +73,13 @@ public class ImapReportListenerService {
                     String content = extrairTexto(message);
                     Matcher matcher = TOKEN_PATTERN.matcher(content);
                     
+                    java.util.Set<String> tokensProcessados = new java.util.HashSet<>();
                     boolean achouToken = false;
                     while (matcher.find()) {
                         String token = matcher.group(1);
+                        if (!tokensProcessados.add(token)) {
+                            continue; // Evita registrar o mesmo token repetidas vezes se ele aparecer em text/plain e text/html
+                        }
                         log.info("[IMAP] Token '{}' extraído do e-mail (pasta {}). Registrando reporte de phishing...", token, folderName);
                         try {
                             trackingService.registrarReporte(token);

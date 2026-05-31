@@ -18,6 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsuarioDestinoService {
@@ -50,7 +53,9 @@ public class UsuarioDestinoService {
         usuario.setSetor(setor);
         usuario.setTipoAcesso(tipoAcesso);
 
-        return toDTO(repository.save(usuario));
+        UsuarioDestino salvo = repository.save(usuario);
+        log.info("[USUARIO] Novo usuário criado: {} ({}) - Setor: {}", salvo.getNome(), salvo.getEmail(), salvo.getSetor().getNomeSetor());
+        return toDTO(salvo);
     }
 
     public UsuarioDestinoDTO atualizar(Integer id, UsuarioDestinoRequest request) {
@@ -79,6 +84,7 @@ public class UsuarioDestinoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
         usuario.setIsAtivo(false);
         repository.save(usuario);
+        log.info("[USUARIO] Usuário ID {} foi desativado.", id);
     }
 
     public void reativar(Integer id) {

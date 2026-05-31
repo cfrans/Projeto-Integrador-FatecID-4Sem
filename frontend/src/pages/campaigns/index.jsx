@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -132,6 +133,7 @@ function FilterChip({ label, active, onClick }) {
 const STATUSES = ["Pendente", "Enviando", "Concluída", "Erro"];
 
 function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar }) {
+  const [parent] = useAutoAnimate();
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -242,7 +244,7 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
                 <th className="px-6 py-4 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody ref={parent} className="divide-y divide-slate-100">
               {campanhasFiltradas.map((c) => {
                 const arquivada = archivedIds.has(c.idCampanha);
                 return (
@@ -296,14 +298,16 @@ function CampaignForm({ onBack, onSuccess }) {
   const [includeAnexo, setIncludeAnexo] = useState(false);
   const [previewAnexo, setPreviewAnexo] = useState({ open: false, html: "" });
   const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
+  const [usuarios, setUsuarios] = useState([]);
+  const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error", onCloseCallback: null });
 
-  const showModal = (title, description, variant = "error") =>
-    setModal({ open: true, title, description, variant });
+  const showModal = (title, description, variant = "error", onCloseCallback = null) =>
+    setModal({ open: true, title, description, variant, onCloseCallback });
 
   useEffect(() => {
-    api.get("/api/modelos").then(setModelos).catch(() => setModelos([]));
+    api.get("/api/modelos").then(res => setModelos(res.filter(m => m.isAtivo !== false))).catch(() => setModelos([]));
     api.get("/api/setores").then(setSetores).catch(() => setSetores([]));
+    api.get("/api/usuarios-destino").then(setUsuarios).catch(() => setUsuarios([]));
   }, []);
 
   const selectedModelData = modelos.find((m) => String(m.idModelo) === selectedModel);
@@ -311,7 +315,17 @@ function CampaignForm({ onBack, onSuccess }) {
   const handleModelChange = (value) => {
     setSelectedModel(value);
     const modelo = modelos.find((m) => String(m.idModelo) === value);
-    if (modelo) setEmailSubject(modelo.assuntoPadrao);
+    if (modelo) {
+      setEmailSubject(modelo.assuntoPadrao);
+      let sugestion = "documento-importante.pdf";
+      const dom = modelo.dominioAlvo.toLowerCase();
+      const nom = modelo.nomeModelo.toLowerCase();
+      if (dom.includes("rh")) sugestion = "relatorio_demissoes.pdf";
+      else if (dom.includes("bradesco") || dom.includes("banco")) sugestion = "comprovante.pdf";
+      else if (dom.includes("ti") || dom.includes("suporte")) sugestion = "politica-senhas.pdf";
+      else if (nom.includes("consórcio") || nom.includes("consorcio")) sugestion = "carta-contemplacao.pdf";
+      setAttachmentName(sugestion);
+    }
   };
 
   const handleClear = () => {
@@ -344,9 +358,10 @@ function CampaignForm({ onBack, onSuccess }) {
         idModelo: Number(selectedModel),
         idSetores: chosenSectors.map((s) => s.idSetor),
       });
-      showModal("Campanha criada!", "A campanha foi salva e os tokens foram gerados com sucesso.", "success");
-      handleClear();
-      onSuccess?.();
+      showModal("Campanha criada!", "O envio está em progresso em background. Você pode acompanhar o progresso na aba Monitorar.", "success", () => {
+        handleClear();
+        onSuccess?.();
+      });
     } catch {
       showModal("Erro ao criar campanha", "Ocorreu um erro ao salvar a campanha. Tente novamente.", "error");
     } finally {
@@ -363,7 +378,10 @@ function CampaignForm({ onBack, onSuccess }) {
 
   return (
     <div className="grid gap-4">
-      <Modal open={modal.open} onClose={() => setModal((m) => ({ ...m, open: false }))} title={modal.title} description={modal.description} variant={modal.variant} />
+      <Modal open={modal.open} onClose={() => {
+        setModal((m) => ({ ...m, open: false }));
+        if (modal.onCloseCallback) modal.onCloseCallback();
+      }} title={modal.title} description={modal.description} variant={modal.variant} />
       <LoadingOverlay open={loading} message="Gerando tokens da campanha..." description="Isso pode levar alguns segundos" />
 
       <header className="flex items-start gap-3">
@@ -444,18 +462,23 @@ function CampaignForm({ onBack, onSuccess }) {
                 </div>
                 <div className="flex flex-wrap gap-2 flex-1 min-h-9 items-center">
                   {chosenSectors.length === 0 ? (
-                    <span className="text-sm text-slate-400 italic">Todos os usuários da base serão afetados.</span>
+                    <span className="text-sm text-slate-400 italic">Todos os usuários da base serão afetados ({usuarios.filter(u => u.isAtivo !== false && (!u.tipoAcesso || !u.tipoAcesso.toLowerCase().includes('admin'))).length} alvos).</span>
                   ) : (
-                    chosenSectors.map((setor) => (
-                      <span key={setor.idSetor} className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-3 py-1 text-sm font-medium text-teal-800 border border-teal-200">
-                        {setor.nomeSetor}
-                        <button type="button" onClick={() => handleRemoveSector(setor.idSetor)} className="text-teal-600 hover:text-teal-900">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                            <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                          </svg>
-                        </button>
+                    <>
+                      {chosenSectors.map((setor) => (
+                        <span key={setor.idSetor} className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-3 py-1 text-sm font-medium text-teal-800 border border-teal-200">
+                          {setor.nomeSetor}
+                          <button type="button" onClick={() => handleRemoveSector(setor.idSetor)} className="text-teal-600 hover:text-teal-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                            </svg>
+                          </button>
+                        </span>
+                      ))}
+                      <span className="text-sm text-slate-400 italic ml-2">
+                        Total: {usuarios.filter(u => u.isAtivo !== false && (!u.tipoAcesso || !u.tipoAcesso.toLowerCase().includes('admin')) && chosenSectors.find(cs => String(cs.idSetor) === String(u.idSetor))).length} alvos
                       </span>
-                    ))
+                    </>
                   )}
                 </div>
               </div>
@@ -527,6 +550,7 @@ const PAGE_SIZE = 10;
 
 
 function MonitoringView({ campanha, onBack }) {
+  const [parent2] = useAutoAnimate();
   const [disparos, setDisparos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroAtivo, setFiltroAtivo] = useState("todos");
@@ -534,22 +558,19 @@ function MonitoringView({ campanha, onBack }) {
   const [pesquisa, setPesquisa] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [totais, setTotais] = useState({ total: 0, clicouLink: 0, abriuAnexo: 0, reportouPhishing: 0 });
 
-  const fetchDisparos = useCallback(async (filtro) => {
+  const fetchAllDisparos = useCallback(async () => {
     setLoading(true);
     try {
-      let params = "";
-      if (filtro === "clicouLink")       params = "?clicouLink=true";
-      else if (filtro === "abriuAnexo")  params = "?abriuAnexo=true";
-      else if (filtro === "reportouPhishing") params = "?reportouPhishing=true";
-      // semInteracao: busca tudo e filtra no client (nenhum dos três é true)
-
-      const data = await api.get(`/api/campanhas/${campanha.idCampanha}/disparos${params}`);
-      if (filtro === "semInteracao") {
-        setDisparos(data.filter((d) => !d.clicouLink && !d.abriuAnexo && !d.reportouPhishing));
-      } else {
-        setDisparos(data);
-      }
+      const data = await api.get(`/api/campanhas/${campanha.idCampanha}/disparos`);
+      setTotais({
+        total: data.length,
+        clicouLink: data.filter((d) => d.clicouLink).length,
+        abriuAnexo: data.filter((d) => d.abriuAnexo).length,
+        reportouPhishing: data.filter((d) => d.reportouPhishing).length,
+      });
+      setDisparos(data);
     } catch {
       setDisparos([]);
     } finally {
@@ -557,40 +578,30 @@ function MonitoringView({ campanha, onBack }) {
     }
   }, [campanha.idCampanha]);
 
-  // Carrega sem filtro uma vez pra ter os totais
-  const [totais, setTotais] = useState({ total: 0, clicouLink: 0, abriuAnexo: 0, reportouPhishing: 0 });
   useEffect(() => {
-    api.get(`/api/campanhas/${campanha.idCampanha}/disparos`)
-      .then((data) => {
-        setTotais({
-          total: data.length,
-          clicouLink: data.filter((d) => d.clicouLink).length,
-          abriuAnexo: data.filter((d) => d.abriuAnexo).length,
-          reportouPhishing: data.filter((d) => d.reportouPhishing).length,
-        });
-        setDisparos(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [campanha.idCampanha]);
+    fetchAllDisparos();
+  }, [fetchAllDisparos]);
 
   const handleFiltro = (key) => {
     setFiltroAtivo(key);
     setPage(1);
     setPesquisa("");
     setSetorFiltro("todos");
-    if (key === "todos") {
-      fetchDisparos("todos");
-    } else {
-      fetchDisparos(key);
-    }
   };
 
-  useEffect(() => { setPage(1); }, [pesquisa, setorFiltro]);
+  useEffect(() => { setPage(1); }, [pesquisa, setorFiltro, filtroAtivo]);
 
   const setoresUnicos = [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort();
 
   const disparosFiltrados = disparos
+    .filter((d) => {
+      if (filtroAtivo === "todos") return true;
+      if (filtroAtivo === "clicouLink") return d.clicouLink;
+      if (filtroAtivo === "abriuAnexo") return d.abriuAnexo;
+      if (filtroAtivo === "reportouPhishing") return d.reportouPhishing;
+      if (filtroAtivo === "semInteracao") return !d.clicouLink && !d.abriuAnexo && !d.reportouPhishing;
+      return true;
+    })
     .filter((d) => setorFiltro === "todos" || d.setor === setorFiltro)
     .filter((d) => {
       if (!pesquisa.trim()) return true;
@@ -626,6 +637,12 @@ function MonitoringView({ campanha, onBack }) {
             Domínio: <span className="font-medium text-slate-700">{campanha.dominioAlvo}</span>
           </p>
         </div>
+        <Button variant="outline" size="sm" onClick={fetchAllDisparos} disabled={loading} className="bg-white border-slate-200 shadow-sm shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`size-4 mr-1 ${loading ? "animate-spin" : ""}`}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          Atualizar
+        </Button>
       </header>
 
       {/* Cards de estatística */}
@@ -707,7 +724,7 @@ function MonitoringView({ campanha, onBack }) {
                   <th className="px-6 py-4 text-slate-400 text-right">Envio</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody ref={parent2} className="divide-y divide-slate-100">
                 {disparosPagina.map((d) => (
                   <tr key={d.idDisparo} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-3">

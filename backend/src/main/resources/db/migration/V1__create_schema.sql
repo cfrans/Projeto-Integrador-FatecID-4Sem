@@ -44,6 +44,7 @@ CREATE TABLE modelo (
     assunto_padrao   VARCHAR(150) NOT NULL,
     data             DATETIME     DEFAULT CURRENT_TIMESTAMP,
     texto_html       TEXT         NOT NULL,
+    is_ativo         BOOLEAN      DEFAULT TRUE,
     id_usuario_sistema INT        NOT NULL,
     CONSTRAINT fk_modelo_usuario FOREIGN KEY (id_usuario_sistema) REFERENCES usuario_sistema (id_usuario_sistema)
 );

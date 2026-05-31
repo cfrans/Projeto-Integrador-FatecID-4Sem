@@ -20,6 +20,9 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CampanhaService {
@@ -68,17 +71,21 @@ public class CampanhaService {
                 ? usuarioDestinoRepository.findAll()
                 : usuarioDestinoRepository.findBySetor_IdSetorIn(request.idSetores());
 
-        // Remove da lista os usuários que têm tipo de acesso 1 (Admin)
+        // Remove da lista os usuários que têm tipo de acesso 1 (Admin) e usuários inativos
         alvos = alvos.stream()
                 .filter(a -> a.getTipoAcesso().getIdTipoAcesso() != 1)
+                .filter(a -> a.getIsAtivo() != null && a.getIsAtivo())
                 .toList();
 
         try {
+            log.info("[CAMPANHA] Iniciando geração de tokens e disparos para a campanha ID {} com {} alvos.", campanhasSalva.getIdCampanha(), alvos.size());
             processarGeracaoDeTokens(campanhasSalva.getIdCampanha(), alvos);
         } catch (Exception e) {
+            log.error("[CAMPANHA] Erro ao gerar tokens para campanha {}: {}", campanhasSalva.getIdCampanha(), e.getMessage());
             throw new RuntimeException("Campanha salva, mas erro ao gerar tokens: " + e.getMessage());
         }
 
+        log.info("[CAMPANHA] Campanha ID {} criada com sucesso pelo usuário {}.", campanhasSalva.getIdCampanha(), email);
         return toDTO(campanhasSalva);
     }
 

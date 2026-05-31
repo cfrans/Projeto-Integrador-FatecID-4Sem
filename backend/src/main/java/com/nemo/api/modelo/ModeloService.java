@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ModeloService {
@@ -37,7 +40,9 @@ public class ModeloService {
         modelo.setData(LocalDateTime.now());
         modelo.setUsuarioSistema(usuario);
 
-        return toDTO(modeloRepository.save(modelo));
+        Modelo salvo = modeloRepository.save(modelo);
+        log.info("[MODELO] Modelo '{}' (ID {}) criado por {}", request.nomeModelo(), salvo.getIdModelo(), email);
+        return toDTO(salvo);
     }
 
     public ModeloDTO atualizar(Integer id, ModeloRequest request) {
@@ -54,7 +59,19 @@ public class ModeloService {
     }
 
     public void deletar(Integer id) {
-        modeloRepository.deleteById(id);
+        var modelo = modeloRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo não encontrado"));
+        modelo.setIsAtivo(false);
+        modeloRepository.save(modelo);
+        log.info("[MODELO] Modelo ID {} foi desativado.", id);
+    }
+
+    public void reativar(Integer id) {
+        var modelo = modeloRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo não encontrado"));
+        modelo.setIsAtivo(true);
+        modeloRepository.save(modelo);
+        log.info("[MODELO] Modelo ID {} foi reativado.", id);
     }
 
     private ModeloDTO toDTO(Modelo m) {
@@ -65,7 +82,8 @@ public class ModeloService {
                 m.getRemetenteFalso(),
                 m.getAssuntoPadrao(),
                 m.getData(),
-                m.getTextoHtml()
+                m.getTextoHtml(),
+                m.getIsAtivo()
         );
     }
 }
