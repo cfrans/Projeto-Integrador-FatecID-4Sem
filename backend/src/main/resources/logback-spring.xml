@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Inclui padrões do Spring Boot (ex: formatação de cores no console) -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+    <property name="LOG_DIR" value="logs" />
+
+    <!-- 1. Appender para arquivo de DEBUG GERAL (contém absolutamente tudo) -->
+    <appender name="FILE_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/nemo-debug.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/nemo-debug-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 2. Appender para arquivo de MAIL (SMTP e IMAP) -->
+    <appender name="FILE_MAIL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/nemo-mail.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/nemo-mail-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 3. Appender para arquivo do SYSTEM (Ações de usuários, campanhas, regras de negócio) -->
+    <appender name="FILE_SYSTEM" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/nemo-system.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/nemo-system-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ======================= -->
+    <!-- Mapeamento de Loggers   -->
+    <!-- ======================= -->
+
+    <!-- Mail: Direciona envios de e-mail e leitura IMAP para a categoria de MAIL -->
+    <!-- additivity="true" permite que o log suba para o root (aparecendo no console e no debug) -->
+    <logger name="com.nemo.api.email" level="INFO" additivity="true">
+        <appender-ref ref="FILE_MAIL" />
+    </logger>
+    <logger name="com.nemo.api.tracking" level="INFO" additivity="true">
+        <appender-ref ref="FILE_MAIL" />
+    </logger>
+
+    <!-- System: Direciona manipulações de regras de negócio para a categoria SYSTEM -->
+    <logger name="com.nemo.api.usuario" level="INFO" additivity="true">
+        <appender-ref ref="FILE_SYSTEM" />
+    </logger>
+    <logger name="com.nemo.api.campanha" level="INFO" additivity="true">
+        <appender-ref ref="FILE_SYSTEM" />
+    </logger>
+    <logger name="com.nemo.api.auth" level="INFO" additivity="true">
+        <appender-ref ref="FILE_SYSTEM" />
+    </logger>
+
+    <!-- ROOT: Tudo que acontece no projeto cai aqui (Spring, Hibernate, etc) -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE_DEBUG" />
+    </root>
+
+</configuration>
