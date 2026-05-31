@@ -19,12 +19,10 @@ public class TrackingController {
     }
 
     // ─── Rastrear abertura do anexo + servir HTML falso ───────────────────────
-    @GetMapping(value = "/doc/{token}", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> registrarAnexo(@PathVariable String token) {
-        String nomeArquivo = trackingService.registrarAnexo(token);
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_HTML)
-                .body(trackingService.buildFakeDocHtml(nomeArquivo));
+    @GetMapping("/doc/{token}")
+    public ResponseEntity<Void> registrarAnexo(@PathVariable String token) {
+        String redirect = trackingService.registrarAnexo(token);
+        return ResponseEntity.status(302).header("Location", redirect).build();
     }
 
     // ─── Webhook para receber reportes da Abuse Inbox ─────────────────────────

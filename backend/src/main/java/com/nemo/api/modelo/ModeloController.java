@@ -37,4 +37,10 @@ public class ModeloController {
         modeloService.deletar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/reativar")
+    public ResponseEntity<Void> reativar(@PathVariable Integer id) {
+        modeloService.reativar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

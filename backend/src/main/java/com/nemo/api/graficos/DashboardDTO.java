@@ -38,6 +38,7 @@ public record DashboardDTO(
             String nome,
             long alvos,
             long cliques,
+            long anexos,
             long reportes
     ) {}
 }

@@ -23,6 +23,9 @@ public class Modelo {
     @Column(columnDefinition = "TEXT")
     private String textoHtml;
 
+    @Column(name = "is_ativo")
+    private Boolean isAtivo = true;
+
     @ManyToOne
     @JoinColumn(name = "id_usuario_sistema")
     private UsuarioSistema usuarioSistema;

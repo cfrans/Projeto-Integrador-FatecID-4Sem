@@ -2,6 +2,7 @@ package com.nemo.api.campanha;
 
 import com.nemo.api.auth.JwtService;
 import com.nemo.api.config.exception.ResourceNotFoundException;
+import com.nemo.api.email.EmailService;
 import com.nemo.api.model.Campanha;
 import com.nemo.api.model.Disparo;
 import com.nemo.api.model.UsuarioDestino;
@@ -19,6 +20,9 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CampanhaService {
@@ -30,6 +34,7 @@ public class CampanhaService {
     private final UsuarioDestinoRepository usuarioDestinoRepository;
     private final DisparoRepository disparoRepository;
     private final JwtService jwtService;
+    private final EmailService emailService;
 
     @Value("${nemo.csv-dir}")
     private String csvDir;
@@ -66,17 +71,21 @@ public class CampanhaService {
                 ? usuarioDestinoRepository.findAll()
                 : usuarioDestinoRepository.findBySetor_IdSetorIn(request.idSetores());
 
-        // Remove da lista os usuários que têm tipo de acesso 1 (Admin)
+        // Remove da lista os usuários que têm tipo de acesso 1 (Admin) e usuários inativos
         alvos = alvos.stream()
                 .filter(a -> a.getTipoAcesso().getIdTipoAcesso() != 1)
+                .filter(a -> a.getIsAtivo() != null && a.getIsAtivo())
                 .toList();
 
         try {
+            log.info("[CAMPANHA] Iniciando geração de tokens e disparos para a campanha ID {} com {} alvos.", campanhasSalva.getIdCampanha(), alvos.size());
             processarGeracaoDeTokens(campanhasSalva.getIdCampanha(), alvos);
         } catch (Exception e) {
+            log.error("[CAMPANHA] Erro ao gerar tokens para campanha {}: {}", campanhasSalva.getIdCampanha(), e.getMessage());
             throw new RuntimeException("Campanha salva, mas erro ao gerar tokens: " + e.getMessage());
         }
 
+        log.info("[CAMPANHA] Campanha ID {} criada com sucesso pelo usuário {}.", campanhasSalva.getIdCampanha(), email);
         return toDTO(campanhasSalva);
     }
 
@@ -184,8 +193,7 @@ public class CampanhaService {
 
                 // Lógica de Simulação/Disparo Real
                 if (alvo.getIsReal() && emailEnabled) {
-                    // TODO: Implementar EmailService.enviar(disparo) futuramente
-                    System.out.println("[SMTP] Agendado envio real para: " + alvo.getEmail());
+                    emailService.enviarEmailPhishing(disparo);
                 } else if (alvo.getIsReal() && !emailEnabled) {
                     System.out.println("[SIMULAÇÃO] Modo Offline: E-mail seria enviado para " + alvo.getEmail());
                 } else {
@@ -194,7 +202,12 @@ public class CampanhaService {
             });
         }
 
-        // 4. LIMPEZA: Excluir os CSVs temporários
+        // 4. Atualizar status da campanha para Concluído
+        var campanhaFinalizada = campanhaRepository.findById(idCampanha).orElseThrow();
+        campanhaFinalizada.setStatusEnvio("Concluído");
+        campanhaRepository.save(campanhaFinalizada);
+
+        // 5. LIMPEZA: Excluir os CSVs temporários
         Files.deleteIfExists(arquivoTemp);
         Files.deleteIfExists(arquivoSaida);
     }

@@ -68,6 +68,7 @@ public interface DisparoRepository extends JpaRepository<Disparo, Integer> {
         SELECT c.idCampanha, c.dataCriacao, c.nomeCampanha,
                COUNT(d),
                SUM(CASE WHEN d.clicouLink = TRUE THEN 1 ELSE 0 END),
+               SUM(CASE WHEN d.abriuAnexo = TRUE THEN 1 ELSE 0 END),
                SUM(CASE WHEN d.reportouPhishing = TRUE THEN 1 ELSE 0 END)
         FROM Disparo d JOIN d.campanha c
         WHERE c.dataCriacao >= :inicio

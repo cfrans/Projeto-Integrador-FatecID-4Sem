@@ -9,5 +9,6 @@ public record ModeloDTO(
         String remetenteFalso,
         String assuntoPadrao,
         LocalDateTime data,
-        String textoHtml
+        String textoHtml,
+        Boolean isAtivo
 ) {}

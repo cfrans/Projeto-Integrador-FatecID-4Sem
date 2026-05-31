@@ -12,5 +12,6 @@ public record UsuarioDestinoDTO(
         Integer idSetor,
         String nomeSetor,
         Boolean primeiroAcesso,
-        LocalDateTime ultimoLogin
+        LocalDateTime ultimoLogin,
+        Boolean isAtivo
 ) {}

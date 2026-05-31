@@ -32,7 +32,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 ## 📊 Status atual
 
-> ⚠️ **Em desenvolvimento ativo (v0.0.1-alpha).** A infraestrutura core (API, Worker de Tokens, Gestão de Campanhas e Monitoramento) já é funcional. O foco atual está na implementação do disparo real via SMTP e na expansão do Portal do Colaborador.
+> ⚠️ **Em desenvolvimento ativo (v0.0.1-alpha).** A infraestrutura core (API, Worker de Tokens, Gestão de Campanhas, Monitoramento e Disparo de E-mails) já é funcional. O foco atual está na aplicação de filtros de segurança (Filtro JWT) e suíte de testes.
 
 ### ✅ Implementado
 
@@ -69,8 +69,8 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 **Crítico (bloqueia o MVP)**
 - [x] **Lógica de Último Login** — A data de acesso é registrada automaticamente no `AuthService` durante o login e exibida na tela de Configurações para auditoria (fuso horário local tratado via `LocalDateTime`).
 - [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
-- [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio.
-- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, remoção individual e em lote, paginação, ordenação por coluna, filtros por nome/e-mail e setor, e **importação em massa via CSV** (`POST /api/usuarios-destino/importar`) com detecção automática de separador, parsing quote-aware, BOM stripping e relatório por linha de erros/ignorados/criados.
+- [x] **Disparo SMTP real** — a campanha dispara e-mails reais através do Postfix configurado no domínio (`acesso-seguro.top`). Integrado via `spring-boot-starter-mail` e `EmailService`.
+- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, ativação/desativação individual e em lote, paginação, ordenação por coluna, filtros e importação em massa.
 - [x] **Modo de Apresentação & Simulação** — Diferenciação entre usuários "Mock" (volume) e "Reais" (testes) via coluna `is_real`. Adicionado "interruptor" `nemo.email.enabled` para simulação offline de disparos.
 - [x] **Lógica de pontuação** comportamental — `PontuacaoService` aplica penalidade por clique (−20) e abertura de anexo (−30) com idempotência por disparo, clamp em 0–1000 e histórico em `pontuacao_evento`. Falta integrar com o reporte (depende do SMTP-to-Webhook) e com a conclusão de treinamentos (depende do módulo de treinamentos).
 
@@ -105,7 +105,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - [x] **Responsividade de todas as telas** — Adaptabilidade para mobile, tablet e desktop nas telas de Login, Dashboard, Configurações, Usuários e menus de navegação (feito pela Vitória).
 
 **Funcionalidade — Painel Admin**
-- [ ] **Disparo SMTP real** — a campanha gera tokens mas não envia e-mails ainda. Adicionar `spring-boot-starter-mail` e service de envio (`EmailService`). **Bloqueia o MVP operacional.**
+- [x] **Disparo SMTP real** — a campanha já envia e-mails através do `EmailService` usando o servidor SMTP/Postfix local ou configurado via Tailscale.
 
 **Funcionalidade — Portal do Colaborador**
 - [x] **Endpoint de pontuação do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de `pontuacao_evento`. Integrado em `/meus-graficos` com mapeamento dos eventos reais.
@@ -139,9 +139,9 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 **Processamento Assíncrono**
 - Worker em C (multithread, geração paralela de tokens com key stretching, algoritmo DJB2 modificado, estrutura de Lista Encadeada Simples com alocação dinâmica)
 
-**Envio de E-mails**
-- *(planejado)* Disparo SMTP via Postfix (domínio próprio)
-- Captura de reportes via Listener IMAP Nativo (Gmail)
+**Envio de E-mails e Monitoramento**
+- Disparo SMTP real via Postfix (domínio próprio `acesso-seguro.top`)
+- Captura de reportes via Listener IMAP Nativo (API do Java Mail + Regex)
 
 ---
 
@@ -173,6 +173,13 @@ spring:
     password: sua-senha-do-mysql
     url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 
+  # Configuração do servidor SMTP (Postfix via rede local, Tailscale ou MailHog)
+  mail:
+    host: 192.168.0.101        # IP do container; na apresentação online: IP Tailscale (100.x.x.x). Para MailHog: localhost
+    port: 587                  # 587 para Postfix. Para MailHog: 1025
+    username: ""               # Deixe em branco se for MailHog ou Postfix configurado para mynetworks
+    password: ""               # Deixe em branco se for MailHog ou Postfix configurado para mynetworks
+
 logging:
   level:
     org.springframework.security: TRACE
@@ -181,17 +188,32 @@ jwt:
   secret: nemo-jwt-secret-dev-apenas-local-nao-commitar
   expiration-ms: 86400000
 
-# Configuração do Listener IMAP (para capturar reportes de phishing)
 nemo:
+  email:
+    enabled: true              # false = modo simulação (só loga, não envia)
+  tracking:
+    base-url: http://localhost:8080   # URL base dos links inseridos nos e-mails de phishing
   imap:
-    enabled: false # Altere para true para ativar o Listener localmente
+    enabled: false             # true para ativar captura de denúncias via Gmail
     username: seu-email-abuse@gmail.com
     password: sua-senha-de-aplicativo-de-16-digitos # Veja seção de configuração de Rastreamento abaixo
 ```
 
 > ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
 
-#### 3. Suba o backend
+> 💡 **Dica (Plano B - Sem Internet):** Caso não haja internet na apresentação para usar o Postfix externo, você pode rodar o **MailHog** localmente (`docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog`), alterar as configurações no yaml para `host: localhost` e `port: 1025`. Você poderá acompanhar os disparos em tempo real acessando `http://localhost:8025`.
+
+#### 3. Monitoramento de Logs Separados
+
+O Spring Boot foi configurado com um `logback-spring.xml` que separa automaticamente os logs na pasta `logs/` (criada na raiz onde o backend é executado):
+
+- **`nemo-mail.log`**: Registra apenas os disparos reais de SMTP e a varredura IMAP na caixa de reportes. Ideal para deixar rodando em uma janela separada durante apresentações.
+- **`nemo-system.log`**: Registra regras de negócio (criação de usuários, campanhas, login).
+- **`nemo-debug.log`**: Um *firehose* que contém absolutamente tudo, incluindo queries do Hibernate e filtros de segurança.
+
+*No PowerShell, você pode monitorar um log ao vivo rodando: `Get-Content logs\nemo-mail.log -Wait`*
+
+#### 4. Suba o backend
 
 ```bash
 cd backend
@@ -301,8 +323,8 @@ Para rastrear cliques sem expor dados pessoais na URL (conformidade LGPD — tra
 - Cada token é único para **aquela combinação específica** de usuário × campanha. O token mascara a identidade do alvo e a qual campanha ele pertence.
 - Os tokens voltam num CSV de saída e são gravados em `disparos`.
 
-#### 4. Disparo *(planejado)*
-O backend lerá o HTML do Modelo, substituirá `{{LINK_AQUI}}` pela URL contendo o token único, e enviará via SMTP. **Esta etapa ainda não está implementada.**
+#### 4. Disparo de E-mails (SMTP)
+O backend lê o HTML do Modelo, substitui `{{LINK_AQUI}}`, `{{LINK_ANEXO}}` e `{{NOME_ALVO}}` pela URL contendo o token único/informações do alvo, e realiza o envio assíncrono via SMTP utilizando a classe `EmailService`.
 
 ### Rastreamento
 

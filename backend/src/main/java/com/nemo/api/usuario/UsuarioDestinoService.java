@@ -18,6 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsuarioDestinoService {
@@ -46,10 +49,13 @@ public class UsuarioDestinoService {
         usuario.setSenhaHash(passwordEncoder.encode(String.valueOf(request.matricula())));
         usuario.setPontuacao(PontuacaoService.SALDO_INICIAL);
         usuario.setPrimeiroAcesso(true);
+        usuario.setIsReal(true); // Usuários criados manualmente são sempre reais
         usuario.setSetor(setor);
         usuario.setTipoAcesso(tipoAcesso);
 
-        return toDTO(repository.save(usuario));
+        UsuarioDestino salvo = repository.save(usuario);
+        log.info("[USUARIO] Novo usuário criado: {} ({}) - Setor: {}", salvo.getNome(), salvo.getEmail(), salvo.getSetor().getNomeSetor());
+        return toDTO(salvo);
     }
 
     public UsuarioDestinoDTO atualizar(Integer id, UsuarioDestinoRequest request) {
@@ -74,10 +80,18 @@ public class UsuarioDestinoService {
     }
 
     public void deletar(Integer id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Usuário não encontrado");
-        }
-        repository.deleteById(id);
+        var usuario = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        usuario.setIsAtivo(false);
+        repository.save(usuario);
+        log.info("[USUARIO] Usuário ID {} foi desativado.", id);
+    }
+
+    public void reativar(Integer id) {
+        var usuario = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        usuario.setIsAtivo(true);
+        repository.save(usuario);
     }
 
     // ─── Importação por CSV ───────────────────────────────────────────────────
@@ -221,7 +235,8 @@ public class UsuarioDestinoService {
                 u.getSetor().getIdSetor(),
                 u.getSetor().getNomeSetor(),
                 u.getPrimeiroAcesso(),
-                u.getUltimoLogin()
+                u.getUltimoLogin(),
+                u.getIsAtivo()
         );
     }
 }

@@ -1,7 +1,7 @@
 -- 50 usuarios de destino mock (is_real=FALSE) para demonstracao.
 -- Senha bcrypt corresponde a propria matricula (ex: matricula 8839 -> senha "8839").
 INSERT INTO usuario_destino (matricula, nome, email, senha_hash, pontuacao, primeiro_acesso, is_real, id_setor) VALUES
-(8839, 'Koo Gooden',          'kgooden0@netlog.com',          '$2b$12$u.O4suuCa/5zFSWvZKhDPuKgnZlJgvcdJhJyjvUWkhR623KMSslVS', 500, TRUE, FALSE, 4),
+(8839, 'Mark Fiore',          'mfiore@netlog.com',          '$2b$12$u.O4suuCa/5zFSWvZKhDPuKgnZlJgvcdJhJyjvUWkhR623KMSslVS', 500, TRUE, FALSE, 4),
 (3236, 'Jodee Delacote',      'jdelacote1@ovh.net',           '$2b$12$Wj3MgGILv8ks0oKN4wu/X.n9vt5H4.Klgw7NnwrE0nzwE9r4GI5ZC', 500, TRUE, FALSE, 1),
 (7855, 'Doroteya Derks',      'dderks2@posterous.com',        '$2b$12$.NXSGgFH75EgkRFDi.FvgeCHMCzOiM.8NWe1Xsxvn79fyPxJB9J6K', 500, TRUE, FALSE, 6),
 (3964, 'Erhard Vinick',       'evinick3@pen.io',              '$2b$12$xBu5m6H1TkPBf64ur26s2OVhUHzLejoKct2huT7ox7KWzo/lUtiz2', 500, TRUE, FALSE, 6),

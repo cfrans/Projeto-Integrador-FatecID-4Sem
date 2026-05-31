@@ -17,10 +17,16 @@ export default function Modal({
 }) {
   useEffect(() => {
     if (!open) return
-    const handleKey = (e) => { if (e.key === 'Escape') onClose() }
+    const handleKey = (e) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'Enter') {
+        if (confirm && onConfirm) onConfirm()
+        else onClose()
+      }
+    }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [open, onClose])
+  }, [open, onClose, confirm, onConfirm])
 
   const colors = {
     error:   { img: peixeSurpreso, title: 'text-red-700' },
