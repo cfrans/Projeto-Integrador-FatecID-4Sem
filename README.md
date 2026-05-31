@@ -173,10 +173,12 @@ spring:
     password: sua-senha-do-mysql
     url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 
-  # Configuração do servidor SMTP (Postfix via rede local ou Tailscale)
+  # Configuração do servidor SMTP (Postfix via rede local, Tailscale ou MailHog)
   mail:
-    host: 192.168.0.101        # IP local do container; na apresentação: IP Tailscale (100.x.x.x)
-    port: 587
+    host: 192.168.0.101        # IP do container; na apresentação online: IP Tailscale (100.x.x.x). Para MailHog: localhost
+    port: 587                  # 587 para Postfix. Para MailHog: 1025
+    username: ""               # Deixe em branco se for MailHog ou Postfix configurado para mynetworks
+    password: ""               # Deixe em branco se for MailHog ou Postfix configurado para mynetworks
 
 logging:
   level:
@@ -199,7 +201,19 @@ nemo:
 
 > ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
 
-#### 3. Suba o backend
+> 💡 **Dica (Plano B - Sem Internet):** Caso não haja internet na apresentação para usar o Postfix externo, você pode rodar o **MailHog** localmente (`docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog`), alterar as configurações no yaml para `host: localhost` e `port: 1025`. Você poderá acompanhar os disparos em tempo real acessando `http://localhost:8025`.
+
+#### 3. Monitoramento de Logs Separados
+
+O Spring Boot foi configurado com um `logback-spring.xml` que separa automaticamente os logs na pasta `logs/` (criada na raiz onde o backend é executado):
+
+- **`nemo-mail.log`**: Registra apenas os disparos reais de SMTP e a varredura IMAP na caixa de reportes. Ideal para deixar rodando em uma janela separada durante apresentações.
+- **`nemo-system.log`**: Registra regras de negócio (criação de usuários, campanhas, login).
+- **`nemo-debug.log`**: Um *firehose* que contém absolutamente tudo, incluindo queries do Hibernate e filtros de segurança.
+
+*No PowerShell, você pode monitorar um log ao vivo rodando: `Get-Content logs\nemo-mail.log -Wait`*
+
+#### 4. Suba o backend
 
 ```bash
 cd backend
