@@ -465,14 +465,27 @@ export default function UsersPage() {
     Setor: "nomeSetor",
     "E-mail": "email",
     Pontuação: "pontuacao",
+    "Último Login": "ultimoLogin",
   };
 
   const sorted = sortCol
     ? [...filtered].sort((a, b) => {
         const key = SORT_KEYS[sortCol];
-        const va = a[key] ?? "";
-        const vb = b[key] ?? "";
-        const cmp = typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), "pt-BR");
+        const va = a[key] ?? null;
+        const vb = b[key] ?? null;
+        // Nulos (nunca acessou) sempre vão para o fim, independente da direção
+        if (va === null && vb === null) return 0;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        // Comparação por tipo
+        let cmp;
+        if (key === "ultimoLogin") {
+          cmp = new Date(va) - new Date(vb);
+        } else if (typeof va === "number") {
+          cmp = va - vb;
+        } else {
+          cmp = String(va).localeCompare(String(vb), "pt-BR");
+        }
         return sortDir === "asc" ? cmp : -cmp;
       })
     : filtered;
@@ -748,7 +761,7 @@ export default function UsersPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-slate-500">
-                          {user.primeiroAcesso || !user.ultimoLogin ? (
+                          {!user.ultimoLogin ? (
                             <span className="text-slate-400 italic">Nunca acessou</span>
                           ) : (
                             new Date(user.ultimoLogin).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
