@@ -388,7 +388,11 @@ function CampaignForm({ onBack, onSuccess }) {
             <Field>
               <FieldLabel>Modelo de E-mail</FieldLabel>
               <Select value={selectedModel} onValueChange={handleModelChange}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Selecione um modelo..." /></SelectTrigger>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Selecione um modelo...">
+                    {selectedModel ? (modelos.find((m) => String(m.idModelo) === String(selectedModel))?.nomeModelo ?? "Selecione um modelo...") : "Selecione um modelo..."}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {modelos.map((m) => (
                     <SelectItem key={m.idModelo} value={String(m.idModelo)}>{m.nomeModelo}</SelectItem>
