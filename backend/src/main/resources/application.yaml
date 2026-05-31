@@ -6,7 +6,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate  # Flyway cuida da estrutura, JPA  valida
+      ddl-auto: validate  # Flyway cuida da estrutura, JPA valida
     show-sql: true
     properties:
       hibernate:
@@ -21,6 +21,24 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  # ─── Configuração do JavaMailSender ─────────────────────────────────────────
+  # Valores padrão apontam para localhost (Tailscale ou rede local).
+  # Sobrescreva em application-local.yaml com o IP Tailscale do container SMTP.
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: false           # Postfix permite relay por mynetworks sem auth
+          starttls:
+            enable: false       # Rede interna (Tailscale), TLS não necessário
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 server:
   port: ${PORT:8080}
 
@@ -28,3 +46,15 @@ nemo:
   csv-dir: ${NEMO_CSV_DIR:${user.dir}/tmp/tokens}
   email:
     enabled: ${EMAIL_ENABLED:true}
+
+  # URL base usada para compor os links de rastreamento nos e-mails
+  # Em dev local: http://localhost:8080
+  # Na apresentação: também http://localhost:8080 (vítima está na mesma máquina)
+  tracking:
+    base-url: ${TRACKING_BASE_URL:http://localhost:8080}
+
+  # ─── Configuração do IMAP Listener (Abuse Inbox) ────────────────────────────
+  imap:
+    enabled: ${IMAP_ENABLED:false}
+    username: ${IMAP_USER:}
+    password: ${IMAP_PASS:}

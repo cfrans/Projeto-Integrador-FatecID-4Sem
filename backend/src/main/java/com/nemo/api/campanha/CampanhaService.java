@@ -2,6 +2,7 @@ package com.nemo.api.campanha;
 
 import com.nemo.api.auth.JwtService;
 import com.nemo.api.config.exception.ResourceNotFoundException;
+import com.nemo.api.email.EmailService;
 import com.nemo.api.model.Campanha;
 import com.nemo.api.model.Disparo;
 import com.nemo.api.model.UsuarioDestino;
@@ -30,6 +31,7 @@ public class CampanhaService {
     private final UsuarioDestinoRepository usuarioDestinoRepository;
     private final DisparoRepository disparoRepository;
     private final JwtService jwtService;
+    private final EmailService emailService;
 
     @Value("${nemo.csv-dir}")
     private String csvDir;
@@ -184,8 +186,7 @@ public class CampanhaService {
 
                 // Lógica de Simulação/Disparo Real
                 if (alvo.getIsReal() && emailEnabled) {
-                    // TODO: Implementar EmailService.enviar(disparo) futuramente
-                    System.out.println("[SMTP] Agendado envio real para: " + alvo.getEmail());
+                    emailService.enviarEmailPhishing(disparo);
                 } else if (alvo.getIsReal() && !emailEnabled) {
                     System.out.println("[SIMULAÇÃO] Modo Offline: E-mail seria enviado para " + alvo.getEmail());
                 } else {
