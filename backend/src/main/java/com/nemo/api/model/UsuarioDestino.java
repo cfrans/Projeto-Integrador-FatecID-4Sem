@@ -24,6 +24,9 @@ public class UsuarioDestino {
     @Column(name = "is_real")
     private Boolean isReal = false;
 
+    @Column(name = "is_ativo")
+    private Boolean isAtivo = true;
+
     @Column(name = "id_pergunta_1")
     private Integer idPergunta1;
 

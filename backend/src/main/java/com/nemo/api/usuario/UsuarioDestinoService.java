@@ -75,10 +75,17 @@ public class UsuarioDestinoService {
     }
 
     public void deletar(Integer id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Usuário não encontrado");
-        }
-        repository.deleteById(id);
+        var usuario = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        usuario.setIsAtivo(false);
+        repository.save(usuario);
+    }
+
+    public void reativar(Integer id) {
+        var usuario = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+        usuario.setIsAtivo(true);
+        repository.save(usuario);
     }
 
     // ─── Importação por CSV ───────────────────────────────────────────────────
@@ -222,7 +229,8 @@ public class UsuarioDestinoService {
                 u.getSetor().getIdSetor(),
                 u.getSetor().getNomeSetor(),
                 u.getPrimeiroAcesso(),
-                u.getUltimoLogin()
+                u.getUltimoLogin(),
+                u.getIsAtivo()
         );
     }
 }

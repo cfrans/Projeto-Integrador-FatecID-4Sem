@@ -6,6 +6,7 @@ import {
   UserIcon,
   ArrowUpTrayIcon,
   DocumentTextIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/solid";
 import peixeHappy from "@/assets/peixe-icons/peixe-icon-happy.png";
 import peixeDuvidoso from "@/assets/peixe-icons/peixe-icon-duvidoso.png";
@@ -182,19 +183,7 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
           </Field>
         </div>
 
-        <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
-          <button
-            onClick={() => setForm(EMPTY_FORM)}
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            {/* Borracha */}
-            <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 17h14M6.5 14.5 3.5 11.5a1 1 0 0 1 0-1.414l7-7a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-4.5 4.5H6.5Z" />
-              <path d="m9 5 5 5" />
-            </svg>
-            LIMPAR
-          </button>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-4 border-t border-slate-100">
             <Button
               size="sm"
               disabled={saving}
@@ -215,7 +204,6 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
           </div>
         </div>
       </div>
-    </div>
   );
 }
 
@@ -417,6 +405,7 @@ export default function UsersPage() {
   const [filterNome, setFilterNome] = useState("");
   const [filterSetor, setFilterSetor] = useState("");
   const [filterRole, setFilterRole] = useState("");
+  const [filterAtivo, setFilterAtivo] = useState("ativos");
 
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
@@ -455,7 +444,8 @@ export default function UsersPage() {
       u.email.toLowerCase().includes(filterNome.toLowerCase());
     const setorMatch = !filterSetor || String(u.idSetor) === filterSetor;
     const roleMatch = !filterRole || filterRole === "todos" || u.tipoAcesso === filterRole;
-    return nomeMatch && setorMatch && roleMatch;
+    const ativoMatch = filterAtivo === "todos" || (filterAtivo === "ativos" ? u.isAtivo : !u.isAtivo);
+    return nomeMatch && setorMatch && roleMatch && ativoMatch;
   });
 
   // ── Ordenação ──
@@ -504,8 +494,8 @@ export default function UsersPage() {
   const fim = inicio + pageSize;
   const pagina = sorted.slice(inicio, fim);
 
-  const clearFilters = () => { setFilterNome(""); setFilterSetor(""); setFilterRole(""); setPaginaAtual(1); };
-  const hasActiveFilters = filterNome || filterSetor || (filterRole && filterRole !== "todos");
+  const clearFilters = () => { setFilterNome(""); setFilterSetor(""); setFilterRole(""); setFilterAtivo("ativos"); setPaginaAtual(1); };
+  const hasActiveFilters = filterNome || filterSetor || (filterRole && filterRole !== "todos") || filterAtivo !== "ativos";
 
   // ── Seleção ──
   const toggleSelect = (id) =>
@@ -574,17 +564,27 @@ export default function UsersPage() {
     try {
       if (bulk) {
         await Promise.all(selected.map((sid) => api.delete(`/api/usuarios-destino/${sid}`)));
-        setUsers((us) => us.filter((u) => !selected.includes(u.idUsuarioDestino)));
+        setUsers((us) => us.map((u) => selected.includes(u.idUsuarioDestino) ? { ...u, isAtivo: false } : u));
         setSelected([]);
-        showFeedback("Usuários removidos", `${selected.length} usuário(s) excluído(s) com sucesso.`);
+        showFeedback("Usuários desativados", `${selected.length} usuário(s) desativado(s) com sucesso.`);
       } else {
         await api.delete(`/api/usuarios-destino/${id}`);
-        setUsers((us) => us.filter((u) => u.idUsuarioDestino !== id));
+        setUsers((us) => us.map((u) => u.idUsuarioDestino === id ? { ...u, isAtivo: false } : u));
         setSelected((s) => s.filter((x) => x !== id));
-        showFeedback("Usuário removido", "O usuário foi excluído com sucesso.");
+        showFeedback("Usuário desativado", "O usuário foi desativado com sucesso.");
       }
     } catch (err) {
-      showFeedback("Erro", err.message || "Não foi possível remover o usuário.", "error");
+      showFeedback("Erro", err.message || "Não foi possível desativar o usuário.", "error");
+    }
+  };
+
+  const handleReactivate = async (id) => {
+    try {
+      await api.put(`/api/usuarios-destino/${id}/reativar`);
+      setUsers((us) => us.map((u) => u.idUsuarioDestino === id ? { ...u, isAtivo: true } : u));
+      showFeedback("Usuário reativado", "O usuário foi reativado com sucesso.");
+    } catch (err) {
+      showFeedback("Erro", err.message || "Não foi possível reativar o usuário.", "error");
     }
   };
 
@@ -611,9 +611,9 @@ export default function UsersPage() {
       <Modal
         open={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, id: null, bulk: false })}
-        title={deleteModal.bulk ? "Remover usuários selecionados?" : "Remover usuário?"}
-        description={deleteModal.bulk ? `Tem certeza que deseja remover ${selected.length} usuário(s)? Essa ação não pode ser desfeita.` : "Tem certeza que deseja remover este usuário? Essa ação não pode ser desfeita."}
-        variant="warning" confirm confirmLabel="Sim, remover" onConfirm={confirmDelete}
+        title={deleteModal.bulk ? "Desativar usuários selecionados?" : "Desativar usuário?"}
+        description={deleteModal.bulk ? `Tem certeza que deseja desativar ${selected.length} usuário(s)? Eles não poderão receber novos envios de campanhas.` : "Tem certeza que deseja desativar este usuário? Ele não poderá receber novos envios de campanhas."}
+        variant="warning" confirm confirmLabel="Sim, desativar" onConfirm={confirmDelete}
       />
       <Modal
         open={confirmSave.open}
@@ -662,7 +662,7 @@ export default function UsersPage() {
         isOpen={filterOpen}
         onToggle={() => setFilterOpen((v) => !v)}
         isActive={hasActiveFilters}
-        activeCount={[filterNome, filterSetor, (filterRole && filterRole !== "todos")].filter(Boolean).length}
+        activeCount={[filterNome, filterSetor, (filterRole && filterRole !== "todos"), (filterAtivo !== "ativos")].filter(Boolean).length}
         onClear={clearFilters}
       >
         <Field className="w-auto flex-1 min-w-40">
@@ -698,6 +698,21 @@ export default function UsersPage() {
               {tiposAcesso.map((t) => (
                 <SelectItem key={t.idTipoAcesso} value={t.tipoAcesso}>{t.tipoAcesso}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field className="w-auto shrink-0 min-w-40">
+          <FieldLabel className="text-xs text-slate-500">Status</FieldLabel>
+          <Select value={filterAtivo} onValueChange={(v) => { setFilterAtivo(v); setPaginaAtual(1); }}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Ativos">
+                {filterAtivo === "todos" ? "Todos" : filterAtivo === "ativos" ? "Ativos" : "Desativados"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ativos">Ativos</SelectItem>
+              <SelectItem value="inativos">Desativados</SelectItem>
+              <SelectItem value="todos">Todos</SelectItem>
             </SelectContent>
           </Select>
         </Field>
@@ -745,7 +760,7 @@ export default function UsersPage() {
                     const isSelected = selected.includes(user.idUsuarioDestino);
 
                     return (
-                      <tr key={user.idUsuarioDestino} className={`transition-colors ${isSelected ? "bg-teal-50/60" : "hover:bg-slate-50"}`}>
+                      <tr key={user.idUsuarioDestino} className={`transition-colors ${isSelected ? "bg-teal-50/60" : "hover:bg-slate-50"} ${!user.isAtivo ? "opacity-60 grayscale-[0.5]" : ""}`}>
                         <td className="px-4 py-3">
                           <Checkbox checked={isSelected} onChange={() => toggleSelect(user.idUsuarioDestino)} />
                         </td>
@@ -769,12 +784,20 @@ export default function UsersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => setFormModal({ open: true, user })} className="p-1.5 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors" title="Editar">
-                              <PencilIcon className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => setDeleteModal({ open: true, id: user.idUsuarioDestino, bulk: false })} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Remover">
-                              <XCircleIcon className="w-4 h-4" />
-                            </button>
+                            {user.isAtivo ? (
+                              <>
+                                <button onClick={() => setFormModal({ open: true, user })} className="p-1.5 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors" title="Editar">
+                                  <PencilIcon className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => setDeleteModal({ open: true, id: user.idUsuarioDestino, bulk: false })} className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Desativar">
+                                  <XCircleIcon className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <button onClick={() => handleReactivate(user.idUsuarioDestino)} className="p-1.5 rounded-md text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Reativar">
+                                <ArrowPathIcon className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -794,7 +817,7 @@ export default function UsersPage() {
           </span>
           {selected.length > 0 && (
             <Button size="sm" variant="outline" className="h-7 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteModal({ open: true, id: null, bulk: true })}>
-              Remover selecionados ({selected.length})
+              Desativar selecionados ({selected.length})
             </Button>
           )}
         </div>

@@ -29,6 +29,7 @@ CREATE TABLE usuario_destino (
     primeiro_acesso    BOOLEAN      DEFAULT TRUE,
     ultimo_login       DATETIME     NULL,
     is_real            BOOLEAN      DEFAULT FALSE,
+    is_ativo           BOOLEAN      DEFAULT TRUE,
     id_setor           INT          NOT NULL,
     id_tipo_acesso     INT          NOT NULL DEFAULT 2,
     CONSTRAINT fk_setor_destino    FOREIGN KEY (id_setor)         REFERENCES setor (id_setor),

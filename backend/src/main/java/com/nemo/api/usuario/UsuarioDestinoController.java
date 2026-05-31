@@ -36,6 +36,12 @@ public class UsuarioDestinoController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/reativar")
+    public ResponseEntity<Void> reativar(@PathVariable Integer id) {
+        service.reativar(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/importar")
     public ResponseEntity<ImportResultDTO> importar(@RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(service.importarCsv(file));
