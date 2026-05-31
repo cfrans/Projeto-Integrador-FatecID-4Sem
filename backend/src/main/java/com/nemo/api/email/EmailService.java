@@ -71,6 +71,16 @@ public class EmailService {
             helper.setSubject(assunto);
             helper.setText(corpoHtml, true); // true = isHtml
 
+            // Anexo simulado
+            if (campanha.getNomeAnexo() != null && !campanha.getNomeAnexo().trim().isEmpty()) {
+                String htmlAnexoFalso = "<html><body>" +
+                        "<h2>Documento Confidencial</h2>" +
+                        "<p>Para visualizar o conteúdo deste arquivo, por favor acesse a via segura clicando no link abaixo:</p>" +
+                        "<a href=\"" + linkAnexo + "\">Visualizar Documento (" + campanha.getNomeAnexo() + ")</a>" +
+                        "</body></html>";
+                helper.addAttachment(campanha.getNomeAnexo() + ".html", new org.springframework.core.io.ByteArrayResource(htmlAnexoFalso.getBytes("UTF-8")), "text/html");
+            }
+
             mailSender.send(message);
             log.info("[SMTP] E-mail enviado com sucesso → {} (campanha: {}, token: {})",
                     emailAlvo, campanha.getNomeCampanha(), token);
