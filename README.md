@@ -173,6 +173,11 @@ spring:
     password: sua-senha-do-mysql
     url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 
+  # Configuração do servidor SMTP (Postfix via rede local ou Tailscale)
+  mail:
+    host: 192.168.0.101        # IP local do container; na apresentação: IP Tailscale (100.x.x.x)
+    port: 587
+
 logging:
   level:
     org.springframework.security: TRACE
@@ -181,10 +186,13 @@ jwt:
   secret: nemo-jwt-secret-dev-apenas-local-nao-commitar
   expiration-ms: 86400000
 
-# Configuração do Listener IMAP (para capturar reportes de phishing)
 nemo:
+  email:
+    enabled: true              # false = modo simulação (só loga, não envia)
+  tracking:
+    base-url: http://localhost:8080   # URL base dos links inseridos nos e-mails de phishing
   imap:
-    enabled: false # Altere para true para ativar o Listener localmente
+    enabled: false             # true para ativar captura de denúncias via Gmail
     username: seu-email-abuse@gmail.com
     password: sua-senha-de-aplicativo-de-16-digitos # Veja seção de configuração de Rastreamento abaixo
 ```
