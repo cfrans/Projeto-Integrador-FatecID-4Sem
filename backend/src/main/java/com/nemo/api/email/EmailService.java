@@ -53,8 +53,20 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            // Remetente com display name (spoofing visual)
-            helper.setFrom(new InternetAddress(remetenteFalso, extrairNomeRemetente(remetenteFalso), "UTF-8"));
+            String emailRemetente = remetenteFalso;
+            String nomeRemetente = null;
+
+            // Se o usuário preencheu "Nome do Remetente <email@dominio.com>"
+            if (remetenteFalso.contains("<") && remetenteFalso.contains(">")) {
+                int lastIdx = remetenteFalso.lastIndexOf("<");
+                nomeRemetente = remetenteFalso.substring(0, lastIdx).trim();
+                emailRemetente = remetenteFalso.substring(lastIdx + 1, remetenteFalso.indexOf(">", lastIdx)).trim();
+            } else {
+                nomeRemetente = extrairNomeRemetente(emailRemetente);
+            }
+
+            // Remetente com display name e charset UTF-8 (evita quebra de caracteres)
+            helper.setFrom(new InternetAddress(emailRemetente, nomeRemetente, "UTF-8"));
             helper.setTo(emailAlvo);
             helper.setSubject(assunto);
             helper.setText(corpoHtml, true); // true = isHtml
