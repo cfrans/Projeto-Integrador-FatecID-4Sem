@@ -294,6 +294,7 @@ function CampaignForm({ onBack, onSuccess }) {
   const [chosenSectors, setChosenSectors] = useState([]);
   const [attachmentName, setAttachmentName] = useState("");
   const [includeAnexo, setIncludeAnexo] = useState(false);
+  const [previewAnexo, setPreviewAnexo] = useState({ open: false, html: "" });
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, title: "", description: "", variant: "error" });
 
@@ -356,9 +357,9 @@ function CampaignForm({ onBack, onSuccess }) {
   const handlePreviewAnexo = () => {
     const nome = attachmentName || "documento.pdf";
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${nome}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#404040;min-height:100vh;font-family:Arial,sans-serif;display:flex;flex-direction:column}.bar{background:#3a3a3a;padding:10px 20px;color:#ccc;font-size:13px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a2a2a}.wrap{flex:1;overflow:auto;padding:28px;display:flex;justify-content:center}.page{background:#fff;width:min(794px,100%);min-height:900px;padding:56px 64px;box-shadow:0 4px 24px rgba(0,0,0,.5)}.heading{border-bottom:2px solid #e0e0e0;padding-bottom:16px;margin-bottom:28px;text-align:center}.heading h1{font-size:18px;color:#1a1a1a}.heading p{font-size:11px;color:#999;margin-top:4px}p{font-size:14px;line-height:1.8;color:#444;margin-bottom:12px}.warn{background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:16px 20px;margin:24px 0}.warn p{color:#856404;font-size:13px}.btn{display:inline-block;background:#0052cc;color:#fff;padding:11px 28px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:bold;margin-top:14px}.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;z-index:999;transition:opacity .4s}.spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}</style></head><body><div class="bar"><span>${nome}</span></div><div class="wrap"><div class="page"><div class="heading"><h1>DOCUMENTO CONFIDENCIAL</h1><p>Uso interno — não divulgar</p></div><div class="warn"><p><strong>⚠ Acesso restrito.</strong> Para visualizar o conteúdo completo, realize a autenticação corporativa.</p><a href="#" class="btn">Autenticar e Visualizar</a></div><p>Este documento contém informações confidenciais destinadas exclusivamente ao destinatário identificado.</p></div></div><div class="overlay" id="ov"><div class="spin"></div><p>Carregando documento...</p></div><script>setTimeout(()=>{const o=document.getElementById('ov');o.style.opacity='0';setTimeout(()=>o.remove(),400)},1800)</script></body></html>`;
-    const blob = new Blob([html], { type: "text/html" });
-    window.open(URL.createObjectURL(blob), "_blank");
+    setPreviewAnexo({ open: true, html });
   };
+
 
   return (
     <div className="grid gap-4">
@@ -485,6 +486,24 @@ function CampaignForm({ onBack, onSuccess }) {
           </footer>
         </CardContent>
       </Card>
+
+      {/* Modal Pré-visualização do Anexo */}
+      {previewAnexo.open && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setPreviewAnexo({ open: false, html: "" })}></div>
+          <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+              <h3 className="font-semibold text-slate-700">Pré-visualização do Anexo</h3>
+              <button onClick={() => setPreviewAnexo({ open: false, html: "" })} className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors">
+                <IconX className="size-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden bg-slate-100">
+              <iframe srcDoc={previewAnexo.html} className="w-full h-full border-0" title="Pré-visualização do Anexo" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
