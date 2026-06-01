@@ -18,6 +18,7 @@ import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { InfoHint } from "@/components/ui/InfoHint";
 import {
   Select,
   SelectContent,
@@ -150,7 +151,10 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
         <div className="px-5 py-5 grid gap-4">
           <div className="grid grid-cols-2 gap-4">
             <Field>
-              <FieldLabel className="text-sm font-medium text-slate-700">Matrícula</FieldLabel>
+              <FieldLabel className="text-sm font-medium text-slate-700">
+                Matrícula
+                <InfoHint text="Número de matrícula ou registro funcional único do colaborador. Serve para identificá-lo na empresa." />
+              </FieldLabel>
               <Input value={form.matricula} onChange={set("matricula")} type="number" className="h-10 bg-slate-100 border-slate-200 rounded-lg" />
             </Field>
             <Field>
@@ -181,7 +185,10 @@ function UserFormModal({ open, onClose, onSave, editingUser, setores, tiposAcess
           </Field>
 
           <Field>
-            <FieldLabel className="text-sm font-medium text-slate-700">Papel / Tipo de Usuário</FieldLabel>
+            <FieldLabel className="text-sm font-medium text-slate-700">
+              Papel / Tipo de Usuário
+              <InfoHint text="Define as permissões no sistema. Admin gerencia campanhas, modelos e usuários; Colaborador apenas participa das simulações e treinamentos." />
+            </FieldLabel>
             <Select value={form.idTipoAcesso} onValueChange={(v) => setForm((f) => ({ ...f, idTipoAcesso: v }))}>
               <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-lg">
                 <SelectValue placeholder="Selecione">
