@@ -20,11 +20,17 @@ export default function QuizPage() {
   const [respostasUsuario, setRespostasUsuario] = useState([]);
   const [ganhouPontos, setGanhouPontos] = useState(false);
 
+  // Ordem de dificuldade: mais fáceis primeiro
+  const ordemNivel = { "Iniciante": 0, "Intermediário": 1, "Avançado": 2 };
+
   const carregaQuizzes = async () => {
     try {
       setCarregando(true);
       const data = await api.get('/api/treinamentos');
-      setQuizzes(data.filter(t => t.tipo === 'QUIZ'));
+      const apenasQuizzes = data
+        .filter(t => t.tipo === 'QUIZ')
+        .sort((a, b) => (ordemNivel[a.nivel] ?? 99) - (ordemNivel[b.nivel] ?? 99));
+      setQuizzes(apenasQuizzes);
     } catch (e) {
       console.error(e);
     } finally {
