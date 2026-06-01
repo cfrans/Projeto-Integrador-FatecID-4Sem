@@ -10,6 +10,8 @@ export default function Modal({
   title,
   description,
   variant = 'error',
+  // Conteúdo extra opcional, renderizado abaixo da descrição
+  children,
   // Props opcionais para modo confirmação
   confirm = false,
   confirmLabel = 'Confirmar',
@@ -50,6 +52,8 @@ export default function Modal({
           <h2 className={`text-base font-bold ${c.title}`}>{title}</h2>
           {description && <p className="text-sm text-slate-600">{description}</p>}
         </div>
+
+        {children && <div className="mt-4">{children}</div>}
 
         {confirm ? (
           <div className="mt-5 flex gap-3">

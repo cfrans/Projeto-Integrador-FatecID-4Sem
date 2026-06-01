@@ -14,6 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [erro, setErro] = useState(null)
+  const [suporteOpen, setSuporteOpen] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -94,6 +95,24 @@ export default function LoginPage() {
             <Modal open={!!erro} onClose={() => setErro(null)} title="Não foi possível entrar"
               description="E-mail ou senha incorretos. Verifique suas credenciais e tente novamente." variant="error" />
 
+            <Modal
+              open={suporteOpen}
+              onClose={() => setSuporteOpen(false)}
+              title="Suporte de acesso"
+              description="Problemas para entrar? Fale com o administrador do sistema ou o setor de TI da sua empresa para liberar ou redefinir seu acesso."
+              variant="warning"
+            >
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="text-sm text-slate-500">Ou escreva para:</p>
+                <a
+                  href="mailto:admin@nemo.com?subject=Solicitação de suporte de acesso - NEMO"
+                  className="font-bold text-teal-700 hover:underline"
+                >
+                  admin@nemo.com
+                </a>
+              </div>
+            </Modal>
+
             <div className="mt-1 flex flex-wrap items-center justify-between gap-3 text-sm">
               <Label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
                 <input className="h-4 w-4" id="keepConnected" type="checkbox" name="keepConnected" />
@@ -107,7 +126,7 @@ export default function LoginPage() {
 
             <div className="mt-1 grid gap-3">
               <Button type="submit">Entrar no portal</Button>
-              <Button type="button" variant="link">Solicitar suporte de acesso</Button>
+              <Button type="button" variant="link" onClick={() => setSuporteOpen(true)}>Solicitar suporte de acesso</Button>
             </div>
           </form>
         </section>
