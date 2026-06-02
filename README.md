@@ -160,7 +160,7 @@ nemo:
 
 > ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
 
-> 💡 **Dica (Plano B - Sem Internet):** Caso não haja internet na apresentação para usar o Postfix externo, você pode rodar o **MailHog** localmente (`docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog`), alterar as configurações no yaml para `host: localhost` e `port: 1025`. Você poderá acompanhar os disparos em tempo real acessando `http://localhost:8025`.
+> 💡 **Sem internet na apresentação?** O Nemo tem um **Modo Offline** embutido que dispensa o Postfix externo, o Gmail e qualquer ferramenta extra — veja a seção [🔌 Modo Offline (Plano B)](#-modo-offline-plano-b) abaixo.
 
 #### 3. Monitoramento de Logs Separados
 
@@ -228,6 +228,45 @@ npm run dev
 ```
 
 O frontend ficará disponível em `http://localhost:5173`.
+
+---
+
+## 🔌 Modo Offline (Plano B)
+
+Pensado para o dia da apresentação: caso **não haja internet** (sem Postfix externo para envio real, sem Gmail para os reportes), o Nemo roda 100% local. Ele **simula o envio dos e-mails**, usa o **banco local** da máquina e permite demonstrar **cliques, aberturas de anexo e reportes manualmente** — sem Docker e sem ferramentas externas.
+
+### Como ligar
+
+**1. Ajuste o `application-local.yaml`:**
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true   # MySQL local da máquina
+
+nemo:
+  email:
+    enabled: false   # não envia e-mail real — apenas registra os disparos no banco
+  imap:
+    enabled: false   # não tenta ler a abuse inbox no Gmail
+```
+
+**2. Suba o backend e o frontend normalmente** e dispare uma campanha. Os alvos precisam estar marcados como **reais** (`is_real = true`) — são eles que aparecem na caixa simulada (os usuários "mock" de volume são ignorados).
+
+**3. Abra a caixa de entrada simulada** — uma página "externa", sem link no menu do Nemo (faz o papel do webmail da vítima):
+
+```
+http://localhost:5173/caixa-entrada
+```
+
+### Como funciona
+
+- A página reconstrói os e-mails que *teriam* sido enviados, renderizados com o **HTML real do modelo** — usando a mesma substituição de `{{LINK_AQUI}}`, `{{LINK_ANEXO}}` e `{{NOME_ALVO}}` do envio real.
+- Os links dentro do e-mail apontam para os **endpoints reais de rastreamento** (`/confirmar/{token}` e `/doc/{token}`). **Clicar registra de verdade** o clique / a abertura do anexo e leva à página de alerta de phishing.
+- O botão **"Reportar phishing"** chama o webhook real de reporte (`POST /api/tracking/webhook/reporte/{token}`), somando os pontos do colaborador.
+- Tudo é refletido no **Monitorar** da campanha e nos dashboards — é só atualizar.
+
+> 💡 Clique os links a partir de uma aba separada: o fluxo de alerta encerra a sessão atual de propósito, para você conseguir logar como colaborador e fazer o treinamento na sequência.
 
 ---
 
