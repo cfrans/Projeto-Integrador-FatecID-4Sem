@@ -10,6 +10,7 @@ import AlertaPhishingPage from "../pages/alerta-phishing"
 import CaixaEntradaPage from "../pages/caixa-entrada"
 import NotFoundPage from "../pages/not-found"
 import ForbiddenPage from "../pages/forbidden"
+import LoginBetaPage from "../pages/login-beta"
 import ForgotPasswordPage from "../pages/forgot-password"
 import HomePage from "../pages/home"
 import AdminPage from "../pages/admin"
@@ -33,6 +34,7 @@ export default function AppRoutes() {
       <Routes>
         {/* Pública */}
         <Route path="/" element={<LoginPage />} />
+        <Route path="/loginbeta" element={<LoginBetaPage />} />
         <Route path="/bg-demo" element={<BackgroundDemoPage />} />
         <Route path="/alerta-phishing" element={<AlertaPhishingPage />} />
         <Route path="/caixa-entrada" element={<CaixaEntradaPage />} />
