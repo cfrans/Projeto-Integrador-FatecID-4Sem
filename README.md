@@ -36,7 +36,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 ### ✅ Implementado
 
-**Core & Backend (Spring Boot 3.4)**
+**Core & Backend (Spring Boot 4)**
 - 🔐 **Segurança:** Autenticação JWT, troca obrigatória de senha e criptografia BCrypt.
 - 📨 **Campanhas:** CRUD completo de Modelos (WYSIWYG Jodit) e gestão de Campanhas vinculadas a setores.
 - ⚡ **Performance:** Geração de tokens ultrarrápida via Worker em C (multithread, algoritmos de hash DJB2).
@@ -62,57 +62,16 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 - 📈 **Métricas de Risco (Vulnerabilidade Geral):** Calculada dividindo o total de cliques pelo total de e-mails disparados (`(cliques / disparos) * 100`). É a principal KPI de gestão exibida no dashboard administrativo e nas análises gráficas.
 - 🎯 **Monitoramento de Interações:** Captura em tempo real via webhook (pixel de rastreamento falso injetado no HTML e rotas `/tracking/*`), garantindo a privacidade dos colaboradores.
 
-### 🚧 Em construção / falta fazer
+### 🚧 Roadmap
 
-#### Backend
+O core do MVP — autenticação, worker de tokens em C, CRUD de modelos e campanhas, disparo SMTP real, rastreamento (clique/anexo/reporte), dashboards e portal do colaborador — já está funcional. O que ainda falta antes da v1:
 
-**Crítico (bloqueia o MVP)**
-- [x] **Lógica de Último Login** — A data de acesso é registrada automaticamente no `AuthService` durante o login e exibida na tela de Configurações para auditoria (fuso horário local tratado via `LocalDateTime`).
-- [ ] **Filtro JWT** — hoje os endpoints `/api/**` estão todos em `permitAll`, a "proteção" existe só no frontend. Adiado para o final, depois que o MVP estiver completo, para facilitar testes em dev.
-- [x] **Disparo SMTP real** — a campanha dispara e-mails reais através do Postfix configurado no domínio (`acesso-seguro.top`). Integrado via `spring-boot-starter-mail` e `EmailService`.
-- [x] **CRUD de `usuario_destino`** — backend (`UsuarioDestinoController` + `UsuarioDestinoService`) e frontend integrados. Suporte a criação, edição, ativação/desativação individual e em lote, paginação, ordenação por coluna, filtros e importação em massa.
-- [x] **Modo de Apresentação & Simulação** — Diferenciação entre usuários "Mock" (volume) e "Reais" (testes) via coluna `is_real`. Adicionado "interruptor" `nemo.email.enabled` para simulação offline de disparos.
-- [x] **Lógica de pontuação** comportamental — `PontuacaoService` aplica penalidade por clique (−20) e abertura de anexo (−30) com idempotência por disparo, clamp em 0–1000 e histórico em `pontuacao_evento`. Falta integrar com o reporte (depende do SMTP-to-Webhook) e com a conclusão de treinamentos (depende do módulo de treinamentos).
+- **Filtro JWT** — hoje os endpoints `/api/**` estão em `permitAll` e a proteção existe apenas no frontend. A ativação foi adiada de propósito para o fim do desenvolvimento, facilitando os testes em dev.
+- **Suíte de testes** — ampliar a cobertura automatizada. Já há testes de unidade de `JwtService` e `PontuacaoService`; falta cobrir os demais serviços e fluxos de integração.
 
-**Funcionalidade**
-- [x] **IMAP Listener nativo** para captura de reportes na *abuse inbox* — substitui ferramentas externas. Lê a caixa do Gmail de 1 em 1 minuto usando `jakarta.mail` (`spring-boot-starter-mail`).
-- [x] **Endpoint consolidado de gráficos** — `GET /api/graficos/dashboard?periodo=7d|30d|6m|tudo` retorna totais, agregação por setor, evolução mensal e últimas campanhas, ligado ao dashboard `/graphics`.
-- [x] **Endpoint de pontuação e evolução do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de eventos (data, tipo de evento, delta de pontos) para alimentar os gráficos do portal.
-- [x] **Módulo de treinamentos** — falta a tabela catálogo `treinamento` (id, código, título, descrição, conteúdo) com FK em `treinamento_concluido` substituindo o `codigo_curso` string. Em seguida, CRUD de quizzes (perguntas + alternativas + resposta correta) e registro de conclusão (impede ganho duplicado pelo mesmo curso).
-- [x] **Recuperação de senha** — fluxo de "Esqueci minha senha" validado por Perguntas de Segurança integrado no portal e na API.
+**Melhorias futuras (escalabilidade)**
 
-**Qualidade**
-- [ ] Suíte de testes (hoje só existe `contextLoads()`).
-- [x] Documentação de API via springdoc-openapi (Swagger UI).
-
-### 🚀 Melhorias Futuras (Escalabilidade)
-- **Geração Assíncrona de Tokens**: Atualmente o backend aguarda de forma síncrona o processamento do Worker em C. Para escalas maiores (>10.000 usuários), será ideal isolar a chamada ao executável em uma thread `@Async` e prover um endpoint de *polling* (`/status`) para o frontend acompanhar o progresso sem risco de timeout.
-
-**Padronização da arquitetura em camadas** (controller → service → repository → model)
-- [x] **`HealthController` fora do padrão** — movido de `com.nemo.api.controller/` para `com.nemo.api.health/`, alinhado com o padrão package-by-feature.
-- [x] **`SetorController` acessa `SetorRepository` direto** — `SetorService` criado para intermediar o acesso ao repositório e encapsular o mapeamento para DTO.
-- [x] **`TrackingController` com regra de domínio dentro** — `TrackingService` extraído com `registrarClique(token)` e `registrarAnexo(token)`; o controller ficou com ~10 linhas, só serialização HTTP.
-- [x] **`SetorDTO` em pacote errado** — movido de `com.nemo.api.campanha` para `com.nemo.api.setor`; imports atualizados em `CampanhaDTO` e `CampanhaService`.
-
----
-
-#### Frontend
-
-**Crítico (bloqueia o MVP)**
-- [x] **Gerenciamento de usuários do sistema** — promover/rebaixar entre Admin ↔ Colaborador (UI integrada na página de Usuários).
-- [x] **Dashboard de gráficos integrado ao backend** — a página `/graphics` já consome `GET /api/graficos/dashboard` com filtros reais (período, setor, modelo). Sem dados mockados.
-- [x] **Login de colaborador com separação de rotas** — `ColaboradorRoute` valida `role` no JWT; menus e páginas são completamente diferentes dos do Admin.
-- [x] **Responsividade de todas as telas** — Adaptabilidade para mobile, tablet e desktop nas telas de Login, Dashboard, Configurações, Usuários e menus de navegação (feito pela Vitória).
-
-**Funcionalidade — Painel Admin**
-- [x] **Disparo SMTP real** — a campanha já envia e-mails através do `EmailService` usando o servidor SMTP/Postfix local ou configurado via Tailscale.
-
-**Funcionalidade — Portal do Colaborador**
-- [x] **Endpoint de pontuação do colaborador** — `GET /api/colaborador/pontuacao` retornando saldo atual + histórico de `pontuacao_evento`. Integrado em `/meus-graficos` com mapeamento dos eventos reais.
-- [x] **Página de Configurações para `UsuarioDestino`** — a página `/settings` já funciona para colaborador tanto no backend quanto no frontend de forma isolada do admin.
-
-**Treinamentos (prioridade menor — hardcoded é suficiente para apresentação)**
-- [x] **Módulo de treinamentos no backend** — tabela `treinamento`, CRUD de quizzes (perguntas + alternativas + resposta correta), endpoint de conclusão com +50 pontos idempotente. Atualmente `/conteudos` e `/quiz` funcionam com dados hardcoded no frontend.
+- **Geração assíncrona de tokens** — isolar a chamada ao worker em C numa thread `@Async` e expor um endpoint de *polling* (`/status`), permitindo escalas acima de ~10.000 usuários sem risco de timeout.
 
 ---
 
@@ -243,6 +202,7 @@ Na primeira execução, o Flyway aplica as migrations em ordem:
 | `V5__insert_users_base.sql` | Insere 50 usuários alvo mock (`usuario_destino`, `is_real=FALSE`, senha = matrícula) |
 | `V6__add_perguntas_seguranca.sql` | Catálogo `pergunta_seguranca` (10 perguntas em 2 grupos) + colunas `id_pergunta_1/2` e `resposta_hash_1/2` em `usuario_destino` e `usuario_sistema` |
 | `V7__seed_dashboard.sql` | Popula 8 campanhas, ~400 disparos, eventos de pontuação e treinamentos para alimentar o dashboard com dados realistas |
+| `V8__create_treinamento.sql` | Cria o módulo de treinamentos (`treinamento`, `treinamento_video`, `treinamento_quiz`, `quiz_pergunta`, `quiz_opcao`) e popula vídeos e quizzes do portal do colaborador |
 
 > ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V8__descricao.sql`, `V9__descricao.sql`, e assim por diante.
 
@@ -301,7 +261,7 @@ O frontend ficará disponível em `http://localhost:5173`.
 O sistema atende a dois públicos com fluxos completamente separados:
 
 1. **Administradores (Equipe de Segurança)** — `usuario_sistema` com `tipo_acesso = Admin`. Acessam o painel de gestão para cadastrar usuários alvo, criar modelos de e-mail, disparar campanhas e visualizar o dashboard de resultados.
-2. **Usuários Destino (Alvos/Colaboradores)** — `usuario_destino`. Não fazem login no painel administrativo. Recebem os e-mails simulados e *(planejado)* terão um portal próprio para visualizar pontuação e realizar treinamentos.
+2. **Usuários Destino (Alvos/Colaboradores)** — `usuario_destino`. Não fazem login no painel administrativo. Recebem os e-mails simulados e acessam um portal próprio (`/home`, `/quiz`, `/conteudos`, `/meus-graficos`) para visualizar pontuação e realizar treinamentos.
 
 ### Fluxo de criação e disparo
 
@@ -371,7 +331,7 @@ O portal do Usuário Destino opera sob um sistema de pontuação comportamental 
 | Clicou no link malicioso | **−20** | ✅ implementado | hook em `/confirmar/{token}` |
 | Abriu o anexo simulado | **−30** | ✅ implementado | hook em `/doc/{token}` |
 | Reportou o e-mail à *abuse inbox* | **+30** | ✅ implementado | IMAP Listener nativo |
-| Concluiu um treinamento | **+50** | 🚧 service pronto, aguarda módulo de treinamentos | quiz |
+| Concluiu um treinamento | **+50** | ✅ implementado | conclusão de quiz (`POST /api/treinamentos/{id}/concluir`) |
 | Ignorou o e-mail | 0 | — | — |
 
 Faixas de risco para gestão:
@@ -409,7 +369,7 @@ nemo/
 │       │   └── repository/               # Spring Data repositories
 │       └── resources/
 │           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V7)
+│           └── db/migration/             # Migrations Flyway (V1..V8)
 └── frontend/
     └── src/
         ├── components/                   # UI base, navbar, branding, routing guards
@@ -420,7 +380,7 @@ nemo/
         │   ├── change-password/          # ✅ Troca obrigatória
         │   ├── campaigns/                # ✅ Criar campanha, listar, monitorar
         │   ├── models/                   # ✅ CRUD de modelos
-        │   ├── graphics/                 # ✅ Dashboard de gráficos (dados mockados)
+        │   ├── graphics/                 # ✅ Dashboard de gráficos (integrado ao backend)
         │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (rota compartilhada)
         │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
         │   ├── admin/                    # ✅ Dashboard administrativo (KPIs, atalhos, visão geral)
