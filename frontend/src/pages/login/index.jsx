@@ -51,17 +51,17 @@ export default function LoginPage() {
                 <ol className="grid list-none gap-2 p-0">
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">1</span>
-                    <span>Entrar com credenciais corporativas</span>
+                    <span>Entre com suas credenciais corporativas</span>
                   </li>
                   <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">2</span>
-                    <span>Realizar treinamentos e simulações</span>
+                    <span>Faça treinamentos e simulações de phishing</span>
                   </li>
                   <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">3</span>
-                    <span>Acompanhar evolução e indicadores</span>
+                    <span>Acompanhe sua evolução e seus indicadores</span>
                   </li>
                 </ol>
               </div>
@@ -76,8 +76,8 @@ export default function LoginPage() {
             <Logo className="w-24 h-24" />
           </div>
           <header className="mb-5">
-            <h1 className="text-lg font-bold">Acesso ao portal corporativo</h1>
-            <p className="mt-2 text-slate-700 text-sm">Use suas credenciais para autenticação e entre no ambiente correto do seu perfil.</p>
+            <h1 className="text-lg font-bold">Bem-vindo ao Nemo</h1>
+            <p className="mt-2 text-slate-700 text-sm">Entre com suas credenciais corporativas para acessar treinamentos, simulações e seus indicadores.</p>
           </header>
 
           <form className="grid gap-4" onSubmit={handleSubmit}>
