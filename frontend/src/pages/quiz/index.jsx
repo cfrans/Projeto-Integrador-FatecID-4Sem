@@ -3,7 +3,6 @@ import confetti from "canvas-confetti";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
 
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -20,11 +19,17 @@ export default function QuizPage() {
   const [respostasUsuario, setRespostasUsuario] = useState([]);
   const [ganhouPontos, setGanhouPontos] = useState(false);
 
+  // Ordem de dificuldade: mais fáceis primeiro
+  const ordemNivel = { "Iniciante": 0, "Intermediário": 1, "Avançado": 2 };
+
   const carregaQuizzes = async () => {
     try {
       setCarregando(true);
       const data = await api.get('/api/treinamentos');
-      setQuizzes(data.filter(t => t.tipo === 'QUIZ'));
+      const apenasQuizzes = data
+        .filter(t => t.tipo === 'QUIZ')
+        .sort((a, b) => (ordemNivel[a.nivel] ?? 99) - (ordemNivel[b.nivel] ?? 99));
+      setQuizzes(apenasQuizzes);
     } catch (e) {
       console.error(e);
     } finally {
@@ -34,6 +39,7 @@ export default function QuizPage() {
 
   useEffect(() => {
     carregaQuizzes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const iniciarQuiz = (quiz) => {
@@ -106,8 +112,8 @@ export default function QuizPage() {
       <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center size-12 rounded-xl bg-teal-700 shrink-0 shadow-sm">
-            <QuizIcon className="size-7 text-white" />
+          <div className="quiz-badge flex items-center justify-center size-12 rounded-xl bg-teal-700 shrink-0 shadow-sm cursor-default">
+            <QuizIcon className="quiz-icon size-7 text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-800">Quiz de Phishing</h1>

@@ -1,10 +1,20 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
 import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
 import { Button } from '@/components/ui/button'
 
 export default function AlertaPhishingPage() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  // Quem cai aqui chegou por um link de phishing. Encerramos qualquer sessão
+  // existente (ex.: admin durante a demonstração) para que o Portal de
+  // Treinamentos seja sempre acessado com o login correto do colaborador.
+  useEffect(() => {
+    logout()
+  }, [logout])
 
   return (
     <AnimatedBackground>
@@ -110,19 +120,19 @@ export default function AlertaPhishingPage() {
           <Button
             variant="primary"
             size="lg"
-            onClick={() => navigate('/home')}
+            onClick={() => navigate('/')}
             style={{ width: '100%' }}
           >
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
-            Ir para o Portal de Treinamentos
+            Acessar o Portal de Treinamentos
           </Button>
 
           <p style={{ marginTop: '16px', fontSize: '12px', color: '#475569' }}>
-            Realize um treinamento no seu painel{' '}
+            Entre com seu login para realizar um treinamento no painel{' '}
             <span style={{ color: '#0d9488', fontWeight: 600 }}>Nemo</span>{' '}
-            para recuperar os pontos perdidos.
+            e recuperar os pontos perdidos.
           </p>
         </div>
       </div>

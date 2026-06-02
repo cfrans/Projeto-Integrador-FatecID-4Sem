@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { InfoHint } from "@/components/ui/InfoHint";
 import { Input } from "@/components/ui/input";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import {
@@ -400,11 +401,17 @@ function CampaignForm({ onBack, onSuccess }) {
           {/* Linha 1 */}
           <section className="grid gap-4 md:grid-cols-3">
             <Field>
-              <FieldLabel>Nome da Campanha</FieldLabel>
+              <FieldLabel>
+                Nome da Campanha
+                <InfoHint text="Nome interno para identificar esta campanha nos relatórios. O alvo não vê esse nome. Ex: 'Phishing RH Q3'." />
+              </FieldLabel>
               <Input value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="Ex: Phishing RH Q3" className="h-9" />
             </Field>
             <Field>
-              <FieldLabel>Modelo de E-mail</FieldLabel>
+              <FieldLabel>
+                Modelo de E-mail
+                <InfoHint text="Modelo criado na aba 'Modelos' que será enviado aos alvos. Ele define o remetente, o assunto e o conteúdo do e-mail." />
+              </FieldLabel>
               <Select value={selectedModel} onValueChange={handleModelChange}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Selecione um modelo...">
@@ -419,19 +426,34 @@ function CampaignForm({ onBack, onSuccess }) {
               </Select>
             </Field>
             <Field>
-              <FieldLabel>Assunto do E-mail</FieldLabel>
+              <FieldLabel>
+                Assunto do E-mail
+                <InfoHint text="Assunto que o alvo verá na caixa de entrada. Vem pré-preenchido pelo modelo, mas você pode ajustar só para esta campanha." />
+              </FieldLabel>
               <Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Selecione um modelo para pré-preencher" className="h-9" />
             </Field>
           </section>
 
           {/* Linha 2 */}
-          <section className="grid gap-4 md:grid-cols-2">
+          <section className="grid gap-4 md:grid-cols-2 md:items-start">
+            {/* Domínio: informativo, definido pelo modelo (não é um campo editável) */}
+            <div className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <span aria-hidden className="text-base leading-none mt-0.5">🔗</span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">Página falsa da simulação</p>
+                {selectedModelData ? (
+                  <p className="font-medium text-slate-700 break-all">{selectedModelData.dominioAlvo}</p>
+                ) : (
+                  <p className="text-sm text-slate-400 italic">Escolha um modelo para ver o domínio.</p>
+                )}
+                <p className="mt-0.5 text-xs text-slate-400">Definida automaticamente pelo modelo. É para onde o alvo é levado ao clicar no link.</p>
+              </div>
+            </div>
             <Field>
-              <FieldLabel className="text-xs text-slate-500">🔗 Domínio Alvo da Simulação</FieldLabel>
-              <Input value={selectedModelData ? selectedModelData.dominioAlvo : ""} readOnly disabled placeholder="Carregado com o modelo..." className="h-9 bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed italic text-sm" />
-            </Field>
-            <Field>
-              <FieldLabel>Anexo Falso</FieldLabel>
+              <FieldLabel>
+                Anexo Falso (nome do arquivo)
+                <InfoHint text="Opcional. É só o NOME de um arquivo falso que aparece anexado ao e-mail (ex: relatorio_demissoes.pdf). Não envia um arquivo real: ao 'abrir', o alvo cai numa página simulada e o sistema registra. Marque 'Incluir' para ativar e use 'Ver' para pré-visualizar." />
+              </FieldLabel>
               <div className="flex items-center gap-2">
                 <label className="flex shrink-0 items-center gap-1.5 cursor-pointer rounded-md border border-slate-300 bg-white px-2.5 h-9">
                   <input type="checkbox" checked={includeAnexo} onChange={(e) => { setIncludeAnexo(e.target.checked); if (!e.target.checked) setAttachmentName(""); }} className="w-3.5 h-3.5 rounded accent-orange-500 cursor-pointer" />
@@ -448,7 +470,10 @@ function CampaignForm({ onBack, onSuccess }) {
           {/* Linha 3 — Setores */}
           <section className="grid gap-4 border border-slate-100 p-4 rounded-xl bg-slate-50">
             <Field>
-              <FieldLabel>Departamentos Alvo (Deixe vazio para envio global)</FieldLabel>
+              <FieldLabel>
+                Departamentos Alvo (Deixe vazio para envio global)
+                <InfoHint text="Escolha os setores que receberão a simulação. Se não selecionar nenhum, o envio vai para todos os colaboradores da base (exceto administradores)." />
+              </FieldLabel>
               <div className="flex items-start gap-3 flex-col sm:flex-row">
                 <div className="w-full sm:w-1/3">
                   <Select value="" onValueChange={handleAddSector}>

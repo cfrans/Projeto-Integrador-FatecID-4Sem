@@ -16,6 +16,7 @@ import { FilterBar } from "@/components/ui/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { InfoHint } from "@/components/ui/InfoHint";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -356,11 +357,17 @@ export default function ModelsPage() {
             <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">1. Configurações da Simulação</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel>Nome do Modelo (Uso Interno)</FieldLabel>
+                <FieldLabel>
+                  Nome do Modelo (Uso Interno)
+                  <InfoHint text="Nome só para você identificar este modelo na lista. O alvo nunca vê esse nome. Ex: 'Falso RH - Recadastramento'." />
+                </FieldLabel>
                 <Input value={modelName} onChange={(e) => setModelName(e.target.value)} className="h-9" placeholder="Ex: Falso RH - Recadastramento" />
               </Field>
               <Field>
-                <FieldLabel>Domínio Alvo (Página Falsa)</FieldLabel>
+                <FieldLabel>
+                  Domínio Alvo (Página Falsa)
+                  <InfoHint text="Endereço da página falsa que abre quando o alvo clica no link do e-mail. É para onde a vítima é levada na simulação." />
+                </FieldLabel>
                 <SelectField value={targetDomain} onChange={setTargetDomain} options={DOMAINS} placeholder="Selecione o subdomínio" />
               </Field>
             </div>
@@ -370,11 +377,17 @@ export default function ModelsPage() {
             <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">2. Dados do E-mail (Envelopamento)</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel>Remetente Falso (Spoofing)</FieldLabel>
+                <FieldLabel>
+                  Remetente Falso (Spoofing)
+                  <InfoHint text="Quem aparece como remetente do e-mail para o alvo. Use o formato: Nome <email@dominio.com>. Ex: RH <rh@empresa-intranet.com>." />
+                </FieldLabel>
                 <Input value={fakeSender} onChange={(e) => setFakeSender(e.target.value)} className="h-9" placeholder="Ex: RH <rh@empresa-intranet.com>" />
               </Field>
               <Field>
-                <FieldLabel>Assunto Padrão</FieldLabel>
+                <FieldLabel>
+                  Assunto Padrão
+                  <InfoHint text="Assunto que aparece no e-mail recebido pelo alvo. Frases com urgência costumam ser mais convincentes. Ex: 'URGENTE: Atualize seus dados'." />
+                </FieldLabel>
                 <Input value={defaultSubject} onChange={(e) => setDefaultSubject(e.target.value)} className="h-9" placeholder="Ex: URGENTE: Atualize seus dados" />
               </Field>
             </div>
@@ -384,9 +397,16 @@ export default function ModelsPage() {
             <h2 className="text-lg font-semibold text-slate-800 mb-2 border-b pb-2">3. Corpo do E-mail</h2>
             <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4 border border-blue-200">
               <InformationCircleIcon className="size-6 text-blue-600 shrink-0" />
-              <p className="text-sm text-blue-900 leading-relaxed">
-                <strong>Dica Estratégica:</strong> Utilize a tag <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">{`{{LINK_AQUI}}`}</code> no campo de URL dos botões ou textos.
-              </p>
+              <div className="text-sm text-blue-900 leading-relaxed space-y-2">
+                <p>
+                  <strong>A tag <code className="bg-white px-1.5 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">{`{{LINK_AQUI}}`}</code> é obrigatória.</strong> Ela marca onde fica o link da simulação:
+                  na hora do envio, o sistema troca essa tag por um link único e rastreável para cada alvo. Sem ela, ninguém teria onde clicar e não haveria como medir os cliques.
+                </p>
+                <p className="text-blue-800">
+                  <strong>Como inserir:</strong> selecione um texto ou botão no editor abaixo → clique no botão de link (🔗) → no campo de
+                  endereço/URL, cole exatamente <code className="bg-white px-1 py-0.5 rounded text-blue-700 border border-blue-200 font-bold">{`{{LINK_AQUI}}`}</code> (com as duas chaves de cada lado).
+                </p>
+              </div>
             </div>
             <Field>
               <div className="border border-slate-300 rounded-md overflow-hidden bg-white">

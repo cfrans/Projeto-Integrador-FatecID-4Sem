@@ -4,6 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 export default function AdminRoute() {
   const { user } = useAuth()
   if (!user) return <Navigate to="/" replace />
-  if (user.role !== 'Admin') return <Navigate to="/home" replace />
+  if (user.role !== 'Admin') return <Navigate to="/acesso-negado" replace />
   return <Outlet />
 }

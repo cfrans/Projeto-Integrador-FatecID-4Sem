@@ -14,6 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [erro, setErro] = useState(null)
+  const [suporteOpen, setSuporteOpen] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -50,17 +51,17 @@ export default function LoginPage() {
                 <ol className="grid list-none gap-2 p-0">
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">1</span>
-                    <span>Entrar com credenciais corporativas</span>
+                    <span>Entre com suas credenciais corporativas</span>
                   </li>
                   <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">2</span>
-                    <span>Realizar treinamentos e simulações</span>
+                    <span>Faça treinamentos e simulações de phishing</span>
                   </li>
                   <li className="flex items-center justify-center text-sm leading-none text-teal-200" aria-hidden="true">↓</li>
                   <li className="flex items-center gap-2 text-sm text-blue-100">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-300 text-xs font-bold text-teal-950">3</span>
-                    <span>Acompanhar evolução e indicadores</span>
+                    <span>Acompanhe sua evolução e seus indicadores</span>
                   </li>
                 </ol>
               </div>
@@ -75,8 +76,8 @@ export default function LoginPage() {
             <Logo className="w-24 h-24" />
           </div>
           <header className="mb-5">
-            <h1 className="text-lg font-bold">Acesso ao portal corporativo</h1>
-            <p className="mt-2 text-slate-700 text-sm">Use suas credenciais para autenticação e entre no ambiente correto do seu perfil.</p>
+            <h1 className="text-lg font-bold">Bem-vindo ao Nemo</h1>
+            <p className="mt-2 text-slate-700 text-sm">Entre com suas credenciais corporativas para acessar treinamentos, simulações e seus indicadores.</p>
           </header>
 
           <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -94,6 +95,24 @@ export default function LoginPage() {
             <Modal open={!!erro} onClose={() => setErro(null)} title="Não foi possível entrar"
               description="E-mail ou senha incorretos. Verifique suas credenciais e tente novamente." variant="error" />
 
+            <Modal
+              open={suporteOpen}
+              onClose={() => setSuporteOpen(false)}
+              title="Suporte de acesso"
+              description="Problemas para entrar? Fale com o administrador do sistema ou o setor de TI da sua empresa para liberar ou redefinir seu acesso."
+              variant="warning"
+            >
+              <div className="flex flex-col items-center gap-1 text-center">
+                <p className="text-sm text-slate-500">Ou escreva para:</p>
+                <a
+                  href="mailto:admin@nemo.com?subject=Solicitação de suporte de acesso - NEMO"
+                  className="font-bold text-teal-700 hover:underline"
+                >
+                  admin@nemo.com
+                </a>
+              </div>
+            </Modal>
+
             <div className="mt-1 flex flex-wrap items-center justify-between gap-3 text-sm">
               <Label className="inline-flex items-center gap-2 text-slate-700" htmlFor="keepConnected">
                 <input className="h-4 w-4" id="keepConnected" type="checkbox" name="keepConnected" />
@@ -107,7 +126,7 @@ export default function LoginPage() {
 
             <div className="mt-1 grid gap-3">
               <Button type="submit">Entrar no portal</Button>
-              <Button type="button" variant="link">Solicitar suporte de acesso</Button>
+              <Button type="button" variant="link" onClick={() => setSuporteOpen(true)}>Solicitar suporte de acesso</Button>
             </div>
           </form>
         </section>

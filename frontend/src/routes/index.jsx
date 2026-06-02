@@ -7,6 +7,10 @@ import AppShellLayout from "../layouts/AppShellLayout"
 import LoginPage from "../pages/login"
 import BackgroundDemoPage from "../pages/background-demo"
 import AlertaPhishingPage from "../pages/alerta-phishing"
+import CaixaEntradaPage from "../pages/caixa-entrada"
+import NotFoundPage from "../pages/not-found"
+import ForbiddenPage from "../pages/forbidden"
+import LoginBetaPage from "../pages/login-beta"
 import ForgotPasswordPage from "../pages/forgot-password"
 import HomePage from "../pages/home"
 import AdminPage from "../pages/admin"
@@ -30,8 +34,11 @@ export default function AppRoutes() {
       <Routes>
         {/* Pública */}
         <Route path="/" element={<LoginPage />} />
+        <Route path="/loginbeta" element={<LoginBetaPage />} />
         <Route path="/bg-demo" element={<BackgroundDemoPage />} />
         <Route path="/alerta-phishing" element={<AlertaPhishingPage />} />
+        <Route path="/caixa-entrada" element={<CaixaEntradaPage />} />
+        <Route path="/acesso-negado" element={<ForbiddenPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/trocar-senha" element={<ChangePasswordPage />} />
 
@@ -65,7 +72,7 @@ export default function AppRoutes() {
         </Route>
 
         <Route path="/modelosTeste" element={<Navigate to="/models" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

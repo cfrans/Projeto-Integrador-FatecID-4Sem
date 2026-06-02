@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,7 +17,8 @@ import { FilterBar } from "@/components/ui/FilterBar";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Velocimetro, faixaPontuacao } from "@/components/ui/velocimetro";
+import { Velocimetro } from "@/components/ui/velocimetro";
+import { faixaPontuacao } from "@/lib/pontuacao";
 
 
 import { api } from "@/lib/api";
@@ -346,8 +347,8 @@ export default function MeusGraficosPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
-        <div className="flex items-center justify-center size-12 rounded-xl bg-rose-700 shrink-0 shadow-sm">
-          <UserChartIcon className="size-6 text-white" />
+        <div className="chart-badge flex items-center justify-center size-12 rounded-xl bg-rose-700 shrink-0 shadow-sm cursor-default">
+          <UserChartIcon className="chart-icon size-6 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Meu Desempenho</h1>
