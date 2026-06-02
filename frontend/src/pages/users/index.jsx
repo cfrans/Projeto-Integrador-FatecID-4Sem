@@ -869,11 +869,6 @@ export default function UsersPage() {
           <span className="text-xs text-slate-400">
             {selected.length > 0 ? `${selected.length} selecionado(s)` : `${total} usuário(s) encontrado(s)`}
           </span>
-          {selected.length > 0 && (
-            <Button size="sm" variant="outline" className="h-7 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteModal({ open: true, id: null, bulk: true })}>
-              Desativar selecionados ({selected.length})
-            </Button>
-          )}
         </div>
       </div>
     </div>

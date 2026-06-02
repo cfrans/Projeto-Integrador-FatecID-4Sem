@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,7 +17,8 @@ import { FilterBar } from "@/components/ui/FilterBar";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Velocimetro, faixaPontuacao } from "@/components/ui/velocimetro";
+import { Velocimetro } from "@/components/ui/velocimetro";
+import { faixaPontuacao } from "@/lib/pontuacao";
 
 
 import { api } from "@/lib/api";

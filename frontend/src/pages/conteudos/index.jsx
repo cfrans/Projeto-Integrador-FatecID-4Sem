@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
 import { api, ApiError } from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
 
 // ── Banco de conteúdos (Substituído pela API) ─────────────────────────
 const CATEGORIAS = ["Todos", "Phishing", "Senhas", "Redes Sociais", "Corporativo"];

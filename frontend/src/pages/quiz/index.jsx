@@ -3,7 +3,6 @@ import confetti from "canvas-confetti";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
 
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -40,6 +39,7 @@ export default function QuizPage() {
 
   useEffect(() => {
     carregaQuizzes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const iniciarQuiz = (quiz) => {

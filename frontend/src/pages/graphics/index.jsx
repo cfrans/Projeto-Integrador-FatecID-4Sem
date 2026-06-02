@@ -384,7 +384,7 @@ export default function Graphics() {
           </Select>
         </Field>
 
-        <Field className="w-auto shrink-0 min-w-48">
+        <Field className="w-auto shrink-0 min-w-64">
           <FieldLabel className="text-xs text-slate-500">Modelo</FieldLabel>
           <Select
             value={idModelo || TODOS}
