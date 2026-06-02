@@ -347,8 +347,8 @@ export default function MeusGraficosPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
-        <div className="flex items-center justify-center size-12 rounded-xl bg-rose-700 shrink-0 shadow-sm">
-          <UserChartIcon className="size-6 text-white" />
+        <div className="chart-badge flex items-center justify-center size-12 rounded-xl bg-rose-700 shrink-0 shadow-sm cursor-default">
+          <UserChartIcon className="chart-icon size-6 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Meu Desempenho</h1>

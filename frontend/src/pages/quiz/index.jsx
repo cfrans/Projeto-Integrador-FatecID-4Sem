@@ -112,8 +112,8 @@ export default function QuizPage() {
       <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center size-12 rounded-xl bg-teal-700 shrink-0 shadow-sm">
-            <QuizIcon className="size-7 text-white" />
+          <div className="quiz-badge flex items-center justify-center size-12 rounded-xl bg-teal-700 shrink-0 shadow-sm cursor-default">
+            <QuizIcon className="quiz-icon size-7 text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-800">Quiz de Phishing</h1>

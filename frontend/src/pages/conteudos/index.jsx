@@ -209,8 +209,8 @@ export default function ConteudosPage() {
     <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="flex items-center justify-center size-12 rounded-xl bg-indigo-700 shrink-0 shadow-sm">
-          <PlayIcon className="size-6 text-white" />
+        <div className="play-badge flex items-center justify-center size-12 rounded-xl bg-indigo-700 shrink-0 shadow-sm cursor-default">
+          <PlayIcon className="play-icon size-6 text-white" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-800">Conteúdos Educativos</h1>

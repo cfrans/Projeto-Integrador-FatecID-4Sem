@@ -30,7 +30,7 @@ export default function HomePage() {
       corHover: "hover:bg-teal-800",
       corBorda: "border-teal-200",
       corFundo: "bg-teal-50",
-      icone: <QuizIcon className="size-6 text-white" />,
+      icone: <QuizIcon className="quiz-icon size-6 text-white" />,
       titulo: "Quiz de Phishing",
       descricao: "Teste seus conhecimentos respondendo quizzes sobre ataques e boas práticas de segurança digital.",
     },
@@ -40,7 +40,7 @@ export default function HomePage() {
       corHover: "hover:bg-indigo-800",
       corBorda: "border-indigo-200",
       corFundo: "bg-indigo-50",
-      icone: <PlayIcon className="size-6 text-white" />,
+      icone: <PlayIcon className="play-icon size-6 text-white" />,
       titulo: "Conteúdos Educativos",
       descricao: "Assista a vídeos e materiais sobre como identificar e evitar tentativas de phishing.",
     },
@@ -50,7 +50,7 @@ export default function HomePage() {
       corHover: "hover:bg-rose-800",
       corBorda: "border-rose-200",
       corFundo: "bg-rose-50",
-      icone: <ChartIcon className="size-6 text-white" />,
+      icone: <ChartIcon className="chart-icon size-6 text-white" />,
       titulo: "Meu Desempenho",
       descricao: "Acompanhe seus resultados nas simulações de phishing e veja sua evolução ao longo do tempo.",
     },
@@ -116,7 +116,7 @@ export default function HomePage() {
             <button
               key={acao.path}
               onClick={() => navigate(acao.path)}
-              className={`text-left rounded-xl border ${acao.corBorda} ${acao.corFundo} p-5 hover:shadow-md transition-all group`}
+              className={`acao-card text-left rounded-xl border ${acao.corBorda} ${acao.corFundo} p-5 hover:shadow-md transition-all group`}
             >
               <div className={`size-11 rounded-xl ${acao.cor} ${acao.corHover} flex items-center justify-center mb-4 shadow-sm transition-colors`}>
                 {acao.icone}
