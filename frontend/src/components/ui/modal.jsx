@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import peixeSurpreso from '@/assets/peixe-icons/peixe-icon-surpreso.png'
 import peixeHappy from '@/assets/peixe-icons/peixe-icon-happy.png'
@@ -38,9 +39,9 @@ export default function Modal({
 
   const c = colors[variant]
 
-  return (
+  return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       onClick={onClose}
     >
       <div
@@ -64,6 +65,7 @@ export default function Modal({
           <Button className="mt-5 w-full" onClick={onClose}>Fechar</Button>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

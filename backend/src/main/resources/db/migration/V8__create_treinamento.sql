@@ -51,24 +51,22 @@ ADD CONSTRAINT fk_concluido_treinamento FOREIGN KEY (id_treinamento) REFERENCES 
 
 -- INSERTS (Videos)
 INSERT INTO treinamento (id_treinamento, tipo, titulo, descricao, categoria, pontos) VALUES
-(1, 'VIDEO', 'O que é Phishing? Como se proteger', 'Entenda como funcionam os ataques de phishing e quais são as principais táticas usadas pelos criminosos para enganar vítimas.', 'Phishing', 50),
-(2, 'VIDEO', 'Engenharia Social: A arte de enganar', 'Descubra como atacantes exploram a psicologia humana para obter informações confidenciais sem precisar hackear sistemas.', 'Phishing', 50),
-(3, 'VIDEO', 'Como criar senhas seguras e gerenciá-las', 'Aprenda as melhores práticas para criar senhas fortes, únicas e como usar gerenciadores de senhas no dia a dia.', 'Senhas', 50),
-(4, 'VIDEO', 'Autenticação de dois fatores (2FA) explicada', 'Entenda o que é 2FA, por que é importante e como ativar nos principais serviços que você usa.', 'Senhas', 50),
-(5, 'VIDEO', 'Privacidade nas redes sociais', 'Saiba quais informações você expõe sem perceber nas redes sociais e como configurar sua privacidade adequadamente.', 'Redes Sociais', 50),
-(6, 'VIDEO', 'Segurança no e-mail corporativo', 'Boas práticas para o uso seguro do e-mail no ambiente de trabalho, identificando ameaças e protegendo dados da empresa.', 'Corporativo', 50),
-(7, 'VIDEO', 'Como identificar sites falsos', 'Técnicas práticas para verificar se um site é legítimo ou uma cópia fraudulenta antes de inserir qualquer dado.', 'Phishing', 50),
-(8, 'VIDEO', 'Trabalho remoto seguro: proteja sua empresa', 'Orientações essenciais para manter a segurança da informação enquanto trabalha de casa ou em locais públicos.', 'Corporativo', 50);
+(1, 'VIDEO', 'O que é Phishing?', 'Entenda como funcionam os ataques de phishing e quais são as principais táticas usadas pelos criminosos para enganar vítimas.', 'Phishing', 50),
+(2, 'VIDEO', 'O que é Engenharia Social?', 'Descubra como os cibercriminosos manipulam as pessoas para obter informações confidenciais ou acesso a sistemas.', 'Phishing', 50),
+(3, 'VIDEO', 'Criando senhas seguras', 'Aprenda as melhores práticas para criar senhas fortes e únicas para proteger suas contas online contra invasões.', 'Senhas', 50),
+(4, 'VIDEO', 'O que é 2FA e como funciona?', 'Entenda a importância da Autenticação de Dois Fatores (2FA) e como ativá-la para adicionar uma camada extra de segurança.', 'Senhas', 50),
+(5, 'VIDEO', 'Sete conselhos para prevenir riscos nas redes sociais', 'Saiba como proteger suas informações pessoais e evitar armadilhas comuns ao usar as redes sociais no dia a dia.', 'Redes Sociais', 50),
+(6, 'VIDEO', 'Segurança no Trabalho Remoto', 'Conheça as melhores práticas e cuidados essenciais para manter a segurança da informação enquanto trabalha de casa.', 'Corporativo', 50),
+(7, 'VIDEO', 'Como identificar sites falsos', 'Aprenda a verificar a legitimidade de sites e evitar cair em golpes ao inserir dados pessoais ou bancários na internet.', 'Phishing', 50);
 
 INSERT INTO treinamento_video (id_treinamento, youtube_id, duracao_minutos) VALUES
-(1, 'XBkzBrXlle0', 8),
-(2, 'lc7scxvKQOo', 12),
-(3, 'aEmXQXFBFAk', 6),
-(4, 'ZXFYT-BG2So', 5),
-(5, 'ArEQjCiHgEk', 9),
-(6, 'Y7zNlEMDmI4', 11),
-(7, 'jW_GFpYMdO4', 7),
-(8, 'snRocIB5LH4', 14);
+(1, 'qnlnvGGZWR4', 8),
+(2, 'R9RcENv-jo4', 12),
+(3, '1BchHRVXcQA', 6),
+(4, 'TnOazYC81R8', 5),
+(5, 'QFdkggG34wo', 9),
+(6, '_Mu4MsUo_8Q', 11),
+(7, 'NKsquXoXBvQ', 7);
 
 -- INSERTS (Quizzes)
 INSERT INTO treinamento (id_treinamento, tipo, titulo, descricao, categoria, pontos) VALUES
