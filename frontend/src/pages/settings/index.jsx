@@ -8,6 +8,7 @@ import LoadingOverlay from '@/components/ui/LoadingOverlay'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Modal from '@/components/ui/modal'
 import { CogIcon, CheckIcon, KeyIcon } from '@heroicons/react/24/solid'
+import { validarForcaSenha } from '@/lib/utils'
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
@@ -85,8 +86,10 @@ export default function SettingsPage() {
       setErro('A nova senha e a confirmação não coincidem')
       return
     }
-    if (novaSenha.length < 6) {
-      setErro('A nova senha deve ter no mínimo 6 caracteres')
+    
+    const erroSenha = validarForcaSenha(novaSenha)
+    if (erroSenha) {
+      setErro(erroSenha)
       return
     }
 
@@ -202,7 +205,7 @@ export default function SettingsPage() {
           <div className="grid gap-6">
             <div>
               <h2 className="text-base font-semibold text-slate-800 mb-1">Trocar senha</h2>
-              <p className="text-sm text-slate-600">Defina uma nova senha de no mínimo 6 caracteres.</p>
+              <p className="text-sm text-slate-600">Defina uma nova senha forte (mín. 6 caracteres, 1 especial e sem sequências óbvias como 123).</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">

@@ -7,6 +7,7 @@ import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
 import Modal from '@/components/ui/Modal'
 import { api, ApiError } from '@/lib/api'
+import { validarForcaSenha } from '@/lib/utils'
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate()
@@ -50,6 +51,12 @@ export default function ForgotPasswordPage() {
       return
     }
 
+    const erroSenha = validarForcaSenha(novaSenha)
+    if (erroSenha) {
+      setErro(erroSenha)
+      return
+    }
+
     const formData = new FormData(event.currentTarget)
     setLoading(true)
 
@@ -82,7 +89,7 @@ export default function ForgotPasswordPage() {
             <p className="mt-2 text-slate-700">
               {step === 1 
                 ? 'Informe seu e-mail corporativo para localizar suas perguntas de segurança.' 
-                : 'Responda as perguntas de segurança abaixo para definir sua nova senha.'}
+                : 'Responda as perguntas de segurança abaixo para definir sua nova senha forte (mín. 6 caracteres, 1 especial e sem sequências óbvias).'}
             </p>
           </header>
 
@@ -105,7 +112,7 @@ export default function ForgotPasswordPage() {
                 <Button type="submit" disabled={loading}>
                   {loading ? 'Buscando...' : 'Buscar'}
                 </Button>
-                <Button type="button" variant="link" onClick={() => navigate('/login')}>
+                <Button type="button" variant="link" onClick={() => navigate('/')}>
                   Voltar para o login
                 </Button>
               </div>
@@ -172,7 +179,7 @@ export default function ForgotPasswordPage() {
 
       <Modal
         open={sucesso}
-        onClose={() => navigate('/login')}
+        onClose={() => navigate('/')}
         title="Senha alterada!"
         description="Sua senha foi redefinida com sucesso. Faça login com a nova senha."
         variant="success"
