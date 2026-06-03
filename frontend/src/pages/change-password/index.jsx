@@ -7,11 +7,16 @@ import { LogoHorizontal } from '@/components/branding/LogoHorizontal'
 import AnimatedBackground from '@/components/effects/AnimatedBackground'
 import Modal from '@/components/ui/modal'
 import { api, ApiError } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
+import { validarForcaSenha } from '@/lib/utils'
 
 export default function ChangePasswordPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
+
+  const destino = user?.role === 'Admin' ? '/admin' : '/home'
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -21,6 +26,12 @@ export default function ChangePasswordPage() {
 
     if (novaSenha !== confirmar) {
       setErro('As senhas não coincidem.')
+      return
+    }
+
+    const erroSenha = validarForcaSenha(novaSenha)
+    if (erroSenha) {
+      setErro(erroSenha)
       return
     }
 
@@ -44,7 +55,7 @@ export default function ChangePasswordPage() {
           </div>
           <header className="mb-5">
             <h1 className="text-lg font-bold">Troque sua senha</h1>
-            <p className="mt-2 text-slate-700">Este é seu primeiro acesso. Defina uma nova senha para continuar.</p>
+            <p className="mt-2 text-slate-700">Bem-vindo a bordo! Neste primeiro mergulho, defina uma senha forte para navegar com segurança pelas nossas águas.</p>
           </header>
 
           <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -70,7 +81,7 @@ export default function ChangePasswordPage() {
 
       <Modal
         open={sucesso}
-        onClose={() => navigate('/admin')}
+        onClose={() => navigate(destino)}
         title="Senha alterada!"
         description="Sua senha foi atualizada com sucesso. Você será redirecionado para o painel agora."
         variant="success"
