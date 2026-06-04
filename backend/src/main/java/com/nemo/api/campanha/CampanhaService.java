@@ -43,7 +43,7 @@ public class CampanhaService {
     private boolean emailEnabled;
 
     public List<CampanhaDTO> listar() {
-        return campanhaRepository.findAll().stream().map(this::toDTO).toList();
+        return campanhaRepository.findAllWithModeloAndSetores().stream().map(this::toDTO).toList();
     }
 
     public CampanhaDTO criar(CampanhaRequest request, String token) {
@@ -175,31 +175,49 @@ public class CampanhaService {
             throw new RuntimeException("Ocorreu um erro no Worker C. Código de saída: " + exitCode);
         }
 
-        // 3. Ler o CSV com os tokens
+        // 3. Ler o CSV com os tokens e criar os disparos
         List<String> linhasResultado = Files.readAllLines(arquivoSaida);
+
+        // Resolve a campanha UMA vez antes do loop (antes: findById por iteração)
+        Campanha campanha = campanhaRepository.findById(idCampanha).orElseThrow();
+
+        // Monta um mapa email→usuário para evitar findByEmail dentro do loop
+        var mapaAlvos = alvos.stream()
+                .collect(java.util.stream.Collectors.toMap(UsuarioDestino::getEmail, a -> a));
+
+        List<Disparo> disparosParaSalvar = new java.util.ArrayList<>();
 
         for (int i = 1; i < linhasResultado.size(); i++) {
             String[] colunas = linhasResultado.get(i).split(",");
+            if (colunas.length < 5) { log.warn("[CAMPANHA] Linha CSV malformada ignorada: {}", linhasResultado.get(i)); continue; }
             String emailAlvo  = colunas[1];
             String tokenUnico = colunas[4];
 
-            usuarioDestinoRepository.findByEmail(emailAlvo).ifPresent(alvo -> {
-                var disparo = new Disparo();
-                disparo.setTokenUnico(tokenUnico);
-                disparo.setDataEnvio(LocalDateTime.now());
-                disparo.setUsuarioDestino(alvo);
-                disparo.setCampanha(campanhaRepository.findById(idCampanha).orElseThrow());
-                disparoRepository.save(disparo);
+            UsuarioDestino alvo = mapaAlvos.get(emailAlvo);
+            if (alvo == null) continue;
 
-                // Lógica de Simulação/Disparo Real
-                if (alvo.getIsReal() && emailEnabled) {
-                    emailService.enviarEmailPhishing(disparo);
-                } else if (alvo.getIsReal() && !emailEnabled) {
-                    System.out.println("[SIMULAÇÃO] Modo Offline: E-mail seria enviado para " + alvo.getEmail());
-                } else {
-                    System.out.println("[MOCK] Usuário de volume: Disparo registrado apenas para estatísticas (" + alvo.getEmail() + ")");
-                }
-            });
+            var disparo = new Disparo();
+            disparo.setTokenUnico(tokenUnico);
+            disparo.setDataEnvio(LocalDateTime.now());
+            disparo.setUsuarioDestino(alvo);
+            disparo.setCampanha(campanha);
+            disparosParaSalvar.add(disparo);
+        }
+
+        // Salva todos os disparos de uma vez (antes: save individual por linha)
+        List<Disparo> disparosSalvos = disparoRepository.saveAll(disparosParaSalvar);
+
+        // Dispara e-mails após persistir
+        for (Disparo disparo : disparosSalvos) {
+            UsuarioDestino alvo = disparo.getUsuarioDestino();
+            boolean real = Boolean.TRUE.equals(alvo.getIsReal());
+            if (real && emailEnabled) {
+                emailService.enviarEmailPhishing(disparo);
+            } else if (real && !emailEnabled) {
+                System.out.println("[SIMULAÇÃO] Modo Offline: E-mail seria enviado para " + alvo.getEmail());
+            } else {
+                System.out.println("[MOCK] Usuário de volume: Disparo registrado apenas para estatísticas (" + alvo.getEmail() + ")");
+            }
         }
 
         // 4. Atualizar status da campanha para Concluído
