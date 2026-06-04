@@ -1,5 +1,5 @@
-import { Button } from "./Button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
+import { Button } from "./button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 export function PaginationBar({ inicio, fim, total, paginaAtual, totalPaginas, pageSize, setPage, setPageSize, borderTop = false }) {
   return (

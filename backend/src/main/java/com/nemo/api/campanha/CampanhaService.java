@@ -11,6 +11,8 @@ import com.nemo.api.setor.SetorDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Objects;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -47,6 +49,7 @@ public class CampanhaService {
         return campanhaRepository.findAllWithModeloAndSetores().stream().map(this::toDTO).toList();
     }
 
+    @Transactional
     public CampanhaDTO criar(CampanhaRequest request, String token) {
         String email = jwtService.extractEmail(token);
         var usuario = usuarioSistemaRepository.findByEmail(email)
@@ -99,9 +102,9 @@ public class CampanhaService {
                                            Boolean abriuAnexo,
                                            Boolean reportouPhishing) {
         return disparoRepository.findByCampanha_IdCampanha(idCampanha).stream()
-                .filter(d -> clicouLink      == null || d.getClicouLink().equals(clicouLink))
-                .filter(d -> abriuAnexo     == null || d.getAbriuAnexo().equals(abriuAnexo))
-                .filter(d -> reportouPhishing == null || d.getReportouPhishing().equals(reportouPhishing))
+                .filter(d -> clicouLink == null || Objects.equals(d.getClicouLink(), clicouLink))
+                .filter(d -> abriuAnexo == null || Objects.equals(d.getAbriuAnexo(), abriuAnexo))
+                .filter(d -> reportouPhishing == null || Objects.equals(d.getReportouPhishing(), reportouPhishing))
                 .map(this::toDisparoDTO)
                 .toList();
     }
