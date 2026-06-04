@@ -53,12 +53,12 @@ public class AuthService {
                 senhaHash = u.getSenhaHash();
                 primeiroAcesso = u.getPrimeiroAcesso();
             } else {
-                throw new BadCredentialsException("Credenciais inválidas");
+                throw new BadCredentialsException("Usuário não encontrado");
             }
         }
 
         if (!passwordEncoder.matches(senha, senhaHash)) {
-            throw new BadCredentialsException("Credenciais inválidas");
+            throw new BadCredentialsException("Senha incorreta");
         }
 
         var claims = Map.<String, Object>of(

@@ -37,7 +37,7 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 ### ✅ Implementado
 
 **Core & Backend (Spring Boot 4)**
-- 🔐 **Segurança:** Autenticação JWT, troca obrigatória de senha e criptografia BCrypt.
+- 🔐 **Segurança:** Filtro JWT habilitado, autenticação baseada em token, troca obrigatória de senha e criptografia BCrypt.
 - 📨 **Campanhas:** CRUD completo de Modelos (WYSIWYG Jodit) e gestão de Campanhas vinculadas a setores.
 - ⚡ **Performance:** Geração de tokens ultrarrápida via Worker em C (multithread, algoritmos de hash DJB2).
 - 🔎 **Tracking:** Rastreamento de cliques e abertura de anexos com geração de arquivos "isca" *on-the-fly*.
@@ -66,7 +66,6 @@ Reduzir a superfície de ataque humano nas organizações através de um ciclo c
 
 O core do MVP — autenticação, worker de tokens em C, CRUD de modelos e campanhas, disparo SMTP real, rastreamento (clique/anexo/reporte), dashboards e portal do colaborador — já está funcional. O que ainda falta antes da v1:
 
-- **Filtro JWT** — hoje os endpoints `/api/**` estão em `permitAll` e a proteção existe apenas no frontend. A ativação foi adiada de propósito para o fim do desenvolvimento, facilitando os testes em dev.
 - **Suíte de testes** — ampliar a cobertura automatizada. Já há testes de unidade de `JwtService` e `PontuacaoService`; falta cobrir os demais serviços e fluxos de integração.
 
 **Melhorias futuras (escalabilidade)**
