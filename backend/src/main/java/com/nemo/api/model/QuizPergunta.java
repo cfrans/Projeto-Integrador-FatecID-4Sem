@@ -3,7 +3,7 @@ package com.nemo.api.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
+import java.util.Set;
 
 @Getter @Setter
 @Entity
@@ -22,6 +22,6 @@ public class QuizPergunta {
     @JoinColumn(name = "id_treinamento")
     private TreinamentoQuiz treinamentoQuiz;
 
-    @OneToMany(mappedBy = "pergunta", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<QuizOpcao> opcoes;
+    @OneToMany(mappedBy = "pergunta", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<QuizOpcao> opcoes;
 }

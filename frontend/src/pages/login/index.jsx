@@ -93,7 +93,7 @@ export default function LoginPage() {
             </div>
 
             <Modal open={!!erro} onClose={() => setErro(null)} title="Não foi possível entrar"
-              description="E-mail ou senha incorretos. Verifique suas credenciais e tente novamente." variant="error" />
+              description={erro} variant="error" />
 
             <Modal
               open={suporteOpen}

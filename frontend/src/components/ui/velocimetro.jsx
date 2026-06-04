@@ -6,6 +6,7 @@ export function Velocimetro({ saldo }) {
 
   useEffect(() => {
     let start = null;
+    let frameId;
     const duration = 1200; // 1.2s de animação
     const initial = displaySaldo;
     const target = saldo;
@@ -19,9 +20,13 @@ export function Velocimetro({ saldo }) {
       
       setDisplaySaldo(Math.round(initial + (target - initial) * ease));
       
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animate);
+      }
     };
-    requestAnimationFrame(animate);
+    
+    frameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saldo]);
 

@@ -7,7 +7,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.CascadeType;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
+import java.util.Set;
 
 @Getter @Setter
 @Entity
@@ -18,6 +18,6 @@ public class TreinamentoQuiz extends Treinamento {
     
     private String corTema;
 
-    @OneToMany(mappedBy = "treinamentoQuiz", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<QuizPergunta> perguntas;
+    @OneToMany(mappedBy = "treinamentoQuiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<QuizPergunta> perguntas;
 }

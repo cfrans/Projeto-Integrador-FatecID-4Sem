@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -52,12 +53,12 @@ public class AuthService {
                 senhaHash = u.getSenhaHash();
                 primeiroAcesso = u.getPrimeiroAcesso();
             } else {
-                throw new BadCredentialsException("Credenciais inválidas");
+                throw new BadCredentialsException("Usuário não encontrado");
             }
         }
 
         if (!passwordEncoder.matches(senha, senhaHash)) {
-            throw new BadCredentialsException("Credenciais inválidas");
+            throw new BadCredentialsException("Senha incorreta");
         }
 
         var claims = Map.<String, Object>of(
@@ -170,7 +171,7 @@ public class AuthService {
                 u.getIdPergunta2()
         )));
 
-        usuarioDestinoRepository.findAll().forEach(u -> todos.add(new UsuarioDTO(
+        usuarioDestinoRepository.findAll(Sort.unsorted()).forEach(u -> todos.add(new UsuarioDTO(
                 "D_" + u.getIdUsuarioDestino(),
                 u.getNome(),
                 u.getEmail(),

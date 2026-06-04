@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,6 +74,31 @@ const IconArchive = () => (
     <path fillRule="evenodd" d="m3.087 9 .54 9.176A3 3 0 0 0 6.62 21h10.757a3 3 0 0 0 2.995-2.824L20.913 9H3.087Zm6.163 3.75A.75.75 0 0 1 10 12h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
   </svg>
 );
+function IconSortAsc() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1">
+      <path fillRule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04L10.75 5.612V16.25A.75.75 0 0 1 10 17Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function IconSortDesc() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1">
+      <path fillRule="evenodd" d="M10 3a.75.75 0 0 1 .75.75v10.638l3.96-4.158a.75.75 0 1 1 1.08 1.04l-5.25 5.5a.75.75 0 0 1-1.08 0l-5.25-5.5a.75.75 0 1 1 1.08-1.04l3.96 4.158V3.75A.75.75 0 0 1 10 3Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function IconSortNone() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1 opacity-30">
+      <path fillRule="evenodd" d="M2.24 6.8a.75.75 0 0 0 1.06-.04l1.95-2.1v8.59a.75.75 0 0 0 1.5 0V4.66l1.95 2.1a.75.75 0 1 0 1.1-1.02L7.33 3.18a.75.75 0 0 0-1.1 0L3.7 5.74a.75.75 0 0 0 .04 1.06Zm9.96 6.4a.75.75 0 0 1-1.06.04l-1.95-2.1v-8.59a.75.75 0 0 1 1.5 0v8.59l1.95-2.1a.75.75 0 1 1 1.1 1.02l-2.54 2.56Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function SortIcon({ col, sortCol, sortDir }) {
+  if (sortCol !== col) return <IconSortNone />;
+  return sortDir === "asc" ? <IconSortAsc /> : <IconSortDesc />;
+}
 
 // ─── Badge de status da campanha ─────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -141,9 +166,15 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
   const [mostrarArquivados, setMostrarArquivados] = useState(false);
   const [filtroAberto, setFiltroAberto] = useState(false);
 
-  const limparFiltros = () => { setDataInicio(""); setDataFim(""); setFiltroStatus("todos"); };
+  const [sortCol, setSortCol] = useState("Criação");
+  const [sortDir, setSortDir] = useState("desc");
 
-  const campanhasFiltradas = campanhas.filter((c) => {
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  const limparFiltros = () => { setDataInicio(""); setDataFim(""); setFiltroStatus("todos"); setPaginaAtual(1); };
+
+  const campanhasFiltradas = useMemo(() => campanhas.filter((c) => {
     const arquivada = archivedIds.has(c.idCampanha);
     if (mostrarArquivados ? !arquivada : arquivada) return false;
     if (!mostrarArquivados && filtroStatus !== "todos" && c.statusEnvio !== filtroStatus) return false;
@@ -160,10 +191,49 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
       if (criacao > fim) return false;
     }
     return true;
-  });
+  }), [campanhas, archivedIds, mostrarArquivados, filtroStatus, dataInicio, dataFim]);
 
   const filtroAtivo = dataInicio || dataFim || filtroStatus !== "todos";
-  const totalVisiveis = campanhas.filter((c) => mostrarArquivados ? archivedIds.has(c.idCampanha) : !archivedIds.has(c.idCampanha)).length;
+  const totalVisiveis = useMemo(
+    () => campanhas.filter((c) => mostrarArquivados ? archivedIds.has(c.idCampanha) : !archivedIds.has(c.idCampanha)).length,
+    [campanhas, archivedIds, mostrarArquivados]
+  );
+
+  const SORT_KEYS = {
+    Nome: "nomeCampanha",
+    Modelo: "nomeModelo",
+    Status: "statusEnvio",
+    "Criação": "dataCriacao",
+  };
+
+  const sorted = useMemo(() => {
+    return [...campanhasFiltradas].sort((a, b) => {
+      if (!sortCol) return 0;
+      const key = SORT_KEYS[sortCol];
+      const va = a[key];
+      const vb = b[key];
+      let cmp;
+      if (key === "dataCriacao") {
+        cmp = new Date(va) - new Date(vb);
+      } else {
+        cmp = String(va).localeCompare(String(vb), "pt-BR");
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [campanhasFiltradas, sortCol, sortDir]);
+
+  const handleSort = (col) => {
+    if (!SORT_KEYS[col]) return;
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("asc"); }
+    setPaginaAtual(1);
+  };
+
+  const total = sorted.length;
+  const totalPaginas = Math.max(1, Math.ceil(total / pageSize));
+  const inicio = (paginaAtual - 1) * pageSize;
+  const fim = Math.min(inicio + pageSize, total);
+  const pagina = sorted.slice(inicio, fim);
 
   return (
     <div className="grid gap-4">
@@ -236,25 +306,33 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
         ) : (
           <div className="overflow-x-auto w-full">
             <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4">Nome</th>
-                <th className="px-6 py-4">Modelo</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Criação</th>
-                <th className="px-6 py-4 text-right">Ações</th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Nome")}>
+                  Nome <SortIcon col="Nome" sortCol={sortCol} sortDir={sortDir} />
+                </th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Modelo")}>
+                  Modelo <SortIcon col="Modelo" sortCol={sortCol} sortDir={sortDir} />
+                </th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Status")}>
+                  Status <SortIcon col="Status" sortCol={sortCol} sortDir={sortDir} />
+                </th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Criação")}>
+                  Criação <SortIcon col="Criação" sortCol={sortCol} sortDir={sortDir} />
+                </th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 text-right">Ações</th>
               </tr>
             </thead>
             <tbody ref={parent} className="divide-y divide-slate-100">
-              {campanhasFiltradas.map((c) => {
+              {pagina.map((c) => {
                 const arquivada = archivedIds.has(c.idCampanha);
                 return (
                   <tr key={c.idCampanha} className={`transition-colors ${arquivada ? "opacity-60 bg-slate-50" : "hover:bg-slate-50"}`}>
-                    <td className="px-6 py-4 font-medium text-slate-900">{c.nomeCampanha}</td>
-                    <td className="px-6 py-4 text-slate-600">{c.nomeModelo}</td>
-                    <td className="px-6 py-4"><StatusBadge status={c.statusEnvio} /></td>
-                    <td className="px-6 py-4 text-slate-500 text-xs">{new Date(c.dataCriacao).toLocaleDateString("pt-BR")}</td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-3 font-medium text-slate-900">{c.nomeCampanha}</td>
+                    <td className="px-4 py-3 text-slate-600">{c.nomeModelo}</td>
+                    <td className="px-4 py-3"><StatusBadge status={c.statusEnvio} /></td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{new Date(c.dataCriacao).toLocaleDateString("pt-BR")}</td>
+                    <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         {!arquivada && (
                           <Button variant="outline" size="sm" onClick={() => onMonitorar(c)} className="text-teal-700 border-teal-200 hover:bg-teal-50">
@@ -277,9 +355,19 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
           </table>
           </div>
         )}
-        <div className="flex items-center justify-end px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
-          <span className="text-xs text-slate-400">{campanhasFiltradas.length} de {totalVisiveis}</span>
-        </div>
+        {total > 0 && (
+          <PaginationBar
+            inicio={inicio}
+            fim={fim}
+            total={total}
+            paginaAtual={paginaAtual}
+            totalPaginas={totalPaginas}
+            pageSize={pageSize}
+            setPage={setPaginaAtual}
+            setPageSize={setPageSize}
+            borderTop={true}
+          />
+        )}
       </Card>
     </div>
   );
@@ -616,9 +704,12 @@ function MonitoringView({ campanha, onBack }) {
 
   useEffect(() => { setPage(1); }, [pesquisa, setorFiltro, filtroAtivo]);
 
-  const setoresUnicos = [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort();
+  const setoresUnicos = useMemo(
+    () => [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort(),
+    [disparos]
+  );
 
-  const disparosFiltrados = disparos
+  const disparosFiltrados = useMemo(() => disparos
     .filter((d) => {
       if (filtroAtivo === "todos") return true;
       if (filtroAtivo === "clicouLink") return d.clicouLink;
@@ -632,11 +723,11 @@ function MonitoringView({ campanha, onBack }) {
       if (!pesquisa.trim()) return true;
       const q = pesquisa.toLowerCase();
       return (
-        d.nomeDestinatario.toLowerCase().includes(q) ||
-        d.emailDestinatario.toLowerCase().includes(q) ||
-        d.setor.toLowerCase().includes(q)
+        (d.nomeDestinatario ?? "").toLowerCase().includes(q) ||
+        (d.emailDestinatario ?? "").toLowerCase().includes(q) ||
+        (d.setor ?? "").toLowerCase().includes(q)
       );
-    });
+    }), [disparos, filtroAtivo, setorFiltro, pesquisa]);
 
   const totalPaginas = Math.max(1, Math.ceil(disparosFiltrados.length / pageSize));
   const paginaAtual = Math.min(page, totalPaginas);

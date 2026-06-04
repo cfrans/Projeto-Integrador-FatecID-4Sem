@@ -108,3 +108,7 @@ CREATE TABLE pontuacao_evento (
 
 CREATE UNIQUE INDEX idx_evento_disparo_tipo ON pontuacao_evento (id_disparo, tipo_evento);
 CREATE INDEX idx_evento_usuario_data       ON pontuacao_evento (id_usuario_destino, criado_em);
+
+-- Índices de data para queries do dashboard (evita full table scan)
+CREATE INDEX idx_disparos_data_envio   ON disparos  (data_envio);
+CREATE INDEX idx_campanha_data_criacao ON campanha  (data_criacao);

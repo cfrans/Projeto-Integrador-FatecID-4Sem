@@ -56,6 +56,7 @@ export default function ChangePasswordPage() {
           <header className="mb-5">
             <h1 className="text-lg font-bold">Troque sua senha</h1>
             <p className="mt-2 text-slate-700">Bem-vindo a bordo! Neste primeiro mergulho, defina uma senha forte para navegar com segurança pelas nossas águas.</p>
+            <p className="mt-2 text-sm text-slate-600 font-medium">Requisitos: mín. 6 caracteres, 1 especial e sem sequências óbvias como 123.</p>
           </header>
 
           <form className="grid gap-4" onSubmit={handleSubmit}>
