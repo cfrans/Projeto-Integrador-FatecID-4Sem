@@ -26,6 +26,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { PaginationBar } from "@/components/ui/PaginationBar";
+
+function IconSortAsc() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1">
+      <path fillRule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04L10.75 5.612V16.25A.75.75 0 0 1 10 17Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function IconSortDesc() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1">
+      <path fillRule="evenodd" d="M10 3a.75.75 0 0 1 .75.75v10.638l3.96-4.158a.75.75 0 1 1 1.08 1.04l-5.25 5.5a.75.75 0 0 1-1.08 0l-5.25-5.5a.75.75 0 1 1 1.08-1.04l3.96 4.158V3.75A.75.75 0 0 1 10 3Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function IconSortNone() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="size-3.5 inline ml-1 opacity-30">
+      <path fillRule="evenodd" d="M2.24 6.8a.75.75 0 0 0 1.06-.04l1.95-2.1v8.59a.75.75 0 0 0 1.5 0V4.66l1.95 2.1a.75.75 0 1 0 1.1-1.02L7.33 3.18a.75.75 0 0 0-1.1 0L3.7 5.74a.75.75 0 0 0 .04 1.06Zm9.96 6.4a.75.75 0 0 1-1.06.04l-1.95-2.1v-8.59a.75.75 0 0 1 1.5 0v8.59l1.95-2.1a.75.75 0 1 1 1.1 1.02l-2.54 2.56Z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function SortIcon({ col, sortCol, sortDir }) {
+  if (sortCol !== col) return <IconSortNone />;
+  return sortDir === "asc" ? <IconSortAsc /> : <IconSortDesc />;
+}
 
 const DOMAINS = [
   { id: 1, name: "ti.acesso-seguro.top" },
@@ -56,8 +83,15 @@ export default function ModelsPage() {
 
   const filterActive = !!(filterNome || filterDominio || filterDataInicio || filterDataFim || filterStatus !== "ativos");
   const activeCount = [filterNome, filterDominio, filterDataInicio, filterDataFim, filterStatus !== "ativos" ? "1" : ""].filter(Boolean).length;
+  
+  const [sortCol, setSortCol] = useState("Criado em");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
   const clearFilters = () => {
-    setFilterNome(""); setFilterDominio(""); setFilterDataInicio(""); setFilterDataFim(""); setFilterStatus("ativos");
+    setFilterNome(""); setFilterDominio(""); setFilterDataInicio(""); setFilterDataFim(""); setFilterStatus("ativos"); setPaginaAtual(1);
   };
 
   const uniqueDomains = useMemo(
@@ -87,6 +121,42 @@ export default function ModelsPage() {
       return true;
     });
   }, [models, filterNome, filterDominio, filterDataInicio, filterDataFim, filterStatus]);
+
+  const SORT_KEYS = {
+    "Nome do Modelo": "nomeModelo",
+    "Domínio Alvo": "dominioAlvo",
+    "Remetente": "remetenteFalso",
+    "Criado em": "data",
+  };
+
+  const sorted = useMemo(() => {
+    return [...filteredModels].sort((a, b) => {
+      if (!sortCol) return 0;
+      const key = SORT_KEYS[sortCol];
+      const va = a[key];
+      const vb = b[key];
+      let cmp;
+      if (key === "data") {
+        cmp = new Date(va || 0) - new Date(vb || 0);
+      } else {
+        cmp = String(va || "").localeCompare(String(vb || ""), "pt-BR");
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filteredModels, sortCol, sortDir]);
+
+  const handleSort = (col) => {
+    if (!SORT_KEYS[col]) return;
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("asc"); }
+    setPaginaAtual(1);
+  };
+
+  const total = sorted.length;
+  const totalPaginas = Math.max(1, Math.ceil(total / pageSize));
+  const inicio = (paginaAtual - 1) * pageSize;
+  const fim = Math.min(inicio + pageSize, total);
+  const pagina = sorted.slice(inicio, fim);
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -281,28 +351,36 @@ export default function ModelsPage() {
         ) : (
           <div className="overflow-x-auto w-full">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+              <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4">Nome do Modelo</th>
-                  <th className="px-6 py-4">Domínio Alvo</th>
-                  <th className="px-6 py-4">Remetente</th>
-                  <th className="px-6 py-4">Criado em</th>
-                  <th className="px-6 py-4 text-right">Ações</th>
+                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Nome do Modelo")}>
+                    Nome do Modelo <SortIcon col="Nome do Modelo" sortCol={sortCol} sortDir={sortDir} />
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Domínio Alvo")}>
+                    Domínio Alvo <SortIcon col="Domínio Alvo" sortCol={sortCol} sortDir={sortDir} />
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Remetente")}>
+                    Remetente <SortIcon col="Remetente" sortCol={sortCol} sortDir={sortDir} />
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer hover:text-slate-800 select-none" onClick={() => handleSort("Criado em")}>
+                    Criado em <SortIcon col="Criado em" sortCol={sortCol} sortDir={sortDir} />
+                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredModels.map((model) => (
+                {pagina.map((model) => (
                   <tr key={model.idModelo} className={`transition-colors ${model.isAtivo === false ? 'bg-slate-100 opacity-60 grayscale' : 'hover:bg-slate-50'}`}>
-                    <td className="px-6 py-4 font-medium text-slate-900">
+                    <td className="px-4 py-3 font-medium text-slate-900">
                       {model.nomeModelo}
                       {model.isAtivo === false && <span className="ml-2 text-[10px] uppercase font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded">Inativo</span>}
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{model.dominioAlvo}</td>
-                    <td className="px-6 py-4 text-slate-500">{model.remetenteFalso}</td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">
+                    <td className="px-4 py-3 text-slate-600">{model.dominioAlvo}</td>
+                    <td className="px-4 py-3 text-slate-500">{model.remetenteFalso}</td>
+                    <td className="px-4 py-3 text-slate-400 text-xs">
                       {model.data ? new Date(model.data).toLocaleDateString("pt-BR") : "—"}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         {model.isAtivo !== false && (
                           <Button variant="outline" size="sm" onClick={() => openEditMode(model)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
@@ -326,9 +404,19 @@ export default function ModelsPage() {
             </table>
           </div>
         )}
-        <div className="flex items-center justify-end px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
-          <span className="text-xs text-slate-400">{filteredModels.length} de {models.length} modelo(s)</span>
-        </div>
+        {total > 0 && (
+          <PaginationBar
+            inicio={inicio}
+            fim={fim}
+            total={total}
+            paginaAtual={paginaAtual}
+            totalPaginas={totalPaginas}
+            pageSize={pageSize}
+            setPage={setPaginaAtual}
+            setPageSize={setPageSize}
+            borderTop={true}
+          />
+        )}
       </Card>
     </div>
   );
