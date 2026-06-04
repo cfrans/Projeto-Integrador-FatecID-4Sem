@@ -3,14 +3,14 @@
 
 -- 1) Campanhas (8 campanhas espalhadas entre Nov/2025 e Mai/2026)
 INSERT INTO campanha (nome_campanha, assunto_email, nome_anexo, status_envio, data_criacao, id_modelo, id_usuario_sistema) VALUES
-('Q4 - Senha Expirada',           'Sua senha expira em 24h - acao necessaria', 'senha_atualizar.html', 'Enviado', '2025-12-15 09:30:00', 1, 1),
-('Black Friday - Alerta Bancario','Alerta de Seguranca - Atividade suspeita',  'extrato.pdf',          'Enviado', '2026-01-10 14:00:00', 2, 1),
-('Inicio de Ano - RH Cadastro',   'Atualizacao cadastral obrigatoria',         'formulario_rh.pdf',    'Enviado', '2026-02-08 10:15:00', 3, 1),
-('Carnaval - Senha TI',           'Renovacao de credenciais obrigatoria',      'renovar.html',         'Enviado', '2026-03-12 08:45:00', 1, 1),
-('Marco - Bancario Bradesco',     'Comprovante de transacao - verificar',      'comprovante.pdf',      'Enviado', '2026-04-04 11:20:00', 2, 1),
-('RH - Holerite atualizado',      'Holerite disponivel para download',         'holerite.pdf',         'Enviado', '2026-04-22 13:50:00', 3, 1),
-('Q2 - Reset de Senha',           'Reset obrigatorio - prazo final',           'reset.html',           'Enviado', '2026-05-15 09:00:00', 1, 1),
-('Maio - Alerta Bancario',        'Notificacao de saldo - acesso urgente',     'seguranca.pdf',        'Enviado', '2026-06-10 16:30:00', 2, 1);
+('Q4 - Senha Expirada',           'Sua senha expira em 24h - acao necessaria', 'senha_atualizar.html', 'Concluída', '2025-12-15 09:30:00', 1, 1),
+('Black Friday - Alerta Bancario','Alerta de Seguranca - Atividade suspeita',  'extrato.pdf',          'Concluída', '2026-01-10 14:00:00', 2, 1),
+('Inicio de Ano - RH Cadastro',   'Atualizacao cadastral obrigatoria',         'formulario_rh.pdf',    'Concluída', '2026-02-08 10:15:00', 3, 1),
+('Carnaval - Senha TI',           'Renovacao de credenciais obrigatoria',      'renovar.html',         'Concluída', '2026-03-12 08:45:00', 1, 1),
+('Marco - Bancario Bradesco',     'Comprovante de transacao - verificar',      'comprovante.pdf',      'Concluída', '2026-04-04 11:20:00', 2, 1),
+('RH - Holerite atualizado',      'Holerite disponivel para download',         'holerite.pdf',         'Concluída', '2026-04-22 13:50:00', 3, 1),
+('Q2 - Reset de Senha',           'Reset obrigatorio - prazo final',           'reset.html',           'Concluída', '2026-05-15 09:00:00', 1, 1),
+('Maio - Alerta Bancario',        'Notificacao de saldo - acesso urgente',     'seguranca.pdf',        'Concluída', '2026-06-10 16:30:00', 2, 1);
 
 -- 2) Cada campanha atinge todos os 6 setores
 INSERT INTO setor_campanha (id_campanha, id_setor)

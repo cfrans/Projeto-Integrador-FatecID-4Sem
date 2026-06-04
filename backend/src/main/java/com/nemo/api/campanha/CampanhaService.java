@@ -224,9 +224,9 @@ public class CampanhaService {
             }
         }
 
-        // 4. Atualizar status da campanha para Concluído
+        // 4. Atualizar status da campanha para Concluída
         var campanhaFinalizada = campanhaRepository.findById(idCampanha).orElseThrow();
-        campanhaFinalizada.setStatusEnvio("Concluído");
+        campanhaFinalizada.setStatusEnvio("Concluída");
         campanhaRepository.save(campanhaFinalizada);
 
         // 5. LIMPEZA: Excluir os CSVs temporários
