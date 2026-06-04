@@ -6,7 +6,7 @@
   </picture>
   <br><br>
 
-  ![Status](https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow?logo=rocket&logoColor=white)
+  ![Status](https://img.shields.io/badge/Status-Estável-brightgreen?logo=rocket&logoColor=white)
   ![Versão](https://img.shields.io/badge/Versão-v1.0.0--rc.1-blue?logo=git&logoColor=white)
   ![Licença](https://img.shields.io/badge/Licença-CC%20BY--NC--ND%204.0-blue?logo=creativecommons&logoColor=white)
 
@@ -16,90 +16,86 @@
   ![MySQL](https://img.shields.io/badge/MySQL-005C84?logo=mysql&logoColor=white)
 </div>
 
-## 📖 Descrição
-O **Nemo** é uma plataforma de **conscientização e simulação de phishing** projetada para fortalecer a cultura de segurança digital em organizações. Ao combinar simulações de ataques realistas com mecanismos de gamificação e trilhas educativas, o sistema transforma a vulnerabilidade humana em uma linha de defesa ativa.
+<br>
 
-O sistema opera através do envio de **iscas simuladas 📧** (links, e-mails e anexos). Cada interação é monitorada via tokens opacos, garantindo a privacidade dos dados (**LGPD**) enquanto fornece métricas precisas sobre o comportamento de risco da equipe.
+## 📑 Índice
 
-Complementando a simulação, o Nemo oferece **conteúdos educativos 📚** direcionados, focados em ensinar o reconhecimento de vetores de ataque e a adoção de boas práticas cibernéticas.
-
----
-
-## 🎯 Objetivo
-Reduzir a superfície de ataque humano nas organizações através de um ciclo contínuo de **simulação, monitoramento e educação**, utilizando dados reais para direcionar o treinamento onde ele é mais necessário.
-
----
-
-## 📊 Status atual
-
-> ⚠️ **Em desenvolvimento ativo (v0.0.1-alpha).** A infraestrutura core (API, Worker de Tokens, Gestão de Campanhas, Monitoramento e Disparo de E-mails) já é funcional. O foco atual está na aplicação de filtros de segurança (Filtro JWT) e suíte de testes.
-
-### ✅ Implementado
-
-**Core & Backend (Spring Boot 4)**
-- 🔐 **Segurança:** Filtro JWT habilitado, autenticação baseada em token, troca obrigatória de senha e criptografia BCrypt.
-- 📨 **Campanhas:** CRUD completo de Modelos (WYSIWYG Jodit) e gestão de Campanhas vinculadas a setores.
-- ⚡ **Performance:** Geração de tokens ultrarrápida via Worker em C (multithread, algoritmos de hash DJB2).
-- 🔎 **Tracking:** Rastreamento de cliques e abertura de anexos com geração de arquivos "isca" *on-the-fly*.
-- 📊 **Gestão de Dados:** Migrations via Flyway, repositórios auditáveis e lógica de pontuação idempotente.
-- 📈 **Dashboard de Gráficos:** `GET /api/graficos/dashboard` integrado ao frontend — filtros por período, setor e modelo, sem dados mockados.
-
-**Interface & Experiência (React + Tailwind)**
-- 🎨 **UI Moderna:** Dashboards interativos, fundo animado com peixes (identidade visual Nemo) e design responsivo.
-- 📋 **Monitoramento:** Tela de acompanhamento de campanhas com filtros avançados e métricas por setor.
-- 👥 **Gestão de Alvos:** Importação massiva de usuários via CSV com relatório de processamento detalhado.
-- ⚙️ **Perfil:** Troca de senha, perguntas de segurança e controle de papéis (Admin/Colaborador).
-- 🔀 **Separação de perfis no frontend:** `AdminRoute` e `ColaboradorRoute` — rotas, menus e navegação completamente separados por `role` no JWT.
-
-**Portal do Colaborador**
-- 🏠 **Página inicial** (`/home`) — boas-vindas personalizado, velocímetro integrado, cards de ação (Quiz, Conteúdos, Meu Desempenho) e dica de segurança do dia.
-- 🎓 **Conteúdos Educativos** (`/conteudos`) — 8 vídeos do YouTube embeddados, filtro por categoria (Phishing, Senhas, Redes Sociais, Corporativo), player integrado com thumbnail.
-- 🧠 **Quiz de Phishing** (`/quiz`) — quizzes interativos de múltipla escolha. Integrado ao backend.
-- 📊 **Meu Desempenho** (`/meus-graficos`) — KPIs, velocímetro dinâmico, gráficos com Chart.js. Consome `GET /api/colaborador/pontuacao` real, sem dados mockados.
-
-**Gamificação & Rastreamento**
-- 🎮 **Sistema de Pontuação:** Saldo dinâmico (0-1000) com baseline neutro (500). Penalidades automáticas por cliques (−20) e aberturas (−30).
-- 📈 **Métricas de Risco (Vulnerabilidade Geral):** Calculada dividindo o total de cliques pelo total de e-mails disparados (`(cliques / disparos) * 100`). É a principal KPI de gestão exibida no dashboard administrativo e nas análises gráficas.
-- 🎯 **Monitoramento de Interações:** Captura em tempo real via webhook (pixel de rastreamento falso injetado no HTML e rotas `/tracking/*`), garantindo a privacidade dos colaboradores.
-
-### 🚧 Roadmap
-
-O core do MVP — autenticação, worker de tokens em C, CRUD de modelos e campanhas, disparo SMTP real, rastreamento (clique/anexo/reporte), dashboards e portal do colaborador — já está funcional. O que ainda falta antes da v1:
-
-- **Suíte de testes** — ampliar a cobertura automatizada. Já há testes de unidade de `JwtService` e `PontuacaoService`; falta cobrir os demais serviços e fluxos de integração.
-
-**Melhorias futuras (escalabilidade)**
-
-- **Geração assíncrona de tokens** — isolar a chamada ao worker em C numa thread `@Async` e expor um endpoint de *polling* (`/status`), permitindo escalas acima de ~10.000 usuários sem risco de timeout.
+- [📖 O que é o Nemo?](#-o-que-é-o-nemo)
+- [⚙️ Como Funciona (Regras de Negócio)](#-como-funciona-regras-de-negócio)
+  - [Perfis de Acesso](#1-perfis-de-acesso)
+  - [O Ciclo de Simulação](#2-o-ciclo-de-simulação)
+  - [Rastreamento (Tracking)](#3-rastreamento-tracking)
+  - [Gamificação e Pontuação](#4-gamificação-e-pontuação)
+- [🏗️ Arquitetura e Stack Tecnológica](#-arquitetura-e-stack-tecnológica)
+- [🚀 Como rodar o projeto localmente](#-como-rodar-o-projeto-localmente)
+  - [Pré-requisitos](#pré-requisitos)
+  - [Configurando o Backend](#1-backend-spring-boot)
+  - [Configurando o Frontend](#2-frontend-react--vite)
+  - [Modo Offline (Plano B para apresentações)](#3-modo-offline-plano-b)
+- [📧 Captura de Denúncias via Gmail (Opcional)](#-captura-de-denúncias-via-gmail-opcional)
+- [📜 Licença](#-licença)
 
 ---
 
-## 🛠 Stack tecnológica
+## 📖 O que é o Nemo?
 
-**Front-end**
-- React 19 + Vite
-- Tailwind CSS 4
-- React Router
-- Jodit (editor WYSIWYG para os modelos)
-- Chart.js + react-chartjs-2 (dashboard de gráficos)
-- Heroicons
-- Hugeicons (componentes internos do shadcn)
+O **Nemo** é uma plataforma corporativa completa de **conscientização e simulação de phishing**. O objetivo principal do sistema é reduzir a superfície de ataque humano nas organizações, transformando o elo mais fraco (o colaborador) em uma linha de defesa ativa.
 
-**Back-end**
-- Java 21
-- Spring Boot 4 (Web, Data JPA, Security, Validation, Flyway)
-- jjwt 0.12 (geração e parsing de JWT)
-- Lombok
+O sistema faz isso combinando **simulações de ataques realistas** (disparo de e-mails falsos criados pela própria equipe de TI da empresa) com um portal educativo gamificado. Cada interação do colaborador com as ameaças é monitorada com segurança e precisão, fornecendo métricas de risco gerenciais enquanto protege a privacidade (LGPD).
 
-**Banco de Dados**
-- MySQL 8
+---
 
-**Processamento Assíncrono**
-- Worker em C (multithread, geração paralela de tokens com key stretching, algoritmo DJB2 modificado, estrutura de Lista Encadeada Simples com alocação dinâmica)
+## ⚙️ Como Funciona (Regras de Negócio)
 
-**Envio de E-mails e Monitoramento**
-- Disparo SMTP real via Postfix (domínio próprio `acesso-seguro.top`)
-- Captura de reportes via Listener IMAP Nativo (API do Java Mail + Regex)
+### 1. Perfis de Acesso
+
+O sistema atende a dois públicos com fluxos completamente separados:
+
+- **Administradores (Equipe de TI/Segurança):** Acessam o painel de gestão central. Eles têm permissão para cadastrar/importar colaboradores, criar modelos de e-mail falsos, disparar campanhas de simulação em massa e visualizar gráficos consolidados de vulnerabilidade da empresa por setor.
+- **Usuários Destino (Colaboradores):** Não têm acesso administrativo. São o alvo das campanhas. Possuem um Portal do Colaborador próprio onde podem acompanhar sua "Pontuação de Segurança", assistir a vídeos educativos e responder a quizzes sobre cibersegurança.
+
+### 2. O Ciclo de Simulação
+
+O fluxo operacional de um ataque simulado ocorre em quatro etapas:
+
+1. **Envelopamento:** O Administrador cria um **Modelo** de e-mail com editor visual (WYSIWYG), definindo remetente falso (Spoofing) e os links/anexos "maliciosos".
+2. **Definição de Alvos:** O Administrador cria uma **Campanha**, selecionando o modelo criado e os setores da empresa que serão atacados.
+3. **Geração de Tokens:** Para rastrear as interações sem expor dados pessoais na URL (o que feriria a LGPD), o sistema aciona um **Worker em linguagem C**. Esse *worker* gera um token criptográfico único para cada usuário e para cada disparo daquela campanha. É esse token exclusivo que é injetado nos links de *phishing*, nos PDFs falsos e rastreado na *abuse inbox* caso o usuário reporte o e-mail, permitindo identificar exatamente quem interagiu com a ameaça. A geração é feita em altíssima velocidade utilizando *multithreading* e o algoritmo de hash DJB2.
+4. **Disparo Real:** O Spring Boot envia os e-mails de forma assíncrona utilizando o protocolo SMTP.
+
+### 3. Rastreamento (Tracking)
+
+As iscas geram métricas sem expor a rede da empresa. Quando o colaborador interage com a ameaça simulada:
+
+- **Clique no link:** A vítima é rastreada silenciosamente no banco de dados através do token e imediatamente redirecionada para uma página educativa avisando que ela "caiu num phishing simulado".
+- **Abertura do anexo:** O Nemo gera arquivos HTML "disfarçados" de PDF/Word sob demanda. Ao serem abertos, eles registram a falha de segurança através do token sem a necessidade de baixar malwares reais na máquina da vítima.
+- **Reporte:** Se a vítima identificar o phishing sem clicar, e encaminhar o e-mail para a equipe de segurança (Abuse Inbox), o sistema rastreia o token embutido na denúncia e computa a ação positiva.
+
+### 4. Gamificação e Pontuação
+
+O Nemo opera sob um sistema de pontuação comportamental **(Saldo de 0 a 1000, com baseline em 500 pontos)**. O objetivo é educar e não punir:
+
+- Clicar em link suspeito: **-20 pts**
+- Abrir anexo suspeito: **-30 pts**
+- Denunciar/Reportar o phishing à TI: **+30 pts**
+- Concluir vídeos ou quizzes na plataforma: **+50 pts**
+
+Com base na pontuação, o colaborador é classificado em **Faixas de Risco**:
+- **0 a 299 pts:** Risco Crítico (treinamentos obrigatórios)
+- **300 a 699 pts:** Atenção
+- **700 a 1000 pts:** Seguro / OK
+
+---
+
+## 🏗️ Arquitetura e Stack Tecnológica
+
+O sistema foi desenhado com arquitetura de microserviços e componentes desacoplados:
+
+- **Front-end:** React 19, Vite, Tailwind CSS 4, React Router, Chart.js.
+- **Back-end:** Java 21, Spring Boot 4 (Data JPA, Security, Mail), Flyway, JWT.
+- **Worker (Processamento de Tokens):** Linguagem C (Pthreads, Algoritmo DJB2 modificado, Listas Encadeadas Dinâmicas).
+- **Banco de Dados:** MySQL 8.
+- **Integrações:** SMTP via Postfix (domínio próprio) e varredura de reportes via IMAP Listener nativo do Java Mail.
 
 ---
 
@@ -107,22 +103,15 @@ O core do MVP — autenticação, worker de tokens em C, CRUD de modelos e campa
 
 ### Pré-requisitos
 - Java 21+
-- Maven
-- MySQL rodando (local ou em rede)
 - Node.js 18+
-- Compilador C (gcc/MinGW) — apenas se for recompilar o worker de tokens
+- MySQL 8 rodando (localmente na porta 3306)
+- *Opcional:* Compilador C (gcc) apenas se desejar recompilar o código do Worker. Os executáveis embutidos para Windows (`.exe`), macOS e Linux já acompanham o projeto.
 
----
+### 1. Backend (Spring Boot)
 
-### 🗄️ Backend (Spring Boot)
+O banco de dados é criado automaticamente via Flyway. **Não é necessário criar as tabelas manualmente.** 
 
-#### 1. Configure o banco de dados
-
-O Flyway cria todas as tabelas automaticamente na primeira execução — **não é necessário criar nada manualmente no MySQL**, apenas o servidor MySQL precisa estar rodando e acessível.
-
-#### 2. Crie o arquivo `application-local.yaml`
-
-Dentro de `backend/src/main/resources/`, crie o arquivo `application-local.yaml` com as suas credenciais locais:
+1. Crie o arquivo `application-local.yaml` dentro de `backend/src/main/resources/`:
 
 ```yaml
 spring:
@@ -131,315 +120,86 @@ spring:
     password: sua-senha-do-mysql
     url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 
-  # Configuração do servidor SMTP (Postfix via rede local, Tailscale ou MailHog)
-  mail:
-    host: 192.168.0.101        # IP do container; na apresentação online: IP Tailscale (100.x.x.x). Para MailHog: localhost
-    port: 587                  # 587 para Postfix. Para MailHog: 1025
-    username: ""               # Deixe em branco se for MailHog ou Postfix configurado para mynetworks
-    password: ""               # Deixe em branco se for MailHog ou Postfix configurado para mynetworks
-
-logging:
-  level:
-    org.springframework.security: TRACE
-
 jwt:
-  secret: nemo-jwt-secret-dev-apenas-local-nao-commitar
+  secret: chave-secreta-ambiente-local-para-assinatura-jwt
   expiration-ms: 86400000
 
 nemo:
   email:
-    enabled: true              # false = modo simulação (só loga, não envia)
+    enabled: true             # Se não houver servidor SMTP local, use "false" (modo simulação)
   tracking:
-    base-url: http://localhost:8080   # URL base dos links inseridos nos e-mails de phishing
+    base-url: http://localhost:8080
   imap:
-    enabled: false             # true para ativar captura de denúncias via Gmail
-    username: seu-email-abuse@gmail.com
-    password: sua-senha-de-aplicativo-de-16-digitos # Veja seção de configuração de Rastreamento abaixo
+    enabled: false
 ```
 
-> ⚠️ Este arquivo está no `.gitignore` e **nunca deve ser commitado**. Cada dev mantém o seu localmente.
-
-> 💡 **Sem internet na apresentação?** O Nemo tem um **Modo Offline** embutido que dispensa o Postfix externo, o Gmail e qualquer ferramenta extra — veja a seção [🔌 Modo Offline (Plano B)](#-modo-offline-plano-b) abaixo.
-
-#### 3. Monitoramento de Logs Separados
-
-O Spring Boot foi configurado com um `logback-spring.xml` que separa automaticamente os logs na pasta `logs/` (criada na raiz onde o backend é executado):
-
-- **`nemo-mail.log`**: Registra apenas os disparos reais de SMTP e a varredura IMAP na caixa de reportes. Ideal para deixar rodando em uma janela separada durante apresentações.
-- **`nemo-system.log`**: Registra regras de negócio (criação de usuários, campanhas, login).
-- **`nemo-debug.log`**: Um *firehose* que contém absolutamente tudo, incluindo queries do Hibernate e filtros de segurança.
-
-*No PowerShell, você pode monitorar um log ao vivo rodando: `Get-Content logs\nemo-mail.log -Wait`*
-
-#### 4. Suba o backend
+2. Na pasta raiz do `backend/`, inicie o servidor com o Maven Wrapper:
 
 ```bash
-cd backend
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
-A API ficará disponível em `http://localhost:8080`.
+3. Acesse a documentação interativa da API (Swagger) em: `http://localhost:8080/swagger-ui.html`.
 
-#### 4. Documentação da API (Swagger)
+#### Estrutura de Migrations (Flyway)
 
-Com o backend rodando, você pode acessar a documentação interativa da API (OpenAPI 3) através do Swagger UI:
+Na primeira execução, o Flyway cria as tabelas e popula o banco com dados essenciais de teste na seguinte ordem:
+- `V1` a `V4`: Criação do *schema*, tabelas base, tipos de acesso, 3 modelos de e-mail e 6 setores da empresa.
+- `V5` e `V6`: Inserção de 50 colaboradores fictícios e catálogo de perguntas de segurança.
+- `V7`: Popula o banco com 8 campanhas falsas já disparadas, para preencher os gráficos do *Dashboard* com dados gerenciais.
+- `V8`: Cria o módulo de treinamentos (vídeos e quizzes) para o Portal do Colaborador.
 
-🔗 **[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)**
+> ⚠️ **Nota:** Migrations já aplicadas nunca devem ser editadas. Novas alterações estruturais no banco devem ser feitas através de novos arquivos (ex: `V9__descricao.sql`).
 
-Nesta interface, é possível visualizar todos os endpoints, esquemas de dados e realizar testes de requisições diretamente pelo navegador.
+#### Monitoramento de Logs Separados
 
-#### 5. O que o Flyway faz automaticamente
+O Spring Boot foi configurado para direcionar as saídas para arquivos de *log* isolados, localizados na pasta `logs/` (criada na raiz durante a execução):
+- **`nemo-mail.log`**: Registra **apenas** os disparos reais de SMTP e a varredura IMAP. Ideal para deixar rodando em um monitor à parte e auditar o volume de envios.
+- **`nemo-system.log`**: Registra as regras de negócio (criação de campanhas, pontuações, usuários).
+- **`nemo-debug.log`**: Arquivo mais verboso, contém as queries do Hibernate e filtros do Spring Security.
 
-Na primeira execução, o Flyway aplica as migrations em ordem:
+### 2. Frontend (React + Vite)
 
-| Migration | O que faz |
-|-----------|-----------|
-| `V1__create_schema.sql` | Cria todas as tabelas do banco (inclui `ultimo_login`, `is_real` e `pontuacao_evento` já com baseline 500) |
-| `V2__insert_defaults.sql` | Insere os tipos de acesso e o usuário admin padrão |
-| `V3__insert_modelos_base.sql` | Insere 3 modelos de e-mail base (TI, Bradesco, RH) |
-| `V4__insert_setores_base.sql` | Insere 6 setores base (Financeiro, TI, RH, Comercial, Marketing, Diretoria) |
-| `V5__insert_users_base.sql` | Insere 50 usuários alvo mock (`usuario_destino`, `is_real=FALSE`, senha = matrícula) |
-| `V6__add_perguntas_seguranca.sql` | Catálogo `pergunta_seguranca` (10 perguntas em 2 grupos) + colunas `id_pergunta_1/2` e `resposta_hash_1/2` em `usuario_destino` e `usuario_sistema` |
-| `V7__seed_dashboard.sql` | Popula 8 campanhas, ~400 disparos, eventos de pontuação e treinamentos para alimentar o dashboard com dados realistas |
-| `V8__create_treinamento.sql` | Cria o módulo de treinamentos (`treinamento`, `treinamento_video`, `treinamento_quiz`, `quiz_pergunta`, `quiz_opcao`) e popula vídeos e quizzes do portal do colaborador |
-
-> ⚠️ **Regra importante:** migrations já aplicadas **nunca devem ser editadas**. Para qualquer alteração no banco, crie um novo arquivo `V8__descricao.sql`, `V9__descricao.sql`, e assim por diante.
-
-#### 5. Acesso inicial
-
-Após subir o sistema pela primeira vez, use as credenciais padrão para entrar:
-
-| Campo | Valor |
-|-------|-------|
-| E-mail | `admin@nemo.com` |
-| Senha | `admin` |
-
-> 🔐 **No primeiro acesso, o sistema irá obrigatoriamente solicitar a troca de senha.** Defina uma senha segura antes de continuar. Essa é uma medida de segurança para garantir que a senha padrão nunca permaneça ativa em uso real.
-
----
-
-### 🎨 Frontend (React + Vite)
+Na pasta raiz do `frontend/`, instale as dependências e inicie o ambiente de desenvolvimento:
 
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
 
-O frontend ficará disponível em `http://localhost:5173`.
+Acesse em: `http://localhost:5173`. 
+> 🔐 **Acesso inicial Administrativo:** Ao rodar pela primeira vez, acesse a gestão do sistema com **E-mail:** `admin@nemo.com` e **Senha:** `admin`. O sistema exigirá a troca imediata desta senha.
+
+> 👥 **Acesso inicial do Colaborador (Alvo):** Os 50 usuários fictícios gerados no banco podem acessar o Portal do Colaborador. O login de todos eles utiliza **E-mail da empresa** e a **senha inicial é a própria Matrícula** (ex: matrícula `21000` = senha `21000`). No primeiro acesso, eles também serão obrigados a definir uma senha forte e cadastrar perguntas de segurança.
+
+### 3. Modo Offline (Plano B)
+
+Em ambientes acadêmicos ou restritos sem acesso à Internet/servidores SMTP, o Nemo possui um **Modo Offline**.
+
+1. No seu `application-local.yaml`, certifique-se de que `nemo.email.enabled: false`. O sistema simulará o envio, salvando os registros apenas no banco.
+2. Acesse a rota secreta `http://localhost:5173/caixa-entrada`. Ela atua como um Webmail falso, permitindo clicar nos e-mails de campanhas em andamento e testar a captura de vulnerabilidades sem precisar acessar uma caixa de e-mail real.
 
 ---
 
-## 🔌 Modo Offline (Plano B)
+## 📧 Captura de Denúncias via Gmail (Opcional)
 
-Pensado para o dia da apresentação: caso **não haja internet** (sem Postfix externo para envio real, sem Gmail para os reportes), o Nemo roda 100% local. Ele **simula o envio dos e-mails**, usa o **banco local** da máquina e permite demonstrar **cliques, aberturas de anexo e reportes manualmente** — sem Docker e sem ferramentas externas.
+Para o recurso automático de ganho de pontos ao denunciar um e-mail de phishing:
 
-### Como ligar
-
-**1. Ajuste o `application-local.yaml`:**
+1. Ative o **IMAP** nas configurações de uma conta do Gmail que servirá como sua "Abuse Inbox" (ex: `abuse.suaempresa@gmail.com`).
+2. Vá nas opções de segurança da Conta do Google e gere uma **Senha de Aplicativo (16 dígitos)**.
+3. Adicione ao final do seu `application-local.yaml`:
 
 ```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/nemo?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true   # MySQL local da máquina
-
 nemo:
-  email:
-    enabled: false   # não envia e-mail real — apenas registra os disparos no banco
   imap:
-    enabled: false   # não tenta ler a abuse inbox no Gmail
+    enabled: true
+    username: abuse.suaempresa@gmail.com
+    password: sua-senha-de-16-digitos-sem-espacos
 ```
-
-**2. Suba o backend e o frontend normalmente** e dispare uma campanha. Os alvos precisam estar marcados como **reais** (`is_real = true`) — são eles que aparecem na caixa simulada (os usuários "mock" de volume são ignorados).
-
-**3. Abra a caixa de entrada simulada** — uma página "externa", sem link no menu do Nemo (faz o papel do webmail da vítima):
-
-```
-http://localhost:5173/caixa-entrada
-```
-
-### Como funciona
-
-- A página reconstrói os e-mails que *teriam* sido enviados, renderizados com o **HTML real do modelo** — usando a mesma substituição de `{{LINK_AQUI}}`, `{{LINK_ANEXO}}` e `{{NOME_ALVO}}` do envio real.
-- Os links dentro do e-mail apontam para os **endpoints reais de rastreamento** (`/confirmar/{token}` e `/doc/{token}`). **Clicar registra de verdade** o clique / a abertura do anexo e leva à página de alerta de phishing.
-- O botão **"Reportar phishing"** chama o webhook real de reporte (`POST /api/tracking/webhook/reporte/{token}`), somando os pontos do colaborador.
-- Tudo é refletido no **Monitorar** da campanha e nos dashboards — é só atualizar.
-
-> 💡 Clique os links a partir de uma aba separada: o fluxo de alerta encerra a sessão atual de propósito, para você conseguir logar como colaborador e fazer o treinamento na sequência.
-
----
-
-## 🏗️ Arquitetura
-
-### Visão geral
-
-```
-┌─────────────────┐         ┌──────────────────┐         ┌──────────────┐
-│   React + Vite  │ --HTTP->│  Spring Boot API │ --JPA-->│   MySQL 8    │
-│   (porta 5173)  │         │   (porta 8080)   │         │              │
-└─────────────────┘         └────────┬─────────┘         └──────────────┘
-                                     │
-                                     │ ProcessBuilder
-                                     ▼
-                            ┌──────────────────┐
-                            │  Worker em C     │
-                            │  (multithread)   │
-                            └──────────────────┘
-```
-
-> 💡 **Nota sobre o ambiente de Apresentação/TCC:**
-> Para simplificar a infraestrutura no dia da banca, a arquitetura recomendada e homologada é uma topologia híbrida:
-> 1. **O Nemo (React + Spring Boot)** roda em `localhost` na máquina do apresentador.
-> 2. O **Disparo de E-mails** é feito através de uma VM externa rodando **Postfix** sob um domínio real (`acesso-seguro.top`), garantindo o spoofing realista.
-> 3. Os **Links de Phishing** dentro do e-mail apontam para o próprio `localhost:8080`.
-> 4. Após clicar no link (e ser penalizado), o backend redireciona a vítima para a página de alerta no próprio frontend React (`http://localhost:5173/alerta-phishing`), que a tranquiliza e a convida a realizar um treinamento.
-
-### Perfis de acesso
-
-O sistema atende a dois públicos com fluxos completamente separados:
-
-1. **Administradores (Equipe de Segurança)** — `usuario_sistema` com `tipo_acesso = Admin`. Acessam o painel de gestão para cadastrar usuários alvo, criar modelos de e-mail, disparar campanhas e visualizar o dashboard de resultados.
-2. **Usuários Destino (Alvos/Colaboradores)** — `usuario_destino`. Não fazem login no painel administrativo. Recebem os e-mails simulados e acessam um portal próprio (`/home`, `/quiz`, `/conteudos`, `/meus-graficos`) para visualizar pontuação e realizar treinamentos.
-
-### Fluxo de criação e disparo
-
-#### 1. Criação de Modelos (Envelopamento)
-O administrador cria a "fantasia" do e-mail falso através de um editor WYSIWYG (Jodit) na tela `/models`.
-- **Spoofing:** define remetente falso (ex: `ti@ti.acesso-seguro.top`) e assunto padrão.
-- **Domínio Alvo:** seleciona o subdomínio para onde a vítima será levada (ex: `bradesco.acesso-seguro.top`).
-- **Injeção dinâmica:** o corpo HTML deve conter a tag `{{LINK_AQUI}}` onde será inserido o link único da vítima. O frontend **bloqueia o salvamento** do modelo caso a tag esteja ausente (validação client-side, heurística de prevenção de erros).
-
-#### 2. Criação da Campanha
-Na tela `/create`, o admin une um Modelo a um conjunto de Setores alvo (selecionados via *chips* de múltipla escolha — ou nenhum, para envio global). Pode opcionalmente vincular um "documento" falso para rastrear abertura de anexo separadamente do clique no link principal.
-
-#### 3. Geração de tokens (Worker em C)
-Para rastrear cliques sem expor dados pessoais na URL (conformidade LGPD — trafegar `?email=vitima@empresa.com` em texto puro caracterizaria vazamento de PII), o sistema gera **tokens únicos opacos**:
-- O Spring escreve um CSV temporário com os alvos (excluindo automaticamente qualquer usuário que tenha sido promovido a **Admin**) e dispara o programa em C via `ProcessBuilder`.
-- O worker usa **múltiplas threads** para processar os alvos em paralelo, aplicando key stretching sobre `matrícula + email + departamento + ID_da_Campanha + chave_secreta`.
-- O algoritmo de hash utilizado é o **DJB2 modificado**. Os dados são manipulados em memória utilizando uma **Lista Encadeada Simples com alocação dinâmica**, evitando desperdício de memória em lotes de tamanho imprevisível.
-- A quantidade de threads é determinada em tempo de execução consultando o sistema operacional (`GetSystemInfo` no Windows ou `sysconf(_SC_NPROCESSORS_ONLN)` no Linux). O worker subtrai de 1 a 2 threads do total detectado para não saturar o servidor durante o disparo.
-- Cada token é único para **aquela combinação específica** de usuário × campanha. O token mascara a identidade do alvo e a qual campanha ele pertence.
-- Os tokens voltam num CSV de saída e são gravados em `disparos`.
-
-#### 4. Disparo de E-mails (SMTP)
-O backend lê o HTML do Modelo, substitui `{{LINK_AQUI}}`, `{{LINK_ANEXO}}` e `{{NOME_ALVO}}` pela URL contendo o token único/informações do alvo, e realiza o envio assíncrono via SMTP utilizando a classe `EmailService`.
-
-### Rastreamento
-
-| Evento | Como funciona | Onde fica registrado |
-|--------|---------------|----------------------|
-| **Clique no link** | Vítima acessa `/confirmar/{token}` → 302 redirect pro domínio falso. | `disparos.clicou_link = TRUE` |
-| **Abertura do anexo** | Vítima acessa `/doc/{token}` → o backend gera on-the-fly um arquivo `.html` com nome configurável pelo admin (ex: `relatorio.pdf.html`) contendo apenas um script de redirecionamento para a API. O arquivo não é um PDF/DOCX real, evitando bloqueios por antivírus e filtros de spam, mas registra a interação. | `disparos.abriu_anexo = TRUE` |
-| **Reporte do e-mail** | Vítima encaminha o e-mail para a *abuse inbox* → O **IMAP Listener** nativo do Spring Boot lê a caixa do Gmail, acha o token usando regex e chama o webhook interno de pontuação. | `disparos.reportou_phishing = TRUE` |
-
-#### Como funciona a captura de denúncias (IMAP Listener)
-Para evitar a complexidade de subir contêineres separados de *SMTP-to-Webhook*, o Spring Boot possui uma thread em background (`@Scheduled`) que se conecta via protocolo **IMAP** diretamente à caixa de entrada do Gmail designada como *Abuse Inbox* (ex: `nemo.phishing.report@gmail.com`). 
-De 1 em 1 minuto, o serviço lê apenas as mensagens **Não Lidas**, utiliza expressões regulares (Regex) no corpo da mensagem para pescar a URL contendo o token de rastreamento do colaborador, registra o ganho de pontos e marca a mensagem como "Lida".
-
-##### ⚙️ Como configurar o IMAP Listener:
-1. **Ative o IMAP no Gmail**: 
-   * Acesse a conta de e-mail designada como *Abuse Inbox* (ex: `nemo.phishing.report@gmail.com`).
-   * Vá em **Configurações** (ícone de engrenagem) > **Ver todas as configurações**.
-   * Acesse a aba **Encaminhamento e POP/IMAP**.
-   * Na seção **Acesso IMAP**, selecione **Ativar IMAP** e salve as alterações.
-2. **Gere uma Senha de Aplicativo (App Password)**:
-   * Acesse a página de gerenciamento da sua **Conta Google**.
-   * Vá na aba **Segurança**.
-   * Certifique-se de que a **Verificação em duas etapas** está **Ativada** (obrigatório para liberar Senhas de Aplicativo).
-   * No campo de busca superior, digite **Senhas de aplicativo** (ou *App Passwords*).
-   * Crie uma nova senha de aplicativo, dê um nome identificável (ex: `Nemo IMAP Listener`) e copie o código de **16 caracteres** gerado.
-3. **Configure as credenciais no `application-local.yaml`**:
-   No seu arquivo local do backend, insira:
-   ```yaml
-   nemo:
-     imap:
-       enabled: true
-       username: seu-email-abuse@gmail.com
-       password: codigo-de-16-caracteres-sem-espacos
-   ```
-
-### Gamificação
-
-O portal do Usuário Destino opera sob um sistema de pontuação comportamental com **saldo limitado** (0–1000) e **baseline neutro** (500). O objetivo é educar, não competir: quem errou pode se redimir via treinamentos, e novos colaboradores entram em pé de igualdade com veteranos.
-
-#### Eventos e deltas
-
-| Evento | Delta | Status | Fonte |
-|--------|-------|--------|-------|
-| Clicou no link malicioso | **−20** | ✅ implementado | hook em `/confirmar/{token}` |
-| Abriu o anexo simulado | **−30** | ✅ implementado | hook em `/doc/{token}` |
-| Reportou o e-mail à *abuse inbox* | **+30** | ✅ implementado | IMAP Listener nativo |
-| Concluiu um treinamento | **+50** | ✅ implementado | conclusão de quiz (`POST /api/treinamentos/{id}/concluir`) |
-| Ignorou o e-mail | 0 | — | — |
-
-Faixas de risco para gestão:
-
-- **0–300** → crítico (treinamento obrigatório)
-- **300–700** → atenção
-- **700–1000** → ok
-
-#### Implementação
-
-- **Saldo atual** fica denormalizado em `usuario_destino.pontuacao` (leitura rápida).
-- **Histórico completo** em `pontuacao_evento` (`id_usuario_destino`, `id_disparo` *nullable*, `id_campanha` *nullable*, `tipo_evento`, `delta`, `saldo_apos`, `referencia_externa`, `criado_em`) — alimenta o gráfico de evolução do portal e provê auditabilidade.
-- **Idempotência** garantida por índice único `(id_disparo, tipo_evento)` em `pontuacao_evento`: cliques repetidos no mesmo link só contam uma vez. Para treinamentos, a checagem é feita por `(usuario_destino, codigo_curso)` — somando o controle existente da tabela `treinamento_concluido`.
-- **Clamp** aplicado antes da gravação: o delta efetivo armazenado no histórico reflete o impacto real após o limite (ex: usuário com saldo 10 ao clicar registra `delta = -10` e `saldo_apos = 0`, não `delta = -20`).
-- **Transacional**: `PontuacaoService.aplicarEventoDisparo()` roda sob `@Transactional`, garantindo que o evento e a atualização do saldo sejam atômicos.
-
----
-
-## 📁 Estrutura do projeto
-
-```
-nemo/
-├── backend/
-│   ├── scripts/
-│   │   └── gerador_tokens_worker.c       # Worker multithread em C
-│   └── src/main/
-│       ├── java/com/nemo/api/
-│       │   ├── auth/                     # Login, JWT, troca de senha
-│       │   ├── campanha/                 # CRUD de campanhas + integração com worker
-│       │   ├── modelo/                   # CRUD de modelos de e-mail
-│       │   ├── setor/                    # Listagem de setores
-│       │   ├── tracking/                 # /confirmar e /doc (rastreamento)
-│       │   ├── config/                   # SecurityConfig, GlobalExceptionHandler
-│       │   ├── model/                    # Entidades JPA
-│       │   └── repository/               # Spring Data repositories
-│       └── resources/
-│           ├── application.yaml
-│           └── db/migration/             # Migrations Flyway (V1..V8)
-└── frontend/
-    └── src/
-        ├── components/                   # UI base, navbar, branding, routing guards
-        ├── contexts/AuthContext.jsx      # Estado de autenticação
-        ├── layouts/AppShellLayout.jsx    # Layout interno (navbar + outlet)
-        ├── pages/
-        │   ├── login/                    # ✅ Login
-        │   ├── change-password/          # ✅ Troca obrigatória
-        │   ├── campaigns/                # ✅ Criar campanha, listar, monitorar
-        │   ├── models/                   # ✅ CRUD de modelos
-        │   ├── graphics/                 # ✅ Dashboard de gráficos (integrado ao backend)
-        │   ├── settings/                 # ✅ Perfil, senha e perguntas de segurança (rota compartilhada)
-        │   ├── users/                    # ✅ CRUD completo + filtros + paginação + importação CSV
-        │   ├── admin/                    # ✅ Dashboard administrativo (KPIs, atalhos, visão geral)
-        │   ├── alerta-phishing/          # ✅ Página de alerta (redirecionamento pós clique de phishing)
-        │   └── home/                     # ✅ Portal do colaborador (Hero revamp, Velocímetro)
-        └── routes/index.jsx              # Definição de rotas
-```
-
----
-
-## 🚀 Resultados esperados
-
-Espera-se que o sistema contribua para a **conscientização dos usuários sobre ataques de phishing**, além de permitir a aplicação de conhecimentos práticos relacionados a:
-
-- 💻 Desenvolvimento de software full-stack
-- 🗄️ Modelagem e operação de banco de dados relacional
-- 🔐 Segurança da informação (autenticação, criptografia, vetores de ataque)
-- ⚡ Programação concorrente (threading em C)
+O sistema varrerá a caixa postal a cada 1 minuto processando denúncias automaticamente.
 
 ---
 
 ## 📜 Licença
 
-Este projeto está sob a licença **CC BY-NC-ND 4.0** (Creative Commons — Atribuição, Não Comercial, Sem Derivações).
+Este projeto está sob a licença **CC BY-NC-ND 4.0** (Creative Commons — Atribuição, Não Comercial, Sem Derivações). Seu uso educacional é estimulado, sendo vedada a comercialização ou derivação de código sem consentimento.
