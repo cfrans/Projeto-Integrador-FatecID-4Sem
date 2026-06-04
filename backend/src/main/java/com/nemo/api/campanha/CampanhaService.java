@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,7 +69,7 @@ public class CampanhaService {
 
         // Busca os usuários dos setores selecionados e gera os tokens (FILTRANDO ADMINS)
         List<UsuarioDestino> alvos = request.idSetores().isEmpty()
-                ? usuarioDestinoRepository.findAll()
+                ? usuarioDestinoRepository.findAll(Sort.unsorted())
                 : usuarioDestinoRepository.findBySetor_IdSetorIn(request.idSetores());
 
         // Remove da lista os usuários que têm tipo de acesso 1 (Admin) e usuários inativos

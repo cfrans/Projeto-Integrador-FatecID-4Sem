@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -143,7 +143,7 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
 
   const limparFiltros = () => { setDataInicio(""); setDataFim(""); setFiltroStatus("todos"); };
 
-  const campanhasFiltradas = campanhas.filter((c) => {
+  const campanhasFiltradas = useMemo(() => campanhas.filter((c) => {
     const arquivada = archivedIds.has(c.idCampanha);
     if (mostrarArquivados ? !arquivada : arquivada) return false;
     if (!mostrarArquivados && filtroStatus !== "todos" && c.statusEnvio !== filtroStatus) return false;
@@ -160,10 +160,13 @@ function CampaignList({ campanhas, archivedIds, onNova, onMonitorar, onArquivar 
       if (criacao > fim) return false;
     }
     return true;
-  });
+  }), [campanhas, archivedIds, mostrarArquivados, filtroStatus, dataInicio, dataFim]);
 
   const filtroAtivo = dataInicio || dataFim || filtroStatus !== "todos";
-  const totalVisiveis = campanhas.filter((c) => mostrarArquivados ? archivedIds.has(c.idCampanha) : !archivedIds.has(c.idCampanha)).length;
+  const totalVisiveis = useMemo(
+    () => campanhas.filter((c) => mostrarArquivados ? archivedIds.has(c.idCampanha) : !archivedIds.has(c.idCampanha)).length,
+    [campanhas, archivedIds, mostrarArquivados]
+  );
 
   return (
     <div className="grid gap-4">
@@ -616,9 +619,12 @@ function MonitoringView({ campanha, onBack }) {
 
   useEffect(() => { setPage(1); }, [pesquisa, setorFiltro, filtroAtivo]);
 
-  const setoresUnicos = [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort();
+  const setoresUnicos = useMemo(
+    () => [...new Set(disparos.map((d) => d.setor).filter(Boolean))].sort(),
+    [disparos]
+  );
 
-  const disparosFiltrados = disparos
+  const disparosFiltrados = useMemo(() => disparos
     .filter((d) => {
       if (filtroAtivo === "todos") return true;
       if (filtroAtivo === "clicouLink") return d.clicouLink;
@@ -632,11 +638,11 @@ function MonitoringView({ campanha, onBack }) {
       if (!pesquisa.trim()) return true;
       const q = pesquisa.toLowerCase();
       return (
-        d.nomeDestinatario.toLowerCase().includes(q) ||
-        d.emailDestinatario.toLowerCase().includes(q) ||
-        d.setor.toLowerCase().includes(q)
+        (d.nomeDestinatario ?? "").toLowerCase().includes(q) ||
+        (d.emailDestinatario ?? "").toLowerCase().includes(q) ||
+        (d.setor ?? "").toLowerCase().includes(q)
       );
-    });
+    }), [disparos, filtroAtivo, setorFiltro, pesquisa]);
 
   const totalPaginas = Math.max(1, Math.ceil(disparosFiltrados.length / pageSize));
   const paginaAtual = Math.min(page, totalPaginas);

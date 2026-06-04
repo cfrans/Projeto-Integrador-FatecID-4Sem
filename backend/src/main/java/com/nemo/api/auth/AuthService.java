@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -170,7 +171,7 @@ public class AuthService {
                 u.getIdPergunta2()
         )));
 
-        usuarioDestinoRepository.findAll().forEach(u -> todos.add(new UsuarioDTO(
+        usuarioDestinoRepository.findAll(Sort.unsorted()).forEach(u -> todos.add(new UsuarioDTO(
                 "D_" + u.getIdUsuarioDestino(),
                 u.getNome(),
                 u.getEmail(),
