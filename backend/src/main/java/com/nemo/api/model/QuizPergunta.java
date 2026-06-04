@@ -22,6 +22,6 @@ public class QuizPergunta {
     @JoinColumn(name = "id_treinamento")
     private TreinamentoQuiz treinamentoQuiz;
 
-    @OneToMany(mappedBy = "pergunta", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "pergunta", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<QuizOpcao> opcoes;
 }

@@ -18,6 +18,6 @@ public class TreinamentoQuiz extends Treinamento {
     
     private String corTema;
 
-    @OneToMany(mappedBy = "treinamentoQuiz", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "treinamentoQuiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<QuizPergunta> perguntas;
 }
