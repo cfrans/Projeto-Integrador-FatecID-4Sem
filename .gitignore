@@ -37,3 +37,4 @@ backend/target/
 .claude/
 CLAUDE.md
 GEMINI.md
+ANALISE-BUGS-PERFORMANCE.md

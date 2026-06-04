@@ -15,4 +15,16 @@ export default defineConfig({
   server: {
     host: '127.0.0.1', // ← força IPv4, evita o delay do IPv6
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react':  ['react', 'react-dom', 'react-router-dom'],
+          'vendor-charts': ['chart.js', 'react-chartjs-2'],
+          'vendor-editor': ['jodit-react'],
+        },
+      },
+    },
+  },
 })
+
