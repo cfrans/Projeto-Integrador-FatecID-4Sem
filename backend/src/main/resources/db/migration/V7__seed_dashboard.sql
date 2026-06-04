@@ -3,14 +3,14 @@
 
 -- 1) Campanhas (8 campanhas espalhadas entre Nov/2025 e Mai/2026)
 INSERT INTO campanha (nome_campanha, assunto_email, nome_anexo, status_envio, data_criacao, id_modelo, id_usuario_sistema) VALUES
-('Q4 - Senha Expirada',           'Sua senha expira em 24h - acao necessaria', 'senha_atualizar.html', 'Enviado', '2025-11-15 09:30:00', 1, 1),
-('Black Friday - Alerta Bancario','Alerta de Seguranca - Atividade suspeita',  'extrato.pdf',          'Enviado', '2025-12-10 14:00:00', 2, 1),
-('Inicio de Ano - RH Cadastro',   'Atualizacao cadastral obrigatoria',         'formulario_rh.pdf',    'Enviado', '2026-01-08 10:15:00', 3, 1),
-('Carnaval - Senha TI',           'Renovacao de credenciais obrigatoria',      'renovar.html',         'Enviado', '2026-02-12 08:45:00', 1, 1),
-('Marco - Bancario Bradesco',     'Comprovante de transacao - verificar',      'comprovante.pdf',      'Enviado', '2026-03-04 11:20:00', 2, 1),
-('RH - Holerite atualizado',      'Holerite disponivel para download',         'holerite.pdf',         'Enviado', '2026-03-22 13:50:00', 3, 1),
-('Q2 - Reset de Senha',           'Reset obrigatorio - prazo final',           'reset.html',           'Enviado', '2026-04-15 09:00:00', 1, 1),
-('Maio - Alerta Bancario',        'Notificacao de saldo - acesso urgente',     'seguranca.pdf',        'Enviado', '2026-05-10 16:30:00', 2, 1);
+('Q4 - Senha Expirada',           'Sua senha expira em 24h - acao necessaria', 'senha_atualizar.html', 'Enviado', '2025-12-15 09:30:00', 1, 1),
+('Black Friday - Alerta Bancario','Alerta de Seguranca - Atividade suspeita',  'extrato.pdf',          'Enviado', '2026-01-10 14:00:00', 2, 1),
+('Inicio de Ano - RH Cadastro',   'Atualizacao cadastral obrigatoria',         'formulario_rh.pdf',    'Enviado', '2026-02-08 10:15:00', 3, 1),
+('Carnaval - Senha TI',           'Renovacao de credenciais obrigatoria',      'renovar.html',         'Enviado', '2026-03-12 08:45:00', 1, 1),
+('Marco - Bancario Bradesco',     'Comprovante de transacao - verificar',      'comprovante.pdf',      'Enviado', '2026-04-04 11:20:00', 2, 1),
+('RH - Holerite atualizado',      'Holerite disponivel para download',         'holerite.pdf',         'Enviado', '2026-04-22 13:50:00', 3, 1),
+('Q2 - Reset de Senha',           'Reset obrigatorio - prazo final',           'reset.html',           'Enviado', '2026-05-15 09:00:00', 1, 1),
+('Maio - Alerta Bancario',        'Notificacao de saldo - acesso urgente',     'seguranca.pdf',        'Enviado', '2026-06-10 16:30:00', 2, 1);
 
 -- 2) Cada campanha atinge todos os 6 setores
 INSERT INTO setor_campanha (id_campanha, id_setor)
@@ -72,22 +72,22 @@ FROM disparos WHERE reportou_phishing = TRUE;
 
 -- 5) Treinamentos concluidos (usuarios que mais clicaram tendem a fazer treinamento)
 INSERT INTO treinamento_concluido (id_usuario_destino, codigo_curso, data_conclusao)
-SELECT id_usuario_destino, 'PHISH-101', '2026-02-20 14:00:00'
+SELECT id_usuario_destino, 'PHISH-101', '2026-03-20 14:00:00'
 FROM usuario_destino
 WHERE matricula IN (8839, 1386, 3134, 9621, 4601, 3148, 1864, 3375, 5128, 4554, 7499, 1507);
 
 INSERT INTO treinamento_concluido (id_usuario_destino, codigo_curso, data_conclusao)
-SELECT id_usuario_destino, 'PHISH-201', '2026-04-08 10:30:00'
+SELECT id_usuario_destino, 'PHISH-201', '2026-05-08 10:30:00'
 FROM usuario_destino
 WHERE matricula IN (8839, 3134, 9621, 1864, 7499);
 
 INSERT INTO pontuacao_evento (id_usuario_destino, id_disparo, id_campanha, tipo_evento, delta, saldo_apos, referencia_externa, criado_em)
-SELECT id_usuario_destino, NULL, NULL, 'TREINAMENTO', 50, 0, 'PHISH-101', '2026-02-20 14:00:00'
+SELECT id_usuario_destino, NULL, NULL, 'TREINAMENTO', 50, 0, 'PHISH-101', '2026-03-20 14:00:00'
 FROM usuario_destino
 WHERE matricula IN (8839, 1386, 3134, 9621, 4601, 3148, 1864, 3375, 5128, 4554, 7499, 1507);
 
 INSERT INTO pontuacao_evento (id_usuario_destino, id_disparo, id_campanha, tipo_evento, delta, saldo_apos, referencia_externa, criado_em)
-SELECT id_usuario_destino, NULL, NULL, 'TREINAMENTO', 50, 0, 'PHISH-201', '2026-04-08 10:30:00'
+SELECT id_usuario_destino, NULL, NULL, 'TREINAMENTO', 50, 0, 'PHISH-201', '2026-05-08 10:30:00'
 FROM usuario_destino
 WHERE matricula IN (8839, 3134, 9621, 1864, 7499);
 
@@ -110,5 +110,5 @@ JOIN (
 SET u.pontuacao = 500 + e.total;
 
 -- 8) Ultimo login variado
-UPDATE usuario_destino SET ultimo_login = DATE_SUB('2026-05-18 09:00:00', INTERVAL (matricula % 30) DAY);
-UPDATE usuario_sistema SET ultimo_login = '2026-05-17 18:23:00' WHERE email = 'admin@nemo.com';
+UPDATE usuario_destino SET ultimo_login = DATE_SUB('2026-06-11 09:00:00', INTERVAL (matricula % 30) DAY);
+UPDATE usuario_sistema SET ultimo_login = '2026-06-11 18:23:00' WHERE email = 'admin@nemo.com';
