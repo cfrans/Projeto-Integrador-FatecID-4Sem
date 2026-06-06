@@ -35,6 +35,8 @@ public class SecurityConfig {
                                 "/api/health/**",
                                 "/api/tracking/**",
                                 "/api/auth/login",
+                                "/api/campanhas",
+                                "/api/simulacao/**",
                                 "/confirmar/**",
                                 "/doc/**",
                                 "/error",
