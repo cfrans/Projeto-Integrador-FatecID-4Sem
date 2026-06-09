@@ -35,6 +35,7 @@ public class SecurityConfig {
                                 "/api/health/**",
                                 "/api/tracking/**",
                                 "/api/auth/login",
+                                "/api/auth/recuperar-senha/**",
                                 "/api/campanhas",
                                 "/api/simulacao/**",
                                 "/confirmar/**",
