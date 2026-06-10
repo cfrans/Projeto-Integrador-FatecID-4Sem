@@ -35,6 +35,13 @@ public class UsuarioDestinoService {
     }
 
     public UsuarioDestinoDTO criar(UsuarioDestinoRequest request) {
+        if (repository.existsByMatricula(request.matricula())) {
+            throw new IllegalArgumentException("Já existe um usuário com esta matrícula.");
+        }
+        if (repository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Já existe um usuário com este e-mail.");
+        }
+
         var setor = setorRepository.findById(request.idSetor())
                 .orElseThrow(() -> new ResourceNotFoundException("Setor não encontrado"));
 
@@ -61,6 +68,13 @@ public class UsuarioDestinoService {
     public UsuarioDestinoDTO atualizar(Integer id, UsuarioDestinoRequest request) {
         var usuario = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+
+        if (!usuario.getMatricula().equals(request.matricula()) && repository.existsByMatricula(request.matricula())) {
+            throw new IllegalArgumentException("Já existe um usuário com esta matrícula.");
+        }
+        if (!usuario.getEmail().equals(request.email()) && repository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Já existe um usuário com este e-mail.");
+        }
 
         var setor = setorRepository.findById(request.idSetor())
                 .orElseThrow(() -> new ResourceNotFoundException("Setor não encontrado"));
