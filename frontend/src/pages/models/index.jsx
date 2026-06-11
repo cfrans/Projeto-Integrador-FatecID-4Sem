@@ -467,9 +467,9 @@ export default function ModelsPage() {
               <Field>
                 <FieldLabel>
                   Remetente Falso (Spoofing)
-                  <InfoHint text="Quem aparece como remetente do e-mail para o alvo. Use o formato: Nome <email@dominio.com>. Ex: RH <rh@empresa-intranet.com>." />
+                  <InfoHint text="Quem aparece como remetente do e-mail para o alvo. Use o formato: Nome <email@dominio.acesso-seguro.top>. Ex: RH <rh@nemo.acesso-seguro.top>." />
                 </FieldLabel>
-                <Input value={fakeSender} onChange={(e) => setFakeSender(e.target.value)} className="h-9" placeholder="Ex: RH <rh@empresa-intranet.com>" />
+                <Input value={fakeSender} onChange={(e) => setFakeSender(e.target.value)} className="h-9" placeholder="Ex: RH <rh@empresa.acesso-seguro.top>" />
               </Field>
               <Field>
                 <FieldLabel>
