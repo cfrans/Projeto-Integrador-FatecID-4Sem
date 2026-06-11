@@ -28,7 +28,7 @@ public class TrackingService {
             d.setClicouLink(true);
             disparoRepository.save(d);
             pontuacaoService.aplicarEventoDisparo(d, TipoEvento.CLIQUE_LINK);
-            log.info("[TRACKING] Usuário {} clicou no link da campanha {} [-100 pontos]", d.getUsuarioDestino().getNome(), d.getCampanha().getNomeCampanha());
+            log.info("[TRACKING] Usuário {} clicou no link da campanha {} [-20 pontos]", d.getUsuarioDestino().getNome(), d.getCampanha().getNomeCampanha());
         });
 
         // Redireciona para a página de alerta do portal React (frontend)
@@ -48,7 +48,7 @@ public class TrackingService {
             d.setAbriuAnexo(true);
             disparoRepository.save(d);
             pontuacaoService.aplicarEventoDisparo(d, TipoEvento.ABRIU_ANEXO);
-            log.info("[TRACKING] Usuário {} abriu o anexo da campanha {} [-200 pontos]", d.getUsuarioDestino().getNome(), d.getCampanha().getNomeCampanha());
+            log.info("[TRACKING] Usuário {} abriu o anexo da campanha {} [-30 pontos]", d.getUsuarioDestino().getNome(), d.getCampanha().getNomeCampanha());
         });
 
         return "http://localhost:5173/alerta-phishing";
@@ -66,7 +66,7 @@ public class TrackingService {
             d.setReportouPhishing(true);
             disparoRepository.save(d);
             pontuacaoService.aplicarEventoDisparo(d, TipoEvento.REPORTE_PHISHING);
-            log.info("[TRACKING] Usuário {} reportou o e-mail da campanha {} [+150 pontos]", d.getUsuarioDestino().getNome(), d.getCampanha().getNomeCampanha());
+            log.info("[TRACKING] Usuário {} reportou o e-mail da campanha {} [+30 pontos]", d.getUsuarioDestino().getNome(), d.getCampanha().getNomeCampanha());
         });
     }
 
